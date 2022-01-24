@@ -1,0 +1,6 @@
+.cargo
+temp
+node_modules
+.vscode
+/bin/polkadot
+/bin/polkadot-collator
