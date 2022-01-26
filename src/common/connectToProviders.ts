@@ -5,13 +5,9 @@ import {
 // import { getAccountsInformation, loadAccounts } from './index'
 
 
-export const connectToProviders = async (sourceChainPort, targetChainPort) => {
-  const [
-    connectionDetails1, 
-    connectionDetails2
-  ] = getProviderInfo(sourceChainPort, targetChainPort);
-  const { connections } = await getConnections([connectionDetails1, connectionDetails2]);
-  const { sourceChain, targetChain } = connections;
+export const connectToProviders = async (chainPort) => {
+  const connectionDetails = getProviderInfo(chainPort);
+  const connection = await getConnections(connectionDetails);
 
   // const keyringPair = loadAccounts();
   // const sourceAccounts = await getAccountsInformation(sourceChain, targetChain, keyringPair);
@@ -23,8 +19,5 @@ export const connectToProviders = async (sourceChainPort, targetChainPort) => {
   //   target: { chain: targetChain, accounts: targetAccounts }
   // }
 
-  return { 
-    source: { chain: sourceChain }, 
-    target: { chain: targetChain }
-  }
+  return connection
 }

@@ -1,0 +1,42 @@
+{
+  "tests": [
+    {
+      "Assets": {
+        "Create": [
+          {
+            "description": "should not create the asset",
+            "extrinsics": [
+              {
+                "chain": "statemine",
+                "signer": "//Alice",
+                "pallet": "assets",
+                "call": "create",
+                "args": [
+                  8,
+                  { "Id": "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y" },
+                  1000000
+                ]
+              }
+            ],
+            "eval": [
+              {
+                "chain": "statemine",
+                "event": "assets.Created"
+              }
+            ]
+          }
+        ],
+        "Perra": {
+          "Inmunda": [
+            
+          ]
+        }
+      },
+      "Uniques": {
+        "Create": []
+      }
+    },
+    "./tests/new/extra.ts"
+  ]
+}
+

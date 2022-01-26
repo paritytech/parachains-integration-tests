@@ -11,20 +11,14 @@ const getInfo = (providerPort: string, types: ApiOptions['types']) => {
   };
 };
 
-export const getProviderInfo = (sourceChainPort, targetChainPort) => {
-  const sourceChain = getInfo(sourceChainPort, {});
-  const targetChain = targetChainPort ? getInfo(targetChainPort, {}) : undefined;
+export const getProviderInfo = (chainPort) => {
+  const sourceChain = getInfo(chainPort, {});
 
-  return [
+  return (
     {
       hasher: sourceChain.hasher,
       types: sourceChain.types,
       provider: sourceChain.provider
-    },
-    {
-      hasher: targetChain?.hasher,
-      types: targetChain?.types,
-      provider: targetChain?.provider
     }
-  ];
+  )
 };

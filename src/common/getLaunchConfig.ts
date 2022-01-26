@@ -1,6 +1,6 @@
 import { resolve } from "path";
 import fs from "fs";
-import { LaunchConfig } from "../interfaces/launchConfig";
+import { LaunchConfig, TestsConfig } from "../interfaces/filesConfig";
 
 export const getLaunchConfig = () => {
   const config_file = './config.json'
@@ -18,6 +18,26 @@ export const getLaunchConfig = () => {
   }
 
   let config: LaunchConfig = require(config_path);
+
+  return config
+}
+
+export const getTestsConfig = () => {
+  const tests_file = './tests.json'
+
+  if (!tests_file) {
+    console.error("Missing tests file argument...");
+    process.exit();
+  }
+
+  let tests_path = resolve(process.cwd(), tests_file);
+
+  if (!fs.existsSync(tests_path)) {
+    console.error("Tests file does not exist: ", tests_path);
+    process.exit();
+  }
+
+  let config: TestsConfig = require(tests_path);
 
   return config
 }

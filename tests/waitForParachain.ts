@@ -8,12 +8,13 @@ import { waitForParachainToProduceBlocks } from "../src/common/test";
 
 const main = async () => {
   let config = getLaunchConfig()
+  const paraNumber = config.parachains.length;
+  const paraPort = config.parachains[paraNumber - 1].nodes[0].wsPort
+  const paraChain = await connectToProviders(paraPort);
 
-  const paraPort = config.parachains[0].nodes[0].wsPort
-  const paraChains = await connectToProviders(paraPort, undefined);
-  const { sourceApi: paraSourceApi } = getApisFromRelays(paraChains);
+  // console.log("Entra", paraChain.api)
 
-  await waitForParachainToProduceBlocks(paraSourceApi);
+  await waitForParachainToProduceBlocks(paraChain.api);
 
   process.exit(0);
 }
