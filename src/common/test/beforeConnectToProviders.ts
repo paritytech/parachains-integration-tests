@@ -1,3 +1,4 @@
+import { throws } from 'assert';
 import {
   connectToProviders,
   getWallet,
@@ -35,6 +36,7 @@ export const beforeConnectToProviders = () => {
           providers[parachain.name] = await connectToProviders(parachain.nodes[0].wsPort)
         }
         console.log("Providers", providers)
+        this.providers = providers
       })
     )
 }

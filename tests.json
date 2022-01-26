@@ -18,7 +18,7 @@
                 ]
               }
             ],
-            "eval": [
+            "evals": [
               {
                 "chain": "statemine",
                 "event": "assets.Created"

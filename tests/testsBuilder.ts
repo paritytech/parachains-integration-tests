@@ -30,12 +30,32 @@ const isArray = (variable) => {
   return variable.constructor === Array
 }
 
-const buildIt = (test) => {
-    const { description, extrinsics } = test
+const evalsBuilder = async (evals) => {
+  
+}
+
+const extrinsicsBuilder = async (extrinsics, providers) => {
+  for (const extrinsic of extrinsics) {
+    const { chain, signer, pallet, call, args } = extrinsic
+    let api = providers[chain].api
+    let wallet = await getWallet(signer)
+
+    let nonce = await api.rpc.system.accountNextIndex(wallet.address);
+    await providers[chain].api.tx[pallet][call](...args).signAndSend(
+      wallet, 
+      { nonce, era: 0 }
+    );
+  }
+}
+
+const itsBuilder = (test) => {
+    const { description, extrinsics, evals } = test
   // return(
     it(
       description,
       function(done) {
+        extrinsicsBuilder(extrinsics, this.providers)
+        evalsBuilder(evals)
         chai.assert.equal(true, true)
         done()
       }
@@ -43,7 +63,7 @@ const buildIt = (test) => {
   // )  
 }
 
-const describeBuilder = async (tests) => {
+const describersBuilder = async (tests) => {
   // return(async () => {
     // console.log("Test", test)
     // console.log("Desc", description)
@@ -52,7 +72,7 @@ const describeBuilder = async (tests) => {
         // return(
           describe(description , async () => {
             // console.log(description)
-            await describeBuilder(tests[description])
+            await describersBuilder(tests[description])
           })
           // )
         }  
@@ -60,7 +80,7 @@ const describeBuilder = async (tests) => {
     } else if(isArray(tests) && tests.length > 0) {
         for (const test of tests) {
                   // break;
-          buildIt(test)
+          itsBuilder(test)
         }
     }
   // }
@@ -77,7 +97,7 @@ beforeConnectToProviders()
 
 // describe('Integration Tests', () => {
   for (const tests of testsConfig.tests) { 
-    describeBuilder(tests)
+    describersBuilder(tests)
   }
   // it(
   //   'should NOT create the asset',
