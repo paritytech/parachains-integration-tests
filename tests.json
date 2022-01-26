@@ -5,6 +5,21 @@
         "Create": [
           {
             "description": "should not create the asset",
+            "before": {
+                "extrinsics": [
+
+                ],
+                "queries": [
+                  {
+                    "balance_A": {
+                      "chain": "statemine",
+                      "pallet": "assets",
+                      "call": "asset",
+                      "args": [100]
+                    }
+                  }
+                ]
+            },
             "extrinsics": [
               {
                 "chain": "statemine",
@@ -15,14 +30,26 @@
                   8,
                   { "Id": "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y" },
                   1000000
+                ],
+                "events": [
+                  
+                ],
+                "queries": [
+                  {
+                    "balance_B": {
+                      "chain": "statemine",
+                      "pallet": "balances",
+                      "call": "account",
+                      "args": ["//Alice"]
+                    }
+                  }
                 ]
               }
             ],
-            "evals": [
-              {
-                "chain": "statemine",
-                "event": "assets.Created"
-              }
+            "asserts": [
+              { 
+                "equal": ["balance_B", "balance_A"]
+              }  
             ]
           }
         ],

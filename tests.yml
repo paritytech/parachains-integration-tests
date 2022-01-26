@@ -1,0 +1,49 @@
+---
+settings:
+  Assets:
+    signer: &signer "//Alice"
+    asset_id: &asset_id 8
+    admin: &admin 5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y #Charlie
+    existencial_deposit: &ed 1000000
+
+tests:
+  - Assets:
+      Create:
+        - description: should not create the asset
+          before:
+            extrinsics: []
+            queries:
+              - balance_A:
+                  chain: statemine
+                  pallet: assets
+                  call: asset
+                  args:
+                    - 100
+          extrinsics:
+            - chain: statemine
+              signer: &signer
+              pallet: assets
+              call: create
+              args:
+                - *asset_id
+                - Id: *admin
+                - *ed
+              events: []
+              queries:
+                - balance_B:
+                    chain: statemine
+                    pallet: balances
+                    call: account
+                    args:
+                      - &signer
+          asserts:
+            - equal:
+              - balance_B
+              - balance_A
+            - "./tests/asserts/":
+              - *ed
+      SetMetadata:
+        Inmunda: []
+  - Uniques:
+      Create: []
+  - "./tests/new/extra.ts"
