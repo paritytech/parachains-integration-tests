@@ -1,5 +1,6 @@
 import { resolve } from "path";
 import fs from "fs";
+import YAML from "yaml"
 import { LaunchConfig, TestsConfig } from "../interfaces/filesConfig";
 
 export const getLaunchConfig = () => {
@@ -23,12 +24,7 @@ export const getLaunchConfig = () => {
 }
 
 export const getTestsConfig = () => {
-  const tests_file = './tests.json'
-
-  if (!tests_file) {
-    console.error("Missing tests file argument...");
-    process.exit();
-  }
+  const tests_file = './tests.yml'
 
   let tests_path = resolve(process.cwd(), tests_file);
 
@@ -37,7 +33,9 @@ export const getTestsConfig = () => {
     process.exit();
   }
 
-  let config: TestsConfig = require(tests_path);
+  const file = fs.readFileSync(tests_file, 'utf8')
 
-  return config
+  // let config: TestsConfig = require(tests_path);
+
+  return YAML.parse(file)
 }

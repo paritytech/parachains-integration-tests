@@ -35,7 +35,7 @@ export const beforeConnectToProviders = () => {
         for (let parachain of config.parachains) {
           providers[parachain.name] = await connectToProviders(parachain.nodes[0].wsPort)
         }
-        console.log("Providers", providers)
+        // console.log("Providers", providers)
         this.providers = providers
       })
     )
