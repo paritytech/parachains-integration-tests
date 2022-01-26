@@ -19,40 +19,22 @@ export const waitForParachainToProduceBlocks = async (api): Promise<void> => {
   })
 }
 
-export const beforeConnectToProviders = (
-    { relay: { senderRelay, receiverRelay }, para: { senderPara, receiverPara }}
-  ) => {
-    // let config = getLaunchConfig()
-
+export const beforeConnectToProviders = () => {
     return(
       before(async function() {
         let config = getLaunchConfig()
+        let providers = {};
 
-        const relayPort = config.relaychain.nodes[0].wsPort
-        const paraPort = config.parachains[0].nodes[0].wsPort
+        providers[config.relaychain.name] = await connectToProviders(config.relaychain.nodes[0].wsPort)
 
-        const relayChains = await connectToProviders(relayPort, undefined);
-        const paraChains = await connectToProviders(paraPort, undefined);
-      
-        const { sourceApi: relaySourceApi } = getApisFromRelays(relayChains);
-        const { sourceApi: paraSourceApi } = getApisFromRelays(paraChains);
-      
-        this.paraSourceApi = paraSourceApi
-        this.relaySourceApi = relaySourceApi
+        // config.parachains.forEach(parachain => {
+        //   providers[parachain.name] = parachain.nodes[0].wsPort
+        // })
 
-        await waitForParachainToProduceBlocks(this.paraSourceApi)
-
-        this.senderRelay = await getWallet(senderRelay)
-        this.receiverRelay = await getWallet(receiverRelay)
-
-        this.senderPara = await getWallet(senderPara)
-        this.receiverPara = await getWallet(receiverPara)
-      
-        this.senderRelayBalance = await getBalance(relaySourceApi, this.senderRelay.address)
-        this.receiverParaBalance = await getBalance(paraSourceApi, this.receiverPara.address)
-      
-        this.senderParaBalance = await getBalance(paraSourceApi, this.senderPara.address)
-        this.receiverRelayBalance = await getBalance(relaySourceApi, this.receiverRelay.address)
+        for (let parachain of config.parachains) {
+          providers[parachain.name] = await connectToProviders(parachain.nodes[0].wsPort)
+        }
+        console.log("Providers", providers)
       })
     )
 }

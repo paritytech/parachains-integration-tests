@@ -9,6 +9,7 @@ export interface LaunchConfig {
 
 export interface RelayChainConfig {
 	bin: string;
+  name: string;
 	chain: string;
 	nodes: {
 		name: string;
@@ -32,6 +33,7 @@ export interface ParachainNodeConfig {
 
 export interface ParachainConfig {
 	bin: string;
+  name: string;
 	id?: string;
 	balance: string;
 	chain?: string;
@@ -50,4 +52,8 @@ export interface HrmpChannelsConfig {
 	recipient: number;
 	maxCapacity: number;
 	maxMessageSize: number;
+}
+
+export interface TestsConfig {
+	tests: any[]
 }
