@@ -11,7 +11,7 @@ settings:
 tests:
   - Assets:
       Create:
-        - description: should not create the asset
+        - description: Should create the asset
           before:
             extrinsics: []
             queries:
@@ -35,7 +35,7 @@ tests:
                   name: assets.Created
                   attribute:
                     type: u32
-                    value: 9
+                    value: *asset_id  
               queries:
                 - balance_B:
                     chain: *assets_parachain
