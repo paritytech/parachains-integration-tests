@@ -3,8 +3,19 @@ import {
   getLaunchConfig,
   getApisFromRelays
 } from '../src/common';
-import { waitForParachainToProduceBlocks } from "../src/common/test";
 
+const waitForParachainToProduceBlocks = async (api): Promise<void> => {
+  return new Promise(async resolve => {
+    const unsubHeads = await api.rpc.chain.subscribeNewHeads((lastHeader) => {
+      if (lastHeader.number >= 1) {
+        unsubHeads();
+        resolve()
+      } else {
+        console.log("Waiting for the Parachain to produce blocks...")
+      }
+    });
+  })
+}
 
 const main = async () => {
   let config = getLaunchConfig()

@@ -5,20 +5,7 @@ import {
   getLaunchConfig,
   getBalance,
   getApisFromRelays
-} from '../../common';
-
-export const waitForParachainToProduceBlocks = async (api): Promise<void> => {
-  return new Promise(async resolve => {
-    const unsubHeads = await api.rpc.chain.subscribeNewHeads((lastHeader) => {
-      if (lastHeader.number >= 1) {
-        unsubHeads();
-        resolve()
-      } else {
-        console.log("Waiting for the Parachain to produce blocks...")
-      }
-    });
-  })
-}
+} from '../src/common';
 
 export const beforeConnectToProviders = () => {
     return(
