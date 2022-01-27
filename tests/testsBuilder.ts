@@ -26,7 +26,7 @@ const isArray = (variable) => {
 
 const listenToEvent = async (providers, event): Promise<any> => {
   return new Promise(async resolve => {
-    console.log('Waiting for the Event...\n')
+    // console.log('Waiting for the Event...\n')
 
     const { chain, name, attribute: { type, value } } = event
     let api = providers[chain].api
@@ -34,17 +34,17 @@ const listenToEvent = async (providers, event): Promise<any> => {
     const unsubscribe = await api.query.system.events((events) => {
       events.forEach((record) => {
         const { event: { data, method, section, typeDef }} = record
-        console.log(section + '.' + method)
+        // console.log(section + '.' + method)
         if (name === `${section}.${method}`) {
           data.forEach((data, index) => {
             // console.log("Type", typeDef[index])
             if (type === typeDef[index].type) {
-              console.log("Data", data)
-              console.log("Value", value)
+              // console.log("Data", data)
+              // console.log("Value", value)
               if (data.toString() === value.toString()) {
-                resolve({ ok: true, message: `\tEVENT: ${name} received with ${type}: ${value}` });
+                resolve({ ok: true, message: `\n\t✅ EVENT: ${name} received with ${type}: ${value}` });
               } else {
-                resolve({ ok: false, message: `\tEVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}` });
+                resolve({ ok: false, message: `\n\t❌ EVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}` });
               }
               unsubscribe()
             }
@@ -55,7 +55,7 @@ const listenToEvent = async (providers, event): Promise<any> => {
     
     setTimeout(() => { 
         unsubscribe()
-        resolve({ ok: false, value: `\tEVENT: ${name} never reveived - TIMEOUT` });
+        resolve({ ok: false, message: `\n\t❌ EVENT: ${name} never reveived - TIMEOUT` });
     }, EVENT_LISTENER_TIMEOUT)  
   })
 }
@@ -74,7 +74,7 @@ const sendExtrinsic = async (providers, extrinsic): Promise<any> => {
       { nonce, era: 0 }
     );
 
-    resolve(`EXTRINSIC: ${pallet}.${call} with ${args}`)
+    resolve(`📩 EXTRINSIC: ${pallet}.${call} with ${args}`)
   })
 }
 
@@ -88,24 +88,24 @@ const extrinsicsBuilder = async (extrinsics, providers) => {
       return listenToEvent(providers, event)
     })
 
-    console.log("Event Promises", eventsPromises)
-    console.log("Promises", [extrinsicPromise, ...eventsPromises])
+    // console.log("Event Promises", eventsPromises)
+    // console.log("Promises", [extrinsicPromise, ...eventsPromises])
 
     let results = await Promise.all([extrinsicPromise, ...eventsPromises])
 
     let extrinsicResult = results.shift()
     console.log(extrinsicResult)
 
-    console.log("Results", results)
+    // console.log("Results", results)
 
     results.forEach(event => {
       try {
         chai.assert.equal(event.ok, true)
       } catch(err) {
         console.log(event.message)
-        throw err
+        throw ''
       }
-      event.message
+      console.log(event.message)
     });
   }
 }
