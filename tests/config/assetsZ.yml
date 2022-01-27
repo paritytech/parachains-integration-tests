@@ -1,0 +1,51 @@
+# ---
+# settings:
+#   chains:
+#     assets_parachain: &assets_parachain statemine
+#   variables:
+#     signer: &signer "//Bob"
+#     asset_id: &asset_id 10
+#     admin: &admin 5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y #Charlie
+#     existencial_deposit: &ed 1000000
+
+# tests:
+#   - Assets:
+#       Create:
+#         - description: should not create the asset
+#           before:
+#             extrinsics: []
+#             queries:
+#               - balance_A:
+#                   chain: *assets_parachain
+#                   pallet: assets
+#                   call: asset
+#                   args:
+#                     - 100
+#           extrinsics:
+#             - chain: *assets_parachain
+#               signer: *signer
+#               pallet: assets
+#               call: create
+#               args:
+#                 - *asset_id
+#                 - Id: *admin
+#                 - *ed
+#               events: []
+#               queries:
+#                 - balance_B:
+#                     chain: *assets_parachain
+#                     pallet: balances
+#                     call: account
+#                     args:
+#                       - *signer
+#           asserts:
+#             - equal:
+#               - balance_B
+#               - balance_A
+#             - "./tests/asserts/":
+#               - *ed
+#       SetMetadata:
+#         Inmunda: []
+#   - Uniques:
+#       Create: []
+#   - "./tests/new/extra.ts"

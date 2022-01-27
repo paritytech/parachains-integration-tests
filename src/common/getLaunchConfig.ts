@@ -1,7 +1,6 @@
 import { resolve } from "path";
 import fs from "fs";
-import YAML from "yaml"
-import { LaunchConfig, TestsConfig } from "../interfaces/filesConfig";
+import { LaunchConfig } from "../interfaces/filesConfig";
 
 export const getLaunchConfig = () => {
   const config_file = './config.json'
@@ -21,21 +20,4 @@ export const getLaunchConfig = () => {
   let config: LaunchConfig = require(config_path);
 
   return config
-}
-
-export const getTestsConfig = () => {
-  const tests_file = './tests.yml'
-
-  let tests_path = resolve(process.cwd(), tests_file);
-
-  if (!fs.existsSync(tests_path)) {
-    console.error("Tests file does not exist: ", tests_path);
-    process.exit();
-  }
-
-  const file = fs.readFileSync(tests_file, 'utf8')
-
-  // let config: TestsConfig = require(tests_path);
-
-  return YAML.parse(file)
 }

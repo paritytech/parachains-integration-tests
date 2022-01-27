@@ -54,6 +54,16 @@ export interface HrmpChannelsConfig {
 	maxMessageSize: number;
 }
 
+export interface Settings {
+  chains: object,
+  variables: object
+}
+
+export interface Test {
+  
+}
+
 export interface TestsConfig {
+  settings: Settings
 	tests: any[]
 }
