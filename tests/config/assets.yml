@@ -68,8 +68,31 @@ tests:
                 path: "./tests/asserts/"
                 args: [ *ed ]
         describes:
-          - name: Nested      
-      - name: SetMetadata 
+          - name: Nested
+            its:
+              - name: Should create the asset
+                extrinsics:
+                  - chain: *assets_parachain
+                    signer: *signer
+                    pallet: assets
+                    call: create
+                    args: [ 9, Id: *admin, *ed ]
+                    events:
+                      - chain: *assets_parachain
+                        name: assets.Created
+                        attribute:
+                          type: u32
+                          value: 10
+                    queries:
+                      - balance_B:
+                          chain: *assets_parachain
+                          pallet: balances
+                          call: account
+                          args:
+                            - *signer      
+      - name: SetMetadata
+        describes:
+          - name: Nested2
       
   - name: "Custom"
     custom:

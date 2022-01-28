@@ -9,24 +9,37 @@ import {
 } from '../src/common';
 import getTestsConfig from "./getTestsConfig"
 import { beforeConnectToProviders } from "./beforeConnectToProviders";
+import { TestsConfig, Describe, Before, BeforeEach, After, AfterEach, It, Extrinsic } from "./interfaces/test";
+import internal from "stream";
 
 const EVENT_LISTENER_TIMEOUT = 50000
 
-const isObject = (variable) => {
-  return (
-    typeof variable === 'object' &&
-    !Array.isArray(variable) &&
-    variable !== null
-  )  
+// const isObject = (variable) => {
+//   return (
+//     typeof variable === 'object' &&
+//     !Array.isArray(variable) &&
+//     variable !== null
+//   )  
+// }
+
+// const isArray = (variable) => {
+//   return variable.constructor === Array
+// }
+
+const buildTab = (level: number): string => {
+  let array = new Array(level).fill('    ')
+
+  let tab = array.reduce((previous, current) => {
+    return previous + current
+  })
+
+  return tab
 }
 
-const isArray = (variable) => {
-  return variable.constructor === Array
-}
-
-const listenToEvent = async (providers, event): Promise<any> => {
+const listenToEvent = async (providers, event, level): Promise<any> => {
   return new Promise(async resolve => {
     // console.log('Waiting for the Event...\n')
+    let tab = buildTab(level)
 
     const { chain, name, attribute: { type, value } } = event
     let api = providers[chain].api
@@ -42,9 +55,9 @@ const listenToEvent = async (providers, event): Promise<any> => {
               // console.log("Data", data)
               // console.log("Value", value)
               if (data.toString() === value.toString()) {
-                resolve({ ok: true, message: `\n\t✅ EVENT: ${name} received with ${type}: ${value}` });
+                resolve({ ok: true, message: `\n${tab}✅ EVENT: ${name} received with ${type}: ${value}\n` });
               } else {
-                resolve({ ok: false, message: `\n\t❌ EVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}` });
+                resolve({ ok: false, message: `\n${tab}❌ EVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
               }
               unsubscribe()
             }
@@ -55,13 +68,15 @@ const listenToEvent = async (providers, event): Promise<any> => {
     
     setTimeout(() => { 
         unsubscribe()
-        resolve({ ok: false, message: `\n\t❌ EVENT: ${name} never reveived - TIMEOUT` });
+        resolve({ ok: false, message: `\n${tab}❌ EVENT: ${name} never reveived - TIMEOUT\n` });
     }, EVENT_LISTENER_TIMEOUT)  
   })
 }
 
-const sendExtrinsic = async (providers, extrinsic): Promise<any> => {
+const sendExtrinsic = async (providers, extrinsic, level): Promise<any> => {
   return new Promise(async resolve => {
+    let tab = buildTab(level)
+
     const { chain, signer, pallet, call, args, events } = extrinsic
 
     let api = providers[chain].api
@@ -74,73 +89,128 @@ const sendExtrinsic = async (providers, extrinsic): Promise<any> => {
       { nonce, era: 0 }
     );
 
-    resolve(`📩 EXTRINSIC: ${pallet}.${call} with ${args}`)
+    resolve(`\n${tab}📩 EXTRINSIC: ${pallet}.${call} with ${JSON.stringify(args)}`)
   })
 }
 
-const extrinsicsBuilder = async (extrinsics, providers) => {
+const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, level: number) => {
   for (const extrinsic of extrinsics) {
     const { events } = extrinsic
 
-    let extrinsicPromise = sendExtrinsic(providers, extrinsic)
+    let extrinsicPromise = sendExtrinsic(providers, extrinsic, level)
 
-    let eventsPromises = events.map(event => {
-      return listenToEvent(providers, event)
+    let eventsPromises = events?.map(event => {
+      return listenToEvent(providers, event, level)
     })
 
     // console.log("Event Promises", eventsPromises)
     // console.log("Promises", [extrinsicPromise, ...eventsPromises])
+    let results
 
-    let results = await Promise.all([extrinsicPromise, ...eventsPromises])
+    if (eventsPromises) {
+      results = await Promise.all([extrinsicPromise, ...eventsPromises])
 
-    let extrinsicResult = results.shift()
-    console.log(extrinsicResult)
+      let extrinsicResult = results.shift()
+      console.log(extrinsicResult)
+      
+      results.forEach(event => {
+        try {
+          chai.assert.equal(event.ok, true)
+        } catch(err) {
+          console.log(event.message)
+          throw 'Event was not received properly'
+        }
+        console.log(event.message)
+      });
+    } else {
+      results = await Promise.all([extrinsicPromise])
+      console.log(results)
+    }
+
+    // let extrinsicResult = results.shift()
+    // console.log(extrinsicResult)
 
     // console.log("Results", results)
 
-    results.forEach(event => {
-      try {
-        chai.assert.equal(event.ok, true)
-      } catch(err) {
-        console.log(event.message)
-        throw 'Event was not received properly'
-      }
-      console.log(event.message)
-    });
+
   }
 }
 
-const itsBuilder = (test) => {
-  const { description, extrinsics } = test
+const itsBuilder = (test: It, level: number) => {
+  const { name, extrinsics } = test
 
   it(
-    description,
+    name,
     async function() {
-      await extrinsicsBuilder(extrinsics, this.providers)
+      await extrinsicsBuilder(extrinsics, this.providers, level)
+      // chai.assert.equal(true,true)
     }
   )
 }
 
-const describersBuilder = async (tests) => {
-  if(isObject(tests)) {
-    for (const description of Object.keys(tests)) {
-        describe(description , async () => {
-          await describersBuilder(tests[description])
-        })
-      }  
-  } else if(isArray(tests) && tests.length > 0) {
-      for (const test of tests) {
-        itsBuilder(test)
+const beforeBuilder = async (before: Before) => {
+  console.log("Before", before)
+}
+
+const beforeEachBuilder = async (before: BeforeEach) => {
+  console.log("BeforeEach", before)
+}
+
+const afterBuilder = async (before: After) => {
+  console.log("After", before)
+}
+
+const afterEachBuilder = async (before: AfterEach) => {
+  console.log("AfterEach", before)
+}
+
+const describersBuilder = (description: Describe, level: number) => {
+  // console.log("Entra", description.name)
+  describe(description.name, async () => {
+    level += 1
+
+    let builders = [
+      { attribute: description.before, func: beforeBuilder },
+      { attribute: description.beforeEach, func: beforeEachBuilder },
+      { attribute: description.after, func: afterBuilder },
+      { attribute: description.afterEach, func: afterEachBuilder },
+    ]
+
+    for (const builder of builders) {
+      if (builder.attribute && builder.attribute.length > 1)
+        for (const attr of builder.attribute) {
+          await builder.func(attr)
+        }
+    }
+
+    if (description.its && description.its.length > 0) {
+      for (const it of description.its) {
+        // console.log(it)
+        itsBuilder(it, level)
       }
-  }
+    }
+
+    if (description.describes && description.describes.length > 0) {
+      for (const desc of description.describes) {
+        // console.log(desc)
+        describersBuilder(desc, level)
+      }
+    }
+  })
 }
 
 const main = async () => {
   beforeConnectToProviders()
 
-  for (const testsConfig of getTestsConfig()) {
+  let testsConfig: TestsConfig
+
+  let nestingLevel = -1;
+
+  for (testsConfig of getTestsConfig()) {
+    // console.log(testsConfig)
     for (const test of testsConfig.tests) {
-      await describersBuilder(test)
+      // console.log(test)
+      describersBuilder(test, nestingLevel)
     }
   }
 }
