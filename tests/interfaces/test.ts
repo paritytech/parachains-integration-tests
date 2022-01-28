@@ -1,9 +1,13 @@
+export interface TestsConfig {
+  settings: Settings,
+  tests: Describe[],
+}
 export interface Describe {
   name: string,
-  before?: Before,
-  beforeEach?: BeforeEach,
-  after?: After,
-  afterEach?: AfterEach,
+  before?: Before[],
+  beforeEach?: BeforeEach[],
+  after?: After[],
+  afterEach?: AfterEach[],
   its?: It[],
   describes?: Describe[]
   custom?: Custom 
@@ -42,7 +46,7 @@ export interface Call {
 export interface Extrinsic extends Call {
   chain: string,
   signer: string,
-  events: Event[],
+  events?: Event[],
   queries: { [key: string]: Query }
 }
 
