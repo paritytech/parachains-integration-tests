@@ -103,7 +103,7 @@ const extrinsicsBuilder = async (extrinsics, providers) => {
         chai.assert.equal(event.ok, true)
       } catch(err) {
         console.log(event.message)
-        throw ''
+        throw 'Event was not received properly'
       }
       console.log(event.message)
     });
