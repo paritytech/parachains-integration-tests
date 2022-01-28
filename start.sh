@@ -5,7 +5,7 @@ yarn polkadot-launch:test & pid=$!
 
 wait $pid
 
-echo "---------- TESTS START ----------"
+echo "📣  TESTS START  📣"
 
 yarn test & pid2=$!
 
