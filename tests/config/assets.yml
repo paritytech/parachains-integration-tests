@@ -7,50 +7,71 @@ settings:
     asset_id: &asset_id 8
     admin: &admin 5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y #Charlie
     existencial_deposit: &ed 1000000
+  encodedCalls:
+    transferBalance:
+      chain: statemine
+      pallet: balances
+      call: transfer
+      args: [ *admin, *ed ]
 
 tests:
-  - Assets:
-      Create:
-        - description: Should create the asset
-          before:
-            extrinsics: []
-            queries:
-              - balance_A:
-                  chain: *assets_parachain
-                  pallet: assets
-                  call: asset
-                  args:
-                    - 100
-          extrinsics:
-            - chain: *assets_parachain
-              signer: *signer
-              pallet: assets
-              call: create
-              args:
-                - *asset_id
-                - Id: *admin
-                - *ed
-              events:
-                - chain: *assets_parachain
-                  name: assets.Created
-                  attribute:
-                    type: u32
-                    value: *asset_id
-              queries:
-                - balance_B:
-                    chain: *assets_parachain
-                    pallet: balances
-                    call: account
-                    args:
-                      - *signer
-          asserts:
-            - equal:
-              - balance_B
-              - balance_A
-            - "./tests/asserts/":
-              - *ed
-      SetMetadata:
-        Inmunda: []
-  - Uniques:
-      Create: []
-  - "./tests/new/extra.ts"
+  - name: Assets
+    before: []
+    beforeEach: [] 
+    after: []
+    afterEach: []
+    its: []
+    describes:
+      - name: Create
+        before:
+          - custom:
+              path: "./assets/before"
+              args: []
+            extrinsics:
+              - chain: *assets_parachain
+                signer: *signer
+                pallet: balances
+                call: transfer
+                args: [ *admin, *ed ]
+                queries:
+                  - balance_A:
+                      chain: *assets_parachain
+                      pallet: assets
+                      call: asset
+                      args:
+                        - 100
+        its:
+          - name: Should create the asset
+            extrinsics:
+              - chain: *assets_parachain
+                signer: *signer
+                pallet: assets
+                call: create
+                args: [ *asset_id, Id: *admin, *ed ]
+                events:
+                  - chain: *assets_parachain
+                    name: assets.Created
+                    attribute:
+                      type: u32
+                      value: *asset_id
+                queries:
+                  - balance_B:
+                      chain: *assets_parachain
+                      pallet: balances
+                      call: account
+                      args:
+                        - *signer
+            asserts:
+              - type: equal
+                args: [ balance_B, balance_A ]
+              - type: custom
+                path: "./tests/asserts/"
+                args: [ *ed ]
+        describes:
+          - name: Nested      
+      - name: SetMetadata 
+      
+  - name: "Custom"
+    custom:
+      path: "./tests/new/extra.ts"
+      args: []
