@@ -66,6 +66,29 @@ tests:
                       call: account
                       args:
                         - *signer
+              # - chain: *assets_parachain
+              #   signer: //Bob
+              #   pallet: assets
+              #   call: create
+              #   args: [ 88, Id: *admin, *ed ]
+              #   events:
+              #     - chain: *assets_parachain
+              #       name: assets.Created
+              #       attribute:
+              #         type: u32
+              #         value: *asset_id
+              #     - chain: *assets_parachain
+              #       name: assets.Created
+              #       attribute:
+              #         type: u32
+              #         value: 88 
+              #   queries:
+              #     - balance_B:
+              #         chain: *assets_parachain
+              #         pallet: balances
+              #         call: account
+              #         args:
+              #           - *signer          
             events:
               - chain: *assets_parachain
                 name: assets.Created
@@ -96,8 +119,8 @@ tests:
                     attribute:
                       type: u32
                       value: 9
-        describes:
-          - name: Nested
+        #describes:
+          #- name: Nested
             # its:
             #   - name: Should create the asset
             #     extrinsics:

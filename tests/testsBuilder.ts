@@ -36,15 +36,16 @@ const buildTab = (level: number): string => {
   return tab
 }
 
-const extrinsicCallback = (extrinsicEvents, level) =>
+const extrinsicCallback = (extrinsicEvents, done, level) =>
   ({ events = [], status }) => {
     let tab = buildTab(level)
-    extrinsicEvents.forEach((event) => {
-      const { chain, name, attribute: { type, value } } = event
-      
-      if (status.isInBlock) {
-        events.forEach((record: any) => {
-          const { event: { data, method, section, typeDef }} = record
+
+    if (status.isInBlock) {
+      events.forEach((record: any) => {
+        const { event: { data, method, section, typeDef }} = record
+
+        extrinsicEvents.forEach((event) => {
+          const { chain, name, attribute: { type, value } } = event
 
           if (name === `${section}.${method}`) {
             data.forEach((data, index) => {
@@ -71,11 +72,12 @@ const extrinsicCallback = (extrinsicEvents, level) =>
               }
             });
           }
-        });
-        // done()
-      }
-    }) 
-    // done() 
+        })
+      });
+      done()
+    }
+    
+    // process.exit(0)
   } 
 
 const listenToEvent = async (providers, event, level): Promise<any> => {
@@ -116,7 +118,7 @@ const listenToEvent = async (providers, event, level): Promise<any> => {
   })
 }
 
-const sendExtrinsic = async (providers, extrinsic, level) => {
+const sendExtrinsic = async (providers, extrinsic, done, level) => {
   // return new Promise(async resolve => {
     let tab = buildTab(level)
 
@@ -133,17 +135,17 @@ const sendExtrinsic = async (providers, extrinsic, level) => {
     await providers[chain].api.tx[pallet][call](...args).signAndSend(
       wallet, 
       { nonce, era: 0 },
-      extrinsicCallback(events, level)
+      extrinsicCallback(events, done, level)
     );
 
   // })
 }
 
-const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, level: number) => {
+const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, done, level: number) => {
   for (const extrinsic of extrinsics) {
     const { events } = extrinsic
 
-    await sendExtrinsic(providers, extrinsic, level)
+    await sendExtrinsic(providers, extrinsic, done, level)
 
     // let eventsPromises = events?.map(event => {
     //   return listenToEvent(providers, event, level)
@@ -184,7 +186,7 @@ const itsBuilder = (test: It, level: number) => {
     name,
     function(done) {
       if (extrinsics) {
-        extrinsicsBuilder(extrinsics, this.providers, level)
+        extrinsicsBuilder(extrinsics, this.providers, done, level)
       }
       // chai.assert.equal(true,true)
     }
