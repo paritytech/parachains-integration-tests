@@ -8,7 +8,7 @@ import {
 } from '../src/common';
 
 export const beforeConnectToProviders = () => {
-    return(
+    // return(
       before(async function() {
         let config = getLaunchConfig()
         let providers = {};
@@ -25,5 +25,5 @@ export const beforeConnectToProviders = () => {
         // console.log("Providers", providers)
         this.providers = providers
       })
-    )
+    // )
 }
