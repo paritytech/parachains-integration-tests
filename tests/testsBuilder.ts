@@ -36,6 +36,48 @@ const buildTab = (level: number): string => {
   return tab
 }
 
+const extrinsicCallback = (extrinsicEvents, level) =>
+  ({ events = [], status }) => {
+    let tab = buildTab(level)
+    extrinsicEvents.forEach((event) => {
+      const { chain, name, attribute: { type, value } } = event
+      
+      if (status.isInBlock) {
+        events.forEach((record: any) => {
+          const { event: { data, method, section, typeDef }} = record
+
+          if (name === `${section}.${method}`) {
+            data.forEach((data, index) => {
+              // console.log("Type", typeDef[index])
+              
+              if (type === typeDef[index].type) {
+                // console.log("Data", data)
+                // console.log("Value", value)
+                let result
+
+                if (data.toString() === value.toString()) {
+                  result = { ok: true, message: `\n${tab}✅ EVENT: ${name} received with ${type}: ${value}\n` };
+                } else {
+                  result = { ok: false, message: `\n${tab}❌ EVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` };
+                }
+
+                console.log(result.message)
+                // try {
+                  chai.assert.equal(result.ok, true)
+                // } catch(err) {
+                  // throw 'Event was not received properly'
+                  // throw err
+                // }
+              }
+            });
+          }
+        });
+        // done()
+      }
+    }) 
+    // done() 
+  } 
+
 const listenToEvent = async (providers, event, level): Promise<any> => {
   return new Promise(async resolve => {
     // console.log('Waiting for the Event...\n')
@@ -54,12 +96,13 @@ const listenToEvent = async (providers, event, level): Promise<any> => {
             if (type === typeDef[index].type) {
               // console.log("Data", data)
               // console.log("Value", value)
+              unsubscribe()
+
               if (data.toString() === value.toString()) {
                 resolve({ ok: true, message: `\n${tab}✅ EVENT: ${name} received with ${type}: ${value}\n` });
               } else {
                 resolve({ ok: false, message: `\n${tab}❌ EVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
               }
-              unsubscribe()
             }
           });
         }
@@ -73,8 +116,8 @@ const listenToEvent = async (providers, event, level): Promise<any> => {
   })
 }
 
-const sendExtrinsic = async (providers, extrinsic, level): Promise<any> => {
-  return new Promise(async resolve => {
+const sendExtrinsic = async (providers, extrinsic, level) => {
+  // return new Promise(async resolve => {
     let tab = buildTab(level)
 
     const { chain, signer, pallet, call, args, events } = extrinsic
@@ -84,48 +127,46 @@ const sendExtrinsic = async (providers, extrinsic, level): Promise<any> => {
 
     let nonce = await api.rpc.system.accountNextIndex(wallet.address);
 
+    // let promise = new Promise(())
+    console.log(`\n${tab}📩 EXTRINSIC: ${pallet}.${call} with ${JSON.stringify(args)}`)
+
     await providers[chain].api.tx[pallet][call](...args).signAndSend(
       wallet, 
-      { nonce, era: 0 }
+      { nonce, era: 0 },
+      extrinsicCallback(events, level)
     );
 
-    resolve(`\n${tab}📩 EXTRINSIC: ${pallet}.${call} with ${JSON.stringify(args)}`)
-  })
+  // })
 }
 
 const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, level: number) => {
   for (const extrinsic of extrinsics) {
     const { events } = extrinsic
 
-    let extrinsicPromise = sendExtrinsic(providers, extrinsic, level)
+    await sendExtrinsic(providers, extrinsic, level)
 
-    let eventsPromises = events?.map(event => {
-      return listenToEvent(providers, event, level)
-    })
+    // let eventsPromises = events?.map(event => {
+    //   return listenToEvent(providers, event, level)
+    // })
 
     // console.log("Event Promises", eventsPromises)
     // console.log("Promises", [extrinsicPromise, ...eventsPromises])
-    let results
+    // let results
 
-    if (eventsPromises) {
-      results = await Promise.all([extrinsicPromise, ...eventsPromises])
+    // if (eventsPromises) {
+    //   let eventsResults = await Promise.all(eventsPromises)
 
-      let extrinsicResult = results.shift()
-      console.log(extrinsicResult)
-      
-      results.forEach(event => {
-        try {
-          chai.assert.equal(event.ok, true)
-        } catch(err) {
-          console.log(event.message)
-          throw 'Event was not received properly'
-        }
-        console.log(event.message)
-      });
-    } else {
-      results = await Promise.all([extrinsicPromise])
-      console.log(results)
-    }
+    //   // let extrinsicResult = results.shift()
+    //   eventsResults.forEach(event => {
+    //     try {
+    //       chai.assert.equal(event.ok, true)
+    //     } catch(err) {
+    //       console.log(event.message)
+    //       throw 'Event was not received properly'
+    //     }
+    //     console.log(event.message)
+    //   });
+    // }
 
     // let extrinsicResult = results.shift()
     // console.log(extrinsicResult)
@@ -141,8 +182,10 @@ const itsBuilder = (test: It, level: number) => {
 
   it(
     name,
-    async function() {
-      await extrinsicsBuilder(extrinsics, this.providers, level)
+    function(done) {
+      if (extrinsics) {
+        extrinsicsBuilder(extrinsics, this.providers, level)
+      }
       // chai.assert.equal(true,true)
     }
   )

@@ -63,8 +63,9 @@ export interface Attribute {
 
 export interface It {
   name: string,
-  extrinsics: Extrinsic[],
-  asserts: Assert[]
+  extrinsics?: Extrinsic[],
+  events?: Event[],
+  asserts?: Assert[]
 }
 
 export interface Assert {
