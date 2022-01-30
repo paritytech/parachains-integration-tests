@@ -51,7 +51,7 @@ export interface Extrinsic extends Call {
 }
 
 export interface Event {
-  chain: string,
+  chain?: string,
   name: string,
   attribute?: Attribute
 }

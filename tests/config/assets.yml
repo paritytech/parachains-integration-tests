@@ -1,6 +1,7 @@
 ---
 settings:
   chains:
+    relay_chain: &relay_chain kusama
     assets_parachain: &assets_parachain statemine
   variables:
     signer: &signer "//Alice"
@@ -8,7 +9,7 @@ settings:
     admin: &admin 5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y #Charlie
     existencial_deposit: &ed 1000000
   encodedCalls:
-    transferBalance:
+    transfer_balance: &$transfer_balance
       chain: statemine
       pallet: balances
       call: transfer
@@ -54,16 +55,15 @@ tests:
                     attribute:
                       type: u32
                       value: *asset_id
-                  - chain: *assets_parachain
-                    name: assets.Created
+                  - name: assets.Created
                     attribute:
                       type: u32
                       value: *asset_id
-                  # - chain: *assets_parachain
-                  #   name: assets.Created2
-                  #   attribute:
-                  #     type: u32
-                  #     value: *asset_id      
+                  - chain: *relay_chain
+                    name: paraInclusion.CandidateBacked
+                    # attribute:
+                    #   type: u32
+                    #   value: *asset_id
                 queries:
                   - balance_B:
                       chain: *assets_parachain
@@ -147,7 +147,7 @@ tests:
                           call: account
                           args:
                             - *signer   
-      - name: SetMetadata
+      - name: Set Metadata
         describes:
           - name: Nested2
       
