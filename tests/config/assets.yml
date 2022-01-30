@@ -58,7 +58,12 @@ tests:
                     name: assets.Created
                     attribute:
                       type: u32
-                      value: 9   
+                      value: *asset_id
+                  # - chain: *assets_parachain
+                  #   name: assets.Created2
+                  #   attribute:
+                  #     type: u32
+                  #     value: *asset_id      
                 queries:
                   - balance_B:
                       chain: *assets_parachain
@@ -66,29 +71,29 @@ tests:
                       call: account
                       args:
                         - *signer
-              # - chain: *assets_parachain
-              #   signer: //Bob
-              #   pallet: assets
-              #   call: create
-              #   args: [ 88, Id: *admin, *ed ]
-              #   events:
-              #     - chain: *assets_parachain
-              #       name: assets.Created
-              #       attribute:
-              #         type: u32
-              #         value: *asset_id
-              #     - chain: *assets_parachain
-              #       name: assets.Created
-              #       attribute:
-              #         type: u32
-              #         value: 88 
-              #   queries:
-              #     - balance_B:
-              #         chain: *assets_parachain
-              #         pallet: balances
-              #         call: account
-              #         args:
-              #           - *signer          
+              - chain: *assets_parachain
+                signer: //Bob
+                pallet: assets
+                call: create
+                args: [ 88, Id: *admin, *ed ]
+                events:
+                  - chain: *assets_parachain
+                    name: assets.Created
+                    attribute:
+                      type: u32
+                      value: *asset_id
+                  - chain: *assets_parachain
+                    name: assets.Created
+                    attribute:
+                      type: u32
+                      value: 88 
+                queries:
+                  - balance_B:
+                      chain: *assets_parachain
+                      pallet: balances
+                      call: account
+                      args:
+                        - *signer          
             events:
               - chain: *assets_parachain
                 name: assets.Created
@@ -119,29 +124,29 @@ tests:
                     attribute:
                       type: u32
                       value: 9
-        #describes:
-          #- name: Nested
-            # its:
-            #   - name: Should create the asset
-            #     extrinsics:
-            #       - chain: *assets_parachain
-            #         signer: //Charlie
-            #         pallet: assets
-            #         call: create
-            #         args: [ 9, Id: *admin, *ed ]
-            #         events:
-            #           - chain: *assets_parachain
-            #             name: assets.Created
-            #             attribute:
-            #               type: u32
-            #               value: 10
-            #         queries:
-            #           - balance_B:
-            #               chain: *assets_parachain
-            #               pallet: balances
-            #               call: account
-            #               args:
-            #                 - *signer   
+        describes:
+          - name: Nested
+            its:
+              - name: Should create the asset nested
+                extrinsics:
+                  - chain: *assets_parachain
+                    signer: //Charlie
+                    pallet: assets
+                    call: create
+                    args: [ 9, Id: *admin, *ed ]
+                    events:
+                      - chain: *assets_parachain
+                        name: assets.Created
+                        attribute:
+                          type: u32
+                          value: 10
+                    queries:
+                      - balance_B:
+                          chain: *assets_parachain
+                          pallet: balances
+                          call: account
+                          args:
+                            - *signer   
       - name: SetMetadata
         describes:
           - name: Nested2
