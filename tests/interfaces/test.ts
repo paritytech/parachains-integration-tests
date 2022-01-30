@@ -79,3 +79,7 @@ export interface Settings {
   variables: { [key: string]: any }
   encodedCalls: { [key: string]: Call }
 }
+export interface EventResult {
+  ok: boolean,
+  message: string
+}

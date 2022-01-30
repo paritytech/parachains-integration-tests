@@ -2,7 +2,7 @@ require('dotenv').config()
 const chai = require('chai');
 var should = require('chai').should()
 import {
-  eventResultParser
+  eventResultParser, sleep
 } from "../src/common/test";
 import {
   getWallet,
@@ -11,6 +11,7 @@ import getTestsConfig from "./getTestsConfig"
 import { beforeConnectToProviders } from "./beforeConnectToProviders";
 import { TestsConfig, Describe, Before, BeforeEach, After, AfterEach, It, Extrinsic } from "./interfaces/test";
 import internal from "stream";
+import { resolveTypeReferenceDirective } from "typescript";
 
 const EVENT_LISTENER_TIMEOUT = 50000
 
@@ -36,51 +37,46 @@ const buildTab = (level: number): string => {
   return tab
 }
 
-const extrinsicCallback = (extrinsicEvents, done, level) =>
+const extrinsicCallback = (extrinsicEvents, resolve, level) =>
   ({ events = [], status }) => {
     let tab = buildTab(level)
+    let results: any[] = []
 
     if (status.isInBlock) {
       events.forEach((record: any) => {
         const { event: { data, method, section, typeDef }} = record
 
-        extrinsicEvents.forEach((event) => {
+        extrinsicEvents.forEach((event, i) => {
+          // console.log("Event", event)
           const { chain, name, attribute: { type, value } } = event
 
           if (name === `${section}.${method}`) {
-            data.forEach((data, index) => {
-              // console.log("Type", typeDef[index])
-              
-              if (type === typeDef[index].type) {
-                // console.log("Data", data)
-                // console.log("Value", value)
-                let result
-
+            data.forEach((data, j) => {              
+              if (type === typeDef[j].type) {
                 if (data.toString() === value.toString()) {
-                  result = { ok: true, message: `\n${tab}✅ EVENT: ${name} received with ${type}: ${value}\n` };
+                  results.push({ ok: true, message: `\n${tab}✅ EVENT: ${name} received with ${type}: ${value}\n` });
                 } else {
-                  result = { ok: false, message: `\n${tab}❌ EVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` };
+                  results.push({ ok: false, message: `\n${tab}❌ EVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
                 }
-
-                console.log(result.message)
-                // try {
-                  chai.assert.equal(result.ok, true)
-                // } catch(err) {
-                  // throw 'Event was not received properly'
-                  // throw err
-                // }
+                extrinsicEvents[i].received = true
               }
             });
           }
         })
       });
-      done()
+
+      // Check here if the event did not happened
+      extrinsicEvents.forEach(event => {
+          if (event.received === false) {
+            results.push({ ok: false, message: `\n${tab}❌ EVENT: ${event.name} never reveived\n` });
+          }
+      });
+
+      resolve(results)
     }
-    
-    // process.exit(0)
   } 
 
-const listenToEvent = async (providers, event, level): Promise<any> => {
+const listenToEvent = (providers, event, level): Promise<any> => {
   return new Promise(async resolve => {
     // console.log('Waiting for the Event...\n')
     let tab = buildTab(level)
@@ -101,25 +97,25 @@ const listenToEvent = async (providers, event, level): Promise<any> => {
               unsubscribe()
 
               if (data.toString() === value.toString()) {
-                resolve({ ok: true, message: `\n${tab}✅ EVENT: ${name} received with ${type}: ${value}\n` });
+                resolve({ ok: true, message: `\n${tab}✅ EVENT: ${name} received with ${type}: ${value}, level: ${level}\n` });
               } else {
-                resolve({ ok: false, message: `\n${tab}❌ EVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
+                resolve({ ok: false, message: `\n${tab}❌ EVENT: ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}, level: ${level}\n` });
               }
             }
           });
         }
       });
     });
-    
+
     setTimeout(() => { 
         unsubscribe()
-        resolve({ ok: false, message: `\n${tab}❌ EVENT: ${name} never reveived - TIMEOUT\n` });
-    }, EVENT_LISTENER_TIMEOUT)  
+        resolve({ ok: false, message: `\n${tab}❌ EVENT: ${name} never reveived\n` });
+    }, EVENT_LISTENER_TIMEOUT)
   })
 }
 
-const sendExtrinsic = async (providers, extrinsic, done, level) => {
-  // return new Promise(async resolve => {
+const sendExtrinsic = async (providers, extrinsic, level): Promise<any[]> => {
+  return new Promise(async resolve => {
     let tab = buildTab(level)
 
     const { chain, signer, pallet, call, args, events } = extrinsic
@@ -129,53 +125,28 @@ const sendExtrinsic = async (providers, extrinsic, done, level) => {
 
     let nonce = await api.rpc.system.accountNextIndex(wallet.address);
 
-    // let promise = new Promise(())
     console.log(`\n${tab}📩 EXTRINSIC: ${pallet}.${call} with ${JSON.stringify(args)}`)
+
+    let modifiedEvents = events.map(event => {
+      return {...{received: false}, ...event}
+    })
 
     await providers[chain].api.tx[pallet][call](...args).signAndSend(
       wallet, 
       { nonce, era: 0 },
-      extrinsicCallback(events, done, level)
+      extrinsicCallback(modifiedEvents, resolve, level)
     );
-
-  // })
+  })
 }
 
-const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, done, level: number) => {
+const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, level: number) => {
   for (const extrinsic of extrinsics) {
-    const { events } = extrinsic
+    let eventsResult = await sendExtrinsic(providers, extrinsic, level)
 
-    await sendExtrinsic(providers, extrinsic, done, level)
-
-    // let eventsPromises = events?.map(event => {
-    //   return listenToEvent(providers, event, level)
-    // })
-
-    // console.log("Event Promises", eventsPromises)
-    // console.log("Promises", [extrinsicPromise, ...eventsPromises])
-    // let results
-
-    // if (eventsPromises) {
-    //   let eventsResults = await Promise.all(eventsPromises)
-
-    //   // let extrinsicResult = results.shift()
-    //   eventsResults.forEach(event => {
-    //     try {
-    //       chai.assert.equal(event.ok, true)
-    //     } catch(err) {
-    //       console.log(event.message)
-    //       throw 'Event was not received properly'
-    //     }
-    //     console.log(event.message)
-    //   });
-    // }
-
-    // let extrinsicResult = results.shift()
-    // console.log(extrinsicResult)
-
-    // console.log("Results", results)
-
-
+    eventsResult.forEach(event => {
+      console.log(event.message)
+      chai.assert.equal(event.ok, true, event.message)
+      })
   }
 }
 
@@ -184,11 +155,10 @@ const itsBuilder = (test: It, level: number) => {
 
   it(
     name,
-    function(done) {
+    async function () {
       if (extrinsics) {
-        extrinsicsBuilder(extrinsics, this.providers, done, level)
+        await extrinsicsBuilder(extrinsics, this.providers, level)
       }
-      // chai.assert.equal(true,true)
     }
   )
 }
@@ -210,7 +180,6 @@ const afterEachBuilder = async (before: AfterEach) => {
 }
 
 const describersBuilder = (description: Describe, level: number) => {
-  // console.log("Entra", description.name)
   describe(description.name, async () => {
     level += 1
 
@@ -230,7 +199,6 @@ const describersBuilder = (description: Describe, level: number) => {
 
     if (description.its && description.its.length > 0) {
       for (const it of description.its) {
-        // console.log(it)
         itsBuilder(it, level)
       }
     }
