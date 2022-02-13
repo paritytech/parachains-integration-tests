@@ -24,16 +24,18 @@ tests:
     its: []
     describes:
       - name: Create
-        before:
-          - custom:
-              path: "./assets/before"
-              args: []
+        beforeEach:
+          - customs:
+              - path: "./assets/before"
+                args: []
             extrinsics:
-              - chain: *assets_parachain
+              - chain: *relay_chain
                 signer: *signer
                 pallet: balances
                 call: transfer
                 args: [ *admin, *ed ]
+                events:
+                  - name: balances.Transfer
                 queries:
                   - balance_A:
                       chain: *assets_parachain
@@ -50,82 +52,44 @@ tests:
                 call: create
                 args: [ *asset_id, Id: *admin, *ed ]
                 events:
-                  - chain: *assets_parachain
-                    name: assets.Created
-                    attribute:
-                      type: u32
-                      value: *asset_id
                   - name: assets.Created
                     attribute:
                       type: u32
                       value: *asset_id
-                  - chain: *relay_chain
-                    name: paraInclusion.CandidateBacked
-                    # attribute:
-                    #   type: u32
-                    #   value: *asset_id
                 queries:
                   - balance_B:
                       chain: *assets_parachain
                       pallet: balances
                       call: account
                       args:
-                        - *signer
-              - chain: *assets_parachain
-                signer: //Bob
-                pallet: assets
-                call: create
-                args: [ 88, Id: *admin, *ed ]
-                events:
-                  - chain: *assets_parachain
-                    name: assets.Created
-                    attribute:
-                      type: u32
-                      value: *asset_id
-                  - chain: *assets_parachain
-                    name: assets.Created
-                    attribute:
-                      type: u32
-                      value: 88 
-                queries:
-                  - balance_B:
-                      chain: *assets_parachain
-                      pallet: balances
-                      call: account
-                      args:
-                        - *signer          
-            events:
-              - chain: *assets_parachain
-                name: assets.Created
-                attribute:
-                  type: u32
-                  value: *asset_id
+                        - *signer       
             asserts:
               - type: equal
                 args: [ balance_B, balance_A ]
               - type: custom
                 path: "./tests/asserts/"
                 args: [ *ed ]
-          - name: Should create the asset 2
-            extrinsics:
-              - chain: *assets_parachain
-                signer: //Charlie
-                pallet: assets
-                call: create
-                args: [ 9, Id: *admin, *ed ]
-                events:
-                  - chain: *assets_parachain
-                    name: assets.Created
-                    attribute:
-                      type: u32
-                      value: 9
-                  - chain: *assets_parachain
-                    name: assets.Created
-                    attribute:
-                      type: u32
-                      value: 9
         describes:
           - name: Nested
+            after:
+              - customs:
+                  - path: "./assets/before"
+                    args: []
+                extrinsics:
+                  - chain: *relay_chain
+                    signer: *signer
+                    pallet: balances
+                    call: transfer
+                    args: [ *admin, *ed ]
+                    events:
+                      - name: balances.Transfer
+                    queries:
+                      - balance_A:
+                          chain: *assets_parachain
+                          pallet: assets
+                          call: asset
+                          args:
+                            - 100
             its:
               - name: Should create the asset nested
                 extrinsics:
@@ -147,10 +111,75 @@ tests:
                           call: account
                           args:
                             - *signer   
-      - name: Set Metadata
-        describes:
-          - name: Nested2
-      
+      # - name: Set Metadata
+      #   beforeEach:
+      #     - customs:
+      #         - path: "./assets/before"
+      #           args: []
+      #       extrinsics:
+      #         - chain: *relay_chain
+      #           signer: *signer
+      #           pallet: balances
+      #           call: transfer
+      #           args: [ *admin, *ed ]
+      #           events:
+      #             - name: balances.Transfer
+      #           queries:
+      #             - balance_A:
+      #                 chain: *assets_parachain
+      #                 pallet: assets
+      #                 call: asset
+      #                 args:
+      #                   - 100
+      #   its:
+      #     - name: Should create the asset
+      #       extrinsics:
+      #         - chain: *assets_parachain
+      #           signer: *signer
+      #           pallet: assets
+      #           call: create
+      #           args: [ *asset_id, Id: *admin, *ed ]
+      #           events:
+      #             - name: assets.Created
+      #               attribute:
+      #                 type: u32
+      #                 value: *asset_id
+      #           queries:
+      #             - balance_B:
+      #                 chain: *assets_parachain
+      #                 pallet: balances
+      #                 call: account
+      #                 args:
+      #                   - *signer       
+      #       asserts:
+      #         - type: equal
+      #           args: [ balance_B, balance_A ]
+      #         - type: custom
+      #           path: "./tests/asserts/"
+      #           args: [ *ed ]
+      #   describes:
+      #     - name: Nested
+      #       its:
+      #         - name: Should create the asset nested
+      #           extrinsics:
+      #             - chain: *assets_parachain
+      #               signer: //Charlie
+      #               pallet: assets
+      #               call: create
+      #               args: [ 9, Id: *admin, *ed ]
+      #               events:
+      #                 - chain: *assets_parachain
+      #                   name: assets.Created
+      #                   attribute:
+      #                     type: u32
+      #                     value: 10
+      #               queries:
+      #                 - balance_B:
+      #                     chain: *assets_parachain
+      #                     pallet: balances
+      #                     call: account
+      #                     args:
+      #                       - *signer   
   - name: "Custom"
     custom:
       path: "./tests/new/extra.ts"

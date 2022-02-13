@@ -14,7 +14,7 @@ export interface Describe {
 }
 
 export interface Before {
-  custom?: Custom
+  customs?: Custom[]
   extrinsics?: Extrinsic[]
 }
 
@@ -46,8 +46,8 @@ export interface Call {
 export interface Extrinsic extends Call {
   chain: string,
   signer: string,
-  events?: Event[],
-  queries: { [key: string]: Query }
+  events: Event[],
+  queries?: { [key: string]: Query }
 }
 
 export interface Event {
@@ -83,3 +83,5 @@ export interface EventResult {
   ok: boolean,
   message: string
 }
+
+export type Callback = (...args: any[]) => void;
