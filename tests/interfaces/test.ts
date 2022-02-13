@@ -83,5 +83,3 @@ export interface EventResult {
   ok: boolean,
   message: string
 }
-
-export type Callback = (...args: any[]) => void;
