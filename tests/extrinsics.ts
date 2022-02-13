@@ -2,6 +2,7 @@ const chai = require('chai');
 var should = require('chai').should()
 import { Extrinsic, EventResult } from "./interfaces/test";
 import { getWallet, buildTab } from "./utils";
+import { queriesBuilder } from "./queries";
 import { EVENT_LISTENER_TIMEOUT } from "../src/config";
 
 export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
@@ -9,30 +10,30 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
 
   if (events === undefined) {
     console.log(`\n⚠️  "events" should be defined for the following extrinsic:`, extrinsic)
-    process.exit(0)
+    process.exit(1)
   }
 
   if (signer === undefined) {
     console.log(`\n⚠️  "signer" should be defined for the following extrinsic:`, extrinsic)
-    process.exit(0)
+    process.exit(1)
   }
 
   if (chain === undefined) {
     console.log(`\n⚠️  "chain" should be defined for the following extrinsic:`, extrinsic)
-    process.exit(0)
+    process.exit(1)
   } else if (providers[chain] === undefined) {
     console.log(`\n⚠️  The chain name does not exist`)
-    process.exit(0)
+    process.exit(1)
   }
 
   if (pallet === undefined || call === undefined) {
     console.log(`\n⚠️  "pallet" & "call" should be defined for the following extrinsic:`, extrinsic)
-    process.exit(0)
+    process.exit(1)
   }
 
   if (args === undefined) {
     console.log(`\n⚠️  "args" should be defined for the following extrinsic:`, extrinsic)
-    process.exit(0)
+    process.exit(1)
   }
 }
 
@@ -181,13 +182,19 @@ export const sendExtrinsic = async (providers, extrinsic, indent): Promise<any[]
   })
 }
 
-export const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, indent: number) => {
+export const extrinsicsBuilder = async (context, extrinsics: Extrinsic[], providers, indent: number) => {
   for (const extrinsic of extrinsics) {
     let eventsResult = await sendExtrinsic(providers, extrinsic, indent)
+
+    if (extrinsic.queries) {
+      await queriesBuilder(context, extrinsic.queries)
+    }
 
     eventsResult.forEach(event => {
       console.log(event.message)
       chai.assert.equal(event.ok, true, event.message)
-      })
+    })
+
+
   }
 }
