@@ -12,7 +12,7 @@
     "polkadot-launch": "./node_modules/.bin/polkadot-launch config.json",
     "polkadot-launch:test": "yarn polkadot-launch & yarn wait",
     "wait": "ts-node ./tests/waitForParachain.ts",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --timeout 100000 -r ts-node/register 'tests/testsBuilder.ts'",
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --timeout 100000 -r ts-node/register 'tests/index.ts'",
     "test:xcm": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --timeout 100000 -r ts-node/register 'tests/xcm/*.ts'",
     "test:xcm:limited-teleport-asset": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --timeout 100000 -r ts-node/register 'tests/xcm/teleportAssets.ts'",
     "test:xcm:transact": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --timeout 100000 -r ts-node/register 'tests/xcm/transact.ts'",
