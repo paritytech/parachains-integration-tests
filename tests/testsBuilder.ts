@@ -6,12 +6,12 @@ import {
 } from '../src/common';
 import getTestsConfig from "./getTestsConfig"
 import { beforeConnectToProviders } from "./beforeConnectToProviders";
-import { TestsConfig, Describe, Before, BeforeEach, After, AfterEach, It, Extrinsic, EventResult } from "./interfaces/test";
+import { TestsConfig, Describe, Before, BeforeEach, After, AfterEach, It, Extrinsic, EventResult, Custom } from "./interfaces/test";
 
 const EVENT_LISTENER_TIMEOUT = 50000
 
-const buildTab = (level: number): string => {
-  let array = new Array(level).fill('    ')
+const buildTab = (indent: number): string => {
+  let array = indent > 0 ? new Array(indent).fill('    ') : ['    ']
 
   let tab = array.reduce((previous, current) => {
     return previous + current
@@ -20,9 +20,41 @@ const buildTab = (level: number): string => {
   return tab
 }
 
-const listenToEvent = (providers, event, level): Promise<EventResult> => {
+const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
+  const { chain, signer, pallet, call, args, events } = extrinsic
+
+  if (events === undefined) {
+    console.log(`\n⚠️  "events" should be defined for the following extrinsic:`, extrinsic)
+    process.exit(0)
+  }
+
+  if (signer === undefined) {
+    console.log(`\n⚠️  "signer" should be defined for the following extrinsic:`, extrinsic)
+    process.exit(0)
+  }
+
+  if (chain === undefined) {
+    console.log(`\n⚠️  "chain" should be defined for the following extrinsic:`, extrinsic)
+    process.exit(0)
+  } else if (providers[chain] === undefined) {
+    console.log(`\n⚠️  The chain name does not exist`)
+    process.exit(0)
+  }
+
+  if (pallet === undefined || call === undefined) {
+    console.log(`\n⚠️  "pallet" & "call" should be defined for the following extrinsic:`, extrinsic)
+    process.exit(0)
+  }
+
+  if (args === undefined) {
+    console.log(`\n⚠️  "args" should be defined for the following extrinsic:`, extrinsic)
+    process.exit(0)
+  }
+}
+
+const listenToEvent = (providers, event, indent): Promise<EventResult> => {
   return new Promise(async resolve => {
-    let tab = buildTab(level)
+    let tab = buildTab(indent)
 
     const { chain, name, attribute } = event
     let api = providers[chain].api
@@ -42,17 +74,17 @@ const listenToEvent = (providers, event, level): Promise<EventResult> => {
                 if (data.toString() === value.toString()) {
                   resolve({ 
                     ok: true, 
-                    message: `\n${tab}\t✅ EVENT: (${chain}) | ${name} received with [${type}: ${value}]\n` 
+                    message: `\n${tab}✅ EVENT: (${chain}) | ${name} received with [${type}: ${value}]\n` 
                   });
                 } else {
                   resolve({ 
                     ok: false, 
-                    message: `\n${tab}\t❌ EVENT: (${chain}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
+                    message: `\n${tab}❌ EVENT: (${chain}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
                 }
               }
             });
           } else {
-            resolve({ ok: true, message: `\n${tab}\t✅ EVENT: (${chain}) | ${name} received` });
+            resolve({ ok: true, message: `\n${tab}✅ EVENT: (${chain}) | ${name} received` });
           }
         }
       });
@@ -60,14 +92,14 @@ const listenToEvent = (providers, event, level): Promise<EventResult> => {
 
     setTimeout(() => { 
         unsubscribe()
-        resolve({ ok: false, message: `\n${tab}\t❌ EVENT: (${chain}) | ${name} never reveived\n` });
+        resolve({ ok: false, message: `\n${tab}❌ EVENT: (${chain}) | ${name} never reveived\n` });
     }, EVENT_LISTENER_TIMEOUT)
   })
 }
 
-const extrinsicCallback = (providers, extrinsicEvents, context, resolve, level) =>
+const extrinsicCallback = (providers, extrinsicEvents, context, resolve, indent) =>
   async ({ events = [], status }) => {
-    let tab = buildTab(level)
+    let tab = buildTab(indent)
     let results: EventResult[] = []
 
     if (status.isInBlock) {
@@ -87,12 +119,12 @@ const extrinsicCallback = (providers, extrinsicEvents, context, resolve, level) 
                   if (data.toString() === value.toString()) {
                     results.push({ 
                       ok: true, 
-                      message: `\n${tab}\t✅ EVENT: (${context}) | ${name} received with [${type}: ${value}]\n` 
+                      message: `\n${tab}✅ EVENT: (${context}) | ${name} received with [${type}: ${value}]\n` 
                     });
                   } else {
                     results.push({ 
                       ok: false, 
-                      message: `\n${tab}\t❌ EVENT: (${context}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` 
+                      message: `\n${tab}❌ EVENT: (${context}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` 
                     });
                   }
                   extrinsicEvents[i].received = true
@@ -101,7 +133,7 @@ const extrinsicCallback = (providers, extrinsicEvents, context, resolve, level) 
             } else {
               results.push({ 
                 ok: true, 
-                message: `\n${tab}\t✅ EVENT: (${context}) | ${name} received` 
+                message: `\n${tab}✅ EVENT: (${context}) | ${name} received` 
               });
             }
           }
@@ -114,10 +146,11 @@ const extrinsicCallback = (providers, extrinsicEvents, context, resolve, level) 
           if (event.local && event.received === false) {
             results.push({ 
               ok: false, 
-              message: `\n${tab}\t❌ EVENT: (${context}) | ${event.name} never reveived\n` 
+              message: `\n${tab}❌ EVENT: (${context}) | ${event.name} never reveived\n` 
             });
           } else if (!event.local && event.received === false) {
-            eventsPromises.push(listenToEvent(providers, event, level))
+            indent+=1
+            eventsPromises.push(listenToEvent(providers, event, indent))
           }
       });
 
@@ -129,9 +162,11 @@ const extrinsicCallback = (providers, extrinsicEvents, context, resolve, level) 
     }
   }
 
-const sendExtrinsic = async (providers, extrinsic, level): Promise<any[]> => {
+const sendExtrinsic = async (providers, extrinsic, indent): Promise<any[]> => {
   return new Promise(async resolve => {
-    let tab = buildTab(level)
+    let tab = buildTab(indent)
+
+    checkExtrinsic(extrinsic, providers)
 
     const { chain, signer, pallet, call, args, events } = extrinsic
 
@@ -139,7 +174,7 @@ const sendExtrinsic = async (providers, extrinsic, level): Promise<any[]> => {
     let wallet = await getWallet(signer)
 
     let nonce = await api.rpc.system.accountNextIndex(wallet.address);
-
+    
     console.log(`\n${tab}📩 EXTRINSIC: (${chain}) | ${pallet}.${call} with ${JSON.stringify(args)}`)
 
     let modifiedEvents = events.map(event => {
@@ -151,17 +186,19 @@ const sendExtrinsic = async (providers, extrinsic, level): Promise<any[]> => {
       return event
     })
 
+    indent+=1
+
     await providers[chain].api.tx[pallet][call](...args).signAndSend(
       wallet, 
       { nonce, era: 0 },
-      extrinsicCallback(providers, modifiedEvents, chain, resolve, level)
+      extrinsicCallback(providers, modifiedEvents, chain, resolve, indent)
     );
   })
 }
 
-const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, level: number) => {
+const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, indent: number) => {
   for (const extrinsic of extrinsics) {
-    let eventsResult = await sendExtrinsic(providers, extrinsic, level)
+    let eventsResult = await sendExtrinsic(providers, extrinsic, indent)
 
     eventsResult.forEach(event => {
       console.log(event.message)
@@ -170,38 +207,90 @@ const extrinsicsBuilder = async (extrinsics: Extrinsic[], providers, level: numb
   }
 }
 
-const itsBuilder = (test: It, level: number) => {
+const itsBuilder = (test: It, indent: number) => {
   const { name, extrinsics } = test
 
   it(
     name,
     async function () {
+      console.log(`\n🧪 It`)
+
       if (extrinsics) {
-        await extrinsicsBuilder(extrinsics, this.providers, level)
+        indent+=1
+        await extrinsicsBuilder(extrinsics, this.providers, indent)
       }
     }
   )
 }
 
-const beforeBuilder = async (before: Before) => {
-  console.log("Before", before)
+const hookBuilder = async (providers, customs: Custom[] | undefined, extrinsics: Extrinsic[] | undefined, indent: number) => {
+  if (customs && customs.length > 0) {
+    for (let custom of customs) {
+      // await executeCustom(providers, custom)
+      // console.log('This is a Custom', custom)
+    }
+  }
+
+  if (extrinsics && extrinsics.length > 0) {
+    for (let extrinsic of extrinsics) {
+      indent+=1
+      let event = await sendExtrinsic(providers, extrinsic, indent)
+      console.log(event[0].message)
+    }
+  }
 }
 
-const beforeEachBuilder = async (before: BeforeEach) => {
-  console.log("BeforeEach", before)
+const beforeBuilder = (hook: Before, indent: number) => {
+  const { customs, extrinsics } = hook
+
+  before(async function () {
+    console.log(`\n🪝 Before`)
+    await hookBuilder(this.providers, customs, extrinsics, indent)
+  })
 }
 
-const afterBuilder = async (before: After) => {
-  console.log("After", before)
+const beforeEachBuilder = async (hook: BeforeEach, indent: number) => {
+  const { customs, extrinsics } = hook
+
+  beforeEach(async function () {
+    console.log(`\n🪝 Before Each`)
+    await hookBuilder(this.providers, customs, extrinsics, indent)
+  })
 }
 
-const afterEachBuilder = async (before: AfterEach) => {
-  console.log("AfterEach", before)
+const afterBuilder = async (hook: After, indent: number) => {
+  const { customs, extrinsics } = hook
+
+  after(async function () {
+    console.log(`\n🪝 After`)
+    await hookBuilder(this.providers, customs, extrinsics, indent)
+  })
 }
 
-const describersBuilder = (description: Describe, level: number) => {
+const afterEachBuilder = async (hook: AfterEach, indent: number) => {
+  const { customs, extrinsics } = hook
+
+  afterEach(async function () {
+    console.log(`\n🪝 After Each`)
+    await hookBuilder(this.providers, customs, extrinsics, indent)
+  })
+}
+
+const describersBuilder = (description: Describe) => {
   describe(`#${description.name}`, async () => {
-    level += 1
+    before(function () {
+      for (let i = 0; i < 4; i++){
+        console.group()
+
+      }
+    })
+
+    after(function () {
+      for (let i = 0; i < 4; i++){
+        console.groupEnd()
+      }
+    })
+    let indent = 0
 
     let builders = [
       { attribute: description.before, func: beforeBuilder },
@@ -211,21 +300,21 @@ const describersBuilder = (description: Describe, level: number) => {
     ]
 
     for (const builder of builders) {
-      if (builder.attribute && builder.attribute.length > 1)
+      if (builder.attribute && builder.attribute.length > 0)
         for (const attr of builder.attribute) {
-          await builder.func(attr)
+          builder.func(attr, indent)
         }
     }
 
     if (description.its && description.its.length > 0) {
       for (const it of description.its) {
-        itsBuilder(it, level)
+        itsBuilder(it, indent)
       }
     }
 
     if (description.describes && description.describes.length > 0) {
       for (const desc of description.describes) {
-        describersBuilder(desc, level)
+        describersBuilder(desc)
       }
     }
   })
@@ -235,12 +324,10 @@ const main = async () => {
   beforeConnectToProviders()
 
   let testsConfig: TestsConfig
-
-  let nestingLevel = -1;
-
+  
   for (testsConfig of getTestsConfig()) {
     for (const test of testsConfig.tests) {
-      describersBuilder(test, nestingLevel)
+      describersBuilder(test)
     }
   }
 }
