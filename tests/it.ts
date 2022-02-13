@@ -11,7 +11,7 @@ export const itsBuilder = (test: It, indent: number) => {
 
       if (extrinsics) {
         indent+=1
-        await extrinsicsBuilder(extrinsics, this.providers, indent)
+        await extrinsicsBuilder(this, extrinsics, this.providers, indent)
       }
     }
   )

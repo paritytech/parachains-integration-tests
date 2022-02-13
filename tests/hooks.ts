@@ -1,6 +1,7 @@
 import { Before, BeforeEach, After, AfterEach, Custom, Extrinsic } from "./interfaces/test"
 import { customBuilder } from "./custom"
 import { sendExtrinsic } from "./extrinsics"
+import { queriesBuilder } from "./queries"
 
 export const beforeBuilder = (hook: Before, indent: number) => {
   const { customs, extrinsics } = hook
@@ -50,6 +51,10 @@ export const hookBuilder = async (context, customs: Custom[] | undefined, extrin
       indent+=1
       let event = await sendExtrinsic(context.providers, extrinsic, indent)
       console.log(event[0].message)
+
+      if (extrinsic.queries) {
+        await queriesBuilder(context, extrinsic.queries)
+      }
     }
   }
 }

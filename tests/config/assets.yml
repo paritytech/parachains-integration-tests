@@ -37,12 +37,12 @@ tests:
                 events:
                   - name: balances.Transfer
                 queries:
-                  - balance_A:
-                      chain: *assets_parachain
-                      pallet: assets
-                      call: asset
-                      args:
-                        - 100
+                  balance_A:
+                    chain: *assets_parachain
+                    pallet: assets
+                    call: asset
+                    args:
+                      - *asset_id
         its:
           - name: Should create the asset
             extrinsics:
@@ -57,12 +57,12 @@ tests:
                       type: u32
                       value: *asset_id
                 queries:
-                  - balance_B:
-                      chain: *assets_parachain
-                      pallet: balances
-                      call: account
-                      args:
-                        - *signer       
+                  balance_B:
+                    chain: *assets_parachain
+                    pallet: balances
+                    call: account
+                    args:
+                      - *admin   
             asserts:
               - type: equal
                 args: [ balance_B, balance_A ]
@@ -81,12 +81,12 @@ tests:
                     events:
                       - name: balances.Transfer
                     queries:
-                      - balance_A:
-                          chain: *assets_parachain
-                          pallet: assets
-                          call: asset
-                          args:
-                            - 100
+                      balance_A:
+                        chain: *assets_parachain
+                        pallet: assets
+                        call: asset
+                        args:
+                          - 100
             its:
               - name: Should create the asset nested
                 extrinsics:
@@ -102,12 +102,12 @@ tests:
                           type: u32
                           value: 10
                     queries:
-                      - balance_B:
-                          chain: *assets_parachain
-                          pallet: balances
-                          call: account
-                          args:
-                            - *signer   
+                      balance_B:
+                        chain: *assets_parachain
+                        pallet: balances
+                        call: account
+                        args:
+                          - *admin   
   - name: "Custom"
     custom:
       path: "./tests/new/extra.ts"

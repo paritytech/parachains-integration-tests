@@ -6,12 +6,12 @@ export const checkCustom = (custom: Custom) => {
 
   if (path === undefined) {
     console.log(`\n⚠️  "path" should be defined for the following custom file:`, custom)
-    process.exit(0)
+    process.exit(1)
   }
 
   if (args === undefined) {
     console.log(`\n⚠️  "args" should be defined for the following custom file:`, custom)
-    process.exit(0)
+    process.exit(1)
   }
 }
 
