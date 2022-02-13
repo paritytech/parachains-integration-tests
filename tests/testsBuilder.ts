@@ -1,4 +1,6 @@
 require('dotenv').config()
+import fs from "fs";
+import pathBuilder from "path";
 const chai = require('chai');
 var should = require('chai').should()
 import {
@@ -48,6 +50,20 @@ const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
 
   if (args === undefined) {
     console.log(`\n⚠️  "args" should be defined for the following extrinsic:`, extrinsic)
+    process.exit(0)
+  }
+}
+
+const checkCustom = (custom: Custom) => {
+  const { path, args } = custom
+
+  if (path === undefined) {
+    console.log(`\n⚠️  "path" should be defined for the following custom file:`, custom)
+    process.exit(0)
+  }
+
+  if (args === undefined) {
+    console.log(`\n⚠️  "args" should be defined for the following custom file:`, custom)
     process.exit(0)
   }
 }
@@ -223,18 +239,25 @@ const itsBuilder = (test: It, indent: number) => {
   )
 }
 
-const hookBuilder = async (providers, customs: Custom[] | undefined, extrinsics: Extrinsic[] | undefined, indent: number) => {
+const customBuilder = async (context, custom: Custom, indent) => {
+  let tab = buildTab(indent)
+  checkCustom(custom)
+  const { path, args } = custom
+  const customFunction = await import(path)
+  await customFunction.default(context, tab, args)
+}
+
+const hookBuilder = async (context, customs: Custom[] | undefined, extrinsics: Extrinsic[] | undefined, indent: number) => {
   if (customs && customs.length > 0) {
     for (let custom of customs) {
-      // await executeCustom(providers, custom)
-      // console.log('This is a Custom', custom)
+      await customBuilder(context, custom, indent)
     }
   }
 
   if (extrinsics && extrinsics.length > 0) {
     for (let extrinsic of extrinsics) {
       indent+=1
-      let event = await sendExtrinsic(providers, extrinsic, indent)
+      let event = await sendExtrinsic(context.providers, extrinsic, indent)
       console.log(event[0].message)
     }
   }
@@ -245,7 +268,7 @@ const beforeBuilder = (hook: Before, indent: number) => {
 
   before(async function () {
     console.log(`\n🪝 Before`)
-    await hookBuilder(this.providers, customs, extrinsics, indent)
+    await hookBuilder(this, customs, extrinsics, indent)
   })
 }
 
@@ -254,7 +277,7 @@ const beforeEachBuilder = async (hook: BeforeEach, indent: number) => {
 
   beforeEach(async function () {
     console.log(`\n🪝 Before Each`)
-    await hookBuilder(this.providers, customs, extrinsics, indent)
+    await hookBuilder(this, customs, extrinsics, indent)
   })
 }
 
@@ -263,7 +286,7 @@ const afterBuilder = async (hook: After, indent: number) => {
 
   after(async function () {
     console.log(`\n🪝 After`)
-    await hookBuilder(this.providers, customs, extrinsics, indent)
+    await hookBuilder(this, customs, extrinsics, indent)
   })
 }
 
@@ -272,12 +295,12 @@ const afterEachBuilder = async (hook: AfterEach, indent: number) => {
 
   afterEach(async function () {
     console.log(`\n🪝 After Each`)
-    await hookBuilder(this.providers, customs, extrinsics, indent)
+    await hookBuilder(this, customs, extrinsics, indent)
   })
 }
 
 const describersBuilder = (description: Describe) => {
-  describe(`#${description.name}`, async () => {
+  describe(`✔️  ${description.name}`, async () => {
     before(function () {
       for (let i = 0; i < 4; i++){
         console.group()
