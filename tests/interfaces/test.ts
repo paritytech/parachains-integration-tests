@@ -77,7 +77,7 @@ export interface Assert {
 export interface Settings {
   chains: { [key: string]: string }
   variables: { [key: string]: any }
-  encodedCalls: { [key: string]: Call }
+  decodedCalls: { [key: string]: Call }
 }
 export interface EventResult {
   ok: boolean,
