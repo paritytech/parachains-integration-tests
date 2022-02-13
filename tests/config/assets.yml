@@ -8,8 +8,8 @@ settings:
     asset_id: &asset_id 8
     admin: &admin 5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y #Charlie
     existencial_deposit: &ed 1000000
-  encodedCalls:
-    transfer_balance: &$transfer_balance
+  decodedCalls:
+    transfer_balance:
       chain: statemine
       pallet: balances
       call: transfer

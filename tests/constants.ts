@@ -1,0 +1,1 @@
+export const EVENT_LISTENER_TIMEOUT = 50000
