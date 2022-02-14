@@ -45,6 +45,11 @@ tests:
                       - *asset_id
         its:
           - name: Should create the asset
+            customs:
+              - path: ./assets/custom_it.ts
+                args: [ *admin, *ed ]
+              - path: ./assets/custom_it.ts
+                args: [ *ed ]  
             extrinsics:
               - chain: *assets_parachain
                 signer: *signer
@@ -62,12 +67,14 @@ tests:
                     pallet: balances
                     call: account
                     args:
-                      - *admin   
+                      - *admin 
             asserts:
-              - type: equal
-                args: [ balance_B, balance_A ]
-              - type: custom
-                path: "./tests/asserts/"
+              equal:
+                args: [ $balance_B, $balance_A ]
+              deepEqual:
+                args: [ $balance_B, $balance_A ]
+              custom:
+                path: "./assets/custom_assert.ts"
                 args: [ *ed ]
         describes:
           - name: Nested
@@ -79,14 +86,7 @@ tests:
                     call: transfer
                     args: [ *admin, *ed ]
                     events:
-                      - name: balances.Transfer
-                    queries:
-                      balance_A:
-                        chain: *assets_parachain
-                        pallet: assets
-                        call: asset
-                        args:
-                          - 100
+                      - name: balances.Transfer        
             its:
               - name: Should create the asset nested
                 extrinsics:
@@ -101,14 +101,8 @@ tests:
                         attribute:
                           type: u32
                           value: 10
-                    queries:
-                      balance_B:
-                        chain: *assets_parachain
-                        pallet: balances
-                        call: account
-                        args:
-                          - *admin   
+          - name: "Custom Nested"
+            its: []
   - name: "Custom"
-    custom:
-      path: "./tests/new/extra.ts"
-      args: []
+    its:
+      - name: Should create the asset

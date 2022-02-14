@@ -5,12 +5,12 @@ export const checkCustom = (custom: Custom) => {
   const { path, args } = custom
 
   if (path === undefined) {
-    console.log(`\n⚠️  "path" should be defined for the following custom file:`, custom)
+    console.log(`\n⚠️  "path" should be defined for the following custom file:`, JSON.stringify(custom))
     process.exit(1)
   }
 
   if (args === undefined) {
-    console.log(`\n⚠️  "args" should be defined for the following custom file:`, custom)
+    console.log(`\n⚠️  "args" should be defined for the following custom file:`, JSON.stringify(custom))
     process.exit(1)
   }
 }
