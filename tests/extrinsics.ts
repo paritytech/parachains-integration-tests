@@ -9,17 +9,17 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   const { chain, signer, pallet, call, args, events } = extrinsic
 
   if (events === undefined) {
-    console.log(`\n⚠️  "events" should be defined for the following extrinsic:`, extrinsic)
+    console.log(`\n⚠️  "events" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
     process.exit(1)
   }
 
   if (signer === undefined) {
-    console.log(`\n⚠️  "signer" should be defined for the following extrinsic:`, extrinsic)
+    console.log(`\n⚠️  "signer" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
     process.exit(1)
   }
 
   if (chain === undefined) {
-    console.log(`\n⚠️  "chain" should be defined for the following extrinsic:`, extrinsic)
+    console.log(`\n⚠️  "chain" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
     process.exit(1)
   } else if (providers[chain] === undefined) {
     console.log(`\n⚠️  The chain name does not exist`)
@@ -27,12 +27,12 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   }
 
   if (pallet === undefined || call === undefined) {
-    console.log(`\n⚠️  "pallet" & "call" should be defined for the following extrinsic:`, extrinsic)
+    console.log(`\n⚠️  "pallet" & "call" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
     process.exit(1)
   }
 
   if (args === undefined) {
-    console.log(`\n⚠️  "args" should be defined for the following extrinsic:`, extrinsic)
+    console.log(`\n⚠️  "args" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
     process.exit(1)
   }
 }

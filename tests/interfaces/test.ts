@@ -8,9 +8,8 @@ export interface Describe {
   beforeEach?: BeforeEach[],
   after?: After[],
   afterEach?: AfterEach[],
-  its?: It[],
+  its: It[],
   describes?: Describe[]
-  custom?: Custom 
 }
 
 export interface Before {
@@ -25,8 +24,9 @@ export interface After  extends Before {}
 export interface AfterEach  extends Before {}
 
 export interface Custom {
+  type: 'custom'
   path: string
-  args?: any[]
+  args: any[]
 }
 
 export interface Query {
@@ -63,17 +63,18 @@ export interface Attribute {
 
 export interface It {
   name: string,
-  extrinsics?: Extrinsic[],
-  events?: Event[],
-  asserts?: Assert[]
+  customs?: Custom[]
+  extrinsics?: Extrinsic[]
+  events?: Event[]
+  asserts?: { [key: string]: AssertOrCustom }
 }
 
 export interface Assert {
-  type: string,
+  type: 'assert'
   args: any[],
-  path?: string,
 }
 
+export type AssertOrCustom = Assert | Custom
 export interface Settings {
   chains: { [key: string]: string }
   variables: { [key: string]: any }
