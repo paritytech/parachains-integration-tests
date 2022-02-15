@@ -20,7 +20,7 @@ const checkAssert = (key: string, assert: AssertOrCustom) => {
 
   if (key === 'custom' && assert.type === 'custom') {
     const { path } = assert
-    console.log("entra en chedk")
+
     if (!path) {
       console.log(`\n⚠️  "path" should be defined for the following assert: "custom": ${JSON.stringify(assert)}`)
       process.exit(1)

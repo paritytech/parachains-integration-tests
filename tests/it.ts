@@ -48,7 +48,6 @@ export const itsBuilder = (test: It, indent: number) => {
       }
 
       if (asserts) {
-        console.log("Entra en Asserts")
         await assertsBuilder(this, asserts, indent)
       }
     }
