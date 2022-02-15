@@ -5,10 +5,15 @@ import fs from "fs";
 const getFiles = (src) => {
   let testsFiles = glob.sync(src)
 
-  return testsFiles = testsFiles.map(tesFile => {
-    const file = fs.readFileSync(tesFile, 'utf8')
-    return(YAML.parse(file))
-  })
+  try {
+    return testsFiles = testsFiles.map(tesFile => {
+      const file = fs.readFileSync(tesFile, 'utf8')
+      return(YAML.parse(file))
+    })
+  } catch(e) {
+    console.log(e)
+    process.exit(1)
+  }
 }
 
 const getTestsConfig = () => {

@@ -26,10 +26,12 @@ export const getLaunchConfig = () => {
   return config
 }
 
-export const buildEncodedCall = (providers, decodedCall: Call) => {
+export const buildEncodedCall = (context, decodedCall: Call) => {
   const { chain, pallet, call, args } = decodedCall
+  let providers = context.providers
+  let parsedArgs = parseArgs(context, args)
 
-  let encodedCall = providers[chain].api.tx[pallet][call](...args)
+  let encodedCall = providers[chain].api.tx[pallet][call](...parsedArgs)
 
   return u8aToHex((encodedCall).toU8a().slice(2))
 }
@@ -53,5 +55,28 @@ export const buildTab = (indent: number): string => {
   })
 
   return tab
+}
+
+export const parseArgs = (context, args): any[] => {
+  let variables = context.variables
+  let strigifiedArg = JSON.stringify(args)
+  let keys = Object.keys(variables)
+
+  for (let i=0; i < keys.length; i++) {
+    let pattern = `"\\${keys[i]}"`
+    let regex = new RegExp(pattern, 'g')
+    if (strigifiedArg.match(regex)) {
+      let replacement = variables[keys[i]]
+      if (typeof replacement === "string") {
+        strigifiedArg = strigifiedArg.replace(regex, `"${variables[keys[i]]}"`);
+      } else if (typeof replacement === "number" ) {
+        strigifiedArg = strigifiedArg.replace(regex, `${variables[keys[i]]}`);
+      } else if (typeof replacement === "object") {
+        strigifiedArg = strigifiedArg.replace(regex, `${JSON.stringify(variables[keys[i]])}`);
+      }
+      i=-1
+    }
+  }
+  return JSON.parse(strigifiedArg)
 }
 

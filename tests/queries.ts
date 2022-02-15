@@ -1,4 +1,5 @@
 import { Query } from "./interfaces/test";
+import { parseArgs } from "./utils";
 
 export const checkQuery = (key: string, query: Query, providers) => {
   const { chain, pallet, call, args } = query
@@ -22,18 +23,19 @@ export const checkQuery = (key: string, query: Query, providers) => {
   }
 }
 
-export const sendQuery = async (key: string, query: Query, providers) => {
+export const sendQuery = async (context, key: string, query: Query) => {
+  let providers = context.providers
   checkQuery(key, query, providers)
   const { chain, pallet, call, args } = query
-  // console.log(providers)
-  let result = await providers[chain].api.query[pallet][call](...args)
+  let parsedArgs = parseArgs(context, args)
+  let result = await providers[chain].api.query[pallet][call](...parsedArgs)
   return result.toJSON()
 }
 
 export const queriesBuilder = async (context, queries: { [key: string]: Query }) => {
     for (let key of Object.keys(queries)) {
       if (!context.queries[key]) {
-        context.queries[key] = await sendQuery(key, queries[key], context.providers)
+        context.queries[key] = await sendQuery(context, key, queries[key])
       } else {
         console.log(`\n⚠️  the query key id "${key}" can not be reassigend`)
         process.exit(1)
