@@ -17,7 +17,7 @@ const checkDescriptor = (descriptor: Describe) => {
 export const describersBuilder = (description: Describe) => {
   checkDescriptor(description)
 
-  describe(`📚 ${description.name}`, async () => {
+  describe(`\n📚 ${description.name}`, async () => {
     before(function () {
       for (let i = 0; i < 4; i++){
         console.group()

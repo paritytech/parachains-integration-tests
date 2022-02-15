@@ -1,9 +1,10 @@
 ---
 settings:
-  polkadotLaunch: true
   chains:
-    relay_chain: &relay_chain kusama
-    assets_parachain: &assets_parachain statemine
+    relay_chain: &relay_chain
+      wsPort: 9944
+    assets_parachain: &assets_parachain
+      wsPort: 9988
   variables:
     signer: &signer "//Alice"
     asset_id: &asset_id 8
@@ -11,7 +12,7 @@ settings:
     existencial_deposit: &ed 1000000
   decodedCalls:
     transfer_balance:
-      chain: statemine
+      chain: *assets_parachain
       pallet: balances
       call: transfer
       args: [ *admin, *ed ]

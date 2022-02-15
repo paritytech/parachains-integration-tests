@@ -1,6 +1,6 @@
 const chai = require('chai');
 var should = require('chai').should()
-import { Extrinsic, EventResult } from "./interfaces/test";
+import { Extrinsic, EventResult, Event } from "./interfaces/test";
 import { getWallet, buildTab, parseArgs } from "./utils";
 import { queriesBuilder } from "./queries";
 import { EVENT_LISTENER_TIMEOUT } from "../src/config";
@@ -21,7 +21,7 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   if (chain === undefined) {
     console.log(`\n⚠️  "chain" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
     process.exit(1)
-  } else if (providers[chain] === undefined) {
+  } else if (providers[chain.wsPort] === undefined) {
     console.log(`\n⚠️  The chain name does not exist`)
     process.exit(1)
   }
@@ -37,12 +37,13 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   }
 }
 
-export const listenToEvent = (providers, event, indent): Promise<EventResult> => {
+export const listenToEvent = (providers, event, indent: number): Promise<EventResult> => {
   return new Promise(async resolve => {
     let tab = buildTab(indent)
 
     const { chain, name, attribute } = event
-    let api = providers[chain].api
+    let api = providers[chain?.wsPort].api
+    let chainName = providers[chain?.wsPort].name
 
     const unsubscribe = await api.query.system.events((events) => {
       events.forEach((record) => {
@@ -59,17 +60,17 @@ export const listenToEvent = (providers, event, indent): Promise<EventResult> =>
                 if (data.toString() === value.toString()) {
                   resolve({ 
                     ok: true, 
-                    message: `\n${tab}✅ EVENT: (${chain}) | ${name} received with [${type}: ${value}]\n` 
+                    message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${value}]\n` 
                   });
                 } else {
                   resolve({ 
                     ok: false, 
-                    message: `\n${tab}❌ EVENT: (${chain}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
+                    message: `\n${tab}❌ EVENT: (${chainName}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
                 }
               }
             });
           } else {
-            resolve({ ok: true, message: `\n${tab}✅ EVENT: (${chain}) | ${name} received` });
+            resolve({ ok: true, message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received` });
           }
         }
       });
@@ -77,12 +78,12 @@ export const listenToEvent = (providers, event, indent): Promise<EventResult> =>
 
     setTimeout(() => { 
         unsubscribe()
-        resolve({ ok: false, message: `\n${tab}❌ EVENT: (${chain}) | ${name} never reveived\n` });
+        resolve({ ok: false, message: `\n${tab}❌ EVENT: (${chainName}) | ${name} never reveived\n` });
     }, EVENT_LISTENER_TIMEOUT)
   })
 }
 
-export const extrinsicCallback = (providers, extrinsicEvents, context, resolve, indent) =>
+export const extrinsicCallback = (providers, extrinsicEvents, chainContext, resolve, indent) =>
   async ({ events = [], status }) => {
     let tab = buildTab(indent)
     let results: EventResult[] = []
@@ -93,7 +94,8 @@ export const extrinsicCallback = (providers, extrinsicEvents, context, resolve, 
 
         extrinsicEvents.forEach((event, i) => {
           const { chain, name, local, attribute } = event
-          context = chain ? chain : context
+          let chainName = providers[chain.wsPort].name
+          chainContext = chainName ? chainName : chainContext
 
           if (local && name === `${section}.${method}`) {
             if (attribute) {
@@ -104,12 +106,12 @@ export const extrinsicCallback = (providers, extrinsicEvents, context, resolve, 
                   if (data.toString() === value.toString()) {
                     results.push({ 
                       ok: true, 
-                      message: `\n${tab}✅ EVENT: (${context}) | ${name} received with [${type}: ${value}]\n` 
+                      message: `\n${tab}✅ EVENT: (${chainContext}) | ${name} received with [${type}: ${value}]\n` 
                     });
                   } else {
                     results.push({ 
                       ok: false, 
-                      message: `\n${tab}❌ EVENT: (${context}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` 
+                      message: `\n${tab}❌ EVENT: (${chainContext}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` 
                     });
                   }
                   extrinsicEvents[i].received = true
@@ -118,7 +120,7 @@ export const extrinsicCallback = (providers, extrinsicEvents, context, resolve, 
             } else {
               results.push({ 
                 ok: true, 
-                message: `\n${tab}✅ EVENT: (${context}) | ${name} received` 
+                message: `\n${tab}✅ EVENT: (${chainContext}) | ${name} received` 
               });
             }
           }
@@ -131,7 +133,7 @@ export const extrinsicCallback = (providers, extrinsicEvents, context, resolve, 
           if (event.local && event.received === false) {
             results.push({ 
               ok: false, 
-              message: `\n${tab}❌ EVENT: (${context}) | ${event.name} never reveived\n` 
+              message: `\n${tab}❌ EVENT: (${chainContext}) | ${event.name} never reveived\n` 
             });
           } else if (!event.local && event.received === false) {
             indent+=1
@@ -148,7 +150,7 @@ export const extrinsicCallback = (providers, extrinsicEvents, context, resolve, 
   }
 
 
-export const sendExtrinsic = async (context, extrinsic, indent): Promise<any[]> => {
+export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Promise<any[]> => {
   return new Promise(async resolve => {
     try {
       let tab = buildTab(indent)
@@ -157,19 +159,19 @@ export const sendExtrinsic = async (context, extrinsic, indent): Promise<any[]> 
       checkExtrinsic(extrinsic, providers)
   
       const { chain, signer, pallet, call, args, events } = extrinsic
-  
-      let parsedArgs = parseArgs(context, args)
-  
-      let api = providers[chain].api
+
+      let chainName = providers[chain.wsPort].name
+      let api = providers[chain.wsPort].api
       let wallet = await getWallet(signer)
+      let parsedArgs = parseArgs(context, args)
   
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
       
-      console.log(`\n${tab}📩 EXTRINSIC: (${chain}) | ${pallet}.${call} with ${JSON.stringify(args)}`)
-  
+      console.log(`\n${tab}📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args)}`)
+
       let modifiedEvents = events.map(event => {
         if (event.chain === chain || !event.chain) {
-          event = {...{ local: true, received: false }, ...event}
+          event = {...{ local: true, received: false, chain: chain }, ...event}
         } else {
           event = {...{ local: false, received: false }, ...event}
         }
@@ -177,11 +179,10 @@ export const sendExtrinsic = async (context, extrinsic, indent): Promise<any[]> 
       })
   
       indent+=1
-  
-      await providers[chain].api.tx[pallet][call](...parsedArgs).signAndSend(
+      await api.tx[pallet][call](...parsedArgs).signAndSend(
         wallet, 
         { nonce, era: 0 },
-        extrinsicCallback(providers, modifiedEvents, chain, resolve, indent)
+        extrinsicCallback(providers, modifiedEvents, chainName, resolve, indent)
       );
     }catch(e) {
       console.log(e)

@@ -30,28 +30,28 @@ export interface Custom {
 }
 
 export interface Query {
-  chain: string,
+  chain: Chain,
   pallet: string,
   call: string,
   args: any[],
 }
 
 export interface Call {
-  chain: string,
+  chain: Chain,
   pallet: string,
   call: string,
   args: any[],
 }
 
 export interface Extrinsic extends Call {
-  chain: string,
+  chain: Chain,
   signer: string,
   events: Event[],
   queries?: { [key: string]: Query }
 }
 
 export interface Event {
-  chain?: string,
+  chain: Chain,
   name: string,
   attribute?: Attribute
 }
@@ -75,8 +75,12 @@ export interface Assert {
 }
 
 export type AssertOrCustom = Assert | Custom
+
+export interface Chain {
+  wsPort: number | string
+}
 export interface Settings {
-  chains: { [key: string]: string }
+  chains: { [key: string]: Chain }
   variables: { [key: string]: any }
   decodedCalls: { [key: string]: Call }
 }

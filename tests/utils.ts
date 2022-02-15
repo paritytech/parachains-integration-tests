@@ -1,37 +1,61 @@
-import { resolve } from "path";
+import YAML from "yaml"
+import glob from "glob";
 import fs from "fs";
+// import { resolve } from "path";
 import { Keyring } from '@polkadot/api';
 import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
 import { u8aToHex } from '@polkadot/util'
 import { Call } from './interfaces/test';
-import { LaunchConfig } from "./interfaces/filesConfig";
+// import { LaunchConfig } from "./interfaces/filesConfig";
 
-export const getLaunchConfig = () => {
-  const config_file = './config.json'
+// export const getLaunchConfig = () => {
+//   const config_file = './config.json'
 
-  if (!config_file) {
-    console.error("Missing config file argument...");
-    process.exit();
+//   if (!config_file) {
+//     console.error("Missing config file argument...");
+//     process.exit();
+//   }
+
+//   let config_path = resolve(process.cwd(), config_file);
+
+//   if (!fs.existsSync(config_path)) {
+//     console.error("Config file does not exist: ", config_path);
+//     process.exit();
+//   }
+
+//   let config: LaunchConfig = require(config_path);
+
+//   return config
+// }
+
+const getFiles = (src) => {
+  let testsFiles = glob.sync(src)
+
+  try {
+    return testsFiles = testsFiles.map(tesFile => {
+      const file = fs.readFileSync(tesFile, 'utf8')
+      return(YAML.parse(file))
+    })
+  } catch(e) {
+    console.log(e)
+    process.exit(1)
   }
+}
 
-  let config_path = resolve(process.cwd(), config_file);
-
-  if (!fs.existsSync(config_path)) {
-    console.error("Config file does not exist: ", config_path);
-    process.exit();
-  }
-
-  let config: LaunchConfig = require(config_path);
-
-  return config
+export const getTestsConfig = () => {
+  let path = './tests/config/**/*.yml'
+  let files = getFiles(path)
+  return(files)
 }
 
 export const buildEncodedCall = (context, decodedCall: Call) => {
   const { chain, pallet, call, args } = decodedCall
+
   let providers = context.providers
+  let api = providers[chain.wsPort].api
   let parsedArgs = parseArgs(context, args)
 
-  let encodedCall = providers[chain].api.tx[pallet][call](...parsedArgs)
+  let encodedCall = api.tx[pallet][call](...parsedArgs)
 
   return u8aToHex((encodedCall).toU8a().slice(2))
 }

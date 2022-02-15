@@ -1,18 +1,16 @@
-import { buildEncodedCall, getLaunchConfig } from './utils';
+import { buildEncodedCall } from './utils';
 import { connectToProviders } from './connection';
+import { TestsConfig } from './interfaces/test';
 
-export const beforeConnectToProviders = () => {
+export const beforeConnectToProviders = (testConfig: TestsConfig) => {
   before(async function() {
-    let config = getLaunchConfig()
-    let providers = {};
+    this.providers = {};
 
-    providers[config.relaychain.name] = await connectToProviders(config.relaychain.nodes[0].wsPort)
+    let chains = testConfig.settings.chains
 
-    for (let parachain of config.parachains) {
-      providers[parachain.name] = await connectToProviders(parachain.nodes[0].wsPort)
+    for (let name in chains) {
+      this.providers[chains[name].wsPort] = await connectToProviders(chains[name].wsPort)
     }
-
-    this.providers = providers
   })
 }
 
@@ -28,6 +26,5 @@ export const beforeBuildEncodedCalls = (decodedCalls) => {
         process.exit(1)
       }
     })
-    console.log("EncodedCalls", this.variables)
   })
 }
