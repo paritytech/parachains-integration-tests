@@ -27,7 +27,7 @@ tests:
         before:
           - customs:
               - path: ./assets/custom_before.ts
-                args: [ *admin, *ed ]
+                args: [ $transfer_balance ]
             extrinsics:
               - chain: *relay_chain
                 signer: *signer
@@ -49,7 +49,7 @@ tests:
               - path: ./assets/custom_it.ts
                 args: [ *admin, *ed ]
               - path: ./assets/custom_it.ts
-                args: [ *ed ]  
+                args: [ $transfer_balance ]  
             extrinsics:
               - chain: *assets_parachain
                 signer: *signer

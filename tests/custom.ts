@@ -1,5 +1,5 @@
 import { Custom } from "./interfaces/test"
-import { buildTab } from "./utils"
+import { buildTab, parseArgs } from "./utils"
 
 export const checkCustom = (custom: Custom) => {
   const { path, args } = custom
@@ -19,6 +19,7 @@ export const customBuilder = async (context, custom: Custom, indent) => {
   let tab = buildTab(indent)
   checkCustom(custom)
   const { path, args } = custom
+  let parsedArgs = parseArgs(context, args)
   const customFunction = await import(path)
-  await customFunction.default(context, tab, args)
+  await customFunction.default(context, tab, parsedArgs)
 }

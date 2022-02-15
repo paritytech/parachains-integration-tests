@@ -1,7 +1,7 @@
 const chai = require('chai');
 var should = require('chai').should()
 import { Extrinsic, EventResult } from "./interfaces/test";
-import { getWallet, buildTab } from "./utils";
+import { getWallet, buildTab, parseArgs } from "./utils";
 import { queriesBuilder } from "./queries";
 import { EVENT_LISTENER_TIMEOUT } from "../src/config";
 
@@ -148,43 +148,50 @@ export const extrinsicCallback = (providers, extrinsicEvents, context, resolve, 
   }
 
 
-export const sendExtrinsic = async (providers, extrinsic, indent): Promise<any[]> => {
+export const sendExtrinsic = async (context, extrinsic, indent): Promise<any[]> => {
   return new Promise(async resolve => {
-    let tab = buildTab(indent)
-
-    checkExtrinsic(extrinsic, providers)
-
-    const { chain, signer, pallet, call, args, events } = extrinsic
-
-    let api = providers[chain].api
-    let wallet = await getWallet(signer)
-
-    let nonce = await api.rpc.system.accountNextIndex(wallet.address);
-    
-    console.log(`\n${tab}📩 EXTRINSIC: (${chain}) | ${pallet}.${call} with ${JSON.stringify(args)}`)
-
-    let modifiedEvents = events.map(event => {
-      if (event.chain === chain || !event.chain) {
-        event = {...{ local: true, received: false }, ...event}
-      } else {
-        event = {...{ local: false, received: false }, ...event}
-      }
-      return event
-    })
-
-    indent+=1
-
-    await providers[chain].api.tx[pallet][call](...args).signAndSend(
-      wallet, 
-      { nonce, era: 0 },
-      extrinsicCallback(providers, modifiedEvents, chain, resolve, indent)
-    );
+    try {
+      let tab = buildTab(indent)
+      let providers = context.providers
+  
+      checkExtrinsic(extrinsic, providers)
+  
+      const { chain, signer, pallet, call, args, events } = extrinsic
+  
+      let parsedArgs = parseArgs(context, args)
+  
+      let api = providers[chain].api
+      let wallet = await getWallet(signer)
+  
+      let nonce = await api.rpc.system.accountNextIndex(wallet.address);
+      
+      console.log(`\n${tab}📩 EXTRINSIC: (${chain}) | ${pallet}.${call} with ${JSON.stringify(args)}`)
+  
+      let modifiedEvents = events.map(event => {
+        if (event.chain === chain || !event.chain) {
+          event = {...{ local: true, received: false }, ...event}
+        } else {
+          event = {...{ local: false, received: false }, ...event}
+        }
+        return event
+      })
+  
+      indent+=1
+  
+      await providers[chain].api.tx[pallet][call](...parsedArgs).signAndSend(
+        wallet, 
+        { nonce, era: 0 },
+        extrinsicCallback(providers, modifiedEvents, chain, resolve, indent)
+      );
+    }catch(e) {
+      console.log(e)
+    }
   })
 }
 
-export const extrinsicsBuilder = async (context, extrinsics: Extrinsic[], providers, indent: number) => {
+export const extrinsicsBuilder = async (context, extrinsics: Extrinsic[], indent: number) => {
   for (const extrinsic of extrinsics) {
-    let eventsResult = await sendExtrinsic(providers, extrinsic, indent)
+    let eventsResult = await sendExtrinsic(context, extrinsic, indent)
 
     if (extrinsic.queries) {
       await queriesBuilder(context, extrinsic.queries)

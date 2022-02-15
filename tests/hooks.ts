@@ -49,7 +49,7 @@ export const hookBuilder = async (context, customs: Custom[] | undefined, extrin
   if (extrinsics && extrinsics.length > 0) {
     for (let extrinsic of extrinsics) {
       indent+=1
-      let event = await sendExtrinsic(context.providers, extrinsic, indent)
+      let event = await sendExtrinsic(context, extrinsic, indent)
       console.log(event[0].message)
 
       if (extrinsic.queries) {
