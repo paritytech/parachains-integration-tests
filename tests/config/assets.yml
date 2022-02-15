@@ -1,5 +1,6 @@
 ---
 settings:
+  polkadotLaunch: true
   chains:
     relay_chain: &relay_chain kusama
     assets_parachain: &assets_parachain statemine
@@ -47,7 +48,9 @@ tests:
           - name: Should create the asset
             customs:
               - path: ./assets/custom_it.ts
-                args: [ *admin, *ed ]
+                args:
+                  - *admin
+                  - *ed
               - path: ./assets/custom_it.ts
                 args: [ $transfer_balance ]  
             extrinsics:
@@ -75,7 +78,7 @@ tests:
                 args: [ $balance_B, $balance_A ]
               custom:
                 path: "./assets/custom_assert.ts"
-                args: [ *ed ]
+                args: [ $balance_B, $balance_A ]
         describes:
           - name: Nested
             after:

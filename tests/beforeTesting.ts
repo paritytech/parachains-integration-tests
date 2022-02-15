@@ -13,7 +13,6 @@ export const beforeConnectToProviders = () => {
     }
 
     this.providers = providers
-    this.queries = {}
   })
 }
 
@@ -22,10 +21,10 @@ export const beforeBuildEncodedCalls = (decodedCalls) => {
     this.variables = {}
 
     Object.keys(decodedCalls).forEach(key => {
-      if (!this.variables[key]) {
+      if (!this.variables[`\$${key}`]) {
         this.variables[`\$${key}`] = buildEncodedCall(this, decodedCalls[key])
       } else {
-        console.log(`\n⚠️  the decoded call id "${key}" can not be reassigend`)
+        console.log(`\n⚠️  the key $"${key}" can not be reassigend`)
         process.exit(1)
       }
     })

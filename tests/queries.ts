@@ -34,10 +34,10 @@ export const sendQuery = async (context, key: string, query: Query) => {
 
 export const queriesBuilder = async (context, queries: { [key: string]: Query }) => {
     for (let key of Object.keys(queries)) {
-      if (!context.queries[key]) {
-        context.queries[key] = await sendQuery(context, key, queries[key])
+      if (!context.variables[`\$${key}`]) {
+        context.variables[`\$${key}`] = await sendQuery(context, key, queries[key])
       } else {
-        console.log(`\n⚠️  the query key id "${key}" can not be reassigend`)
+        console.log(`\n⚠️  the key id $"${key}" can not be reassigend`)
         process.exit(1)
       }
     }
