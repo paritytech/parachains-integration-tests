@@ -104,3 +104,16 @@ export const parseArgs = (context, args): any[] => {
   return JSON.parse(strigifiedArg)
 }
 
+export const waitForChainToProduceBlocks = async (provider): Promise<void> => {
+  return new Promise(async resolve => {
+    const unsubHeads = await provider.api.rpc.chain.subscribeNewHeads((lastHeader) => {
+      if (lastHeader.number >= 1) {
+        unsubHeads();
+        resolve()
+      } else {
+        console.log(`\n⏳ Waiting for the chain ${provider.name} to produce blocks...`)
+      }
+    });
+  })
+}
+
