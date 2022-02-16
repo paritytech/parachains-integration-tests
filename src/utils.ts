@@ -1,50 +1,28 @@
 import YAML from "yaml"
 import glob from "glob";
 import fs from "fs";
-// import { resolve } from "path";
+import { resolve , dirname } from "path";
 import { Keyring } from '@polkadot/api';
 import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
 import { u8aToHex } from '@polkadot/util'
-import { Call } from './interfaces';
-// import { LaunchConfig } from "./interfaces/filesConfig";
+import { Call, TestFile, TestsConfig } from './interfaces';
 
-// export const getLaunchConfig = () => {
-//   const config_file = './config.json'
-
-//   if (!config_file) {
-//     console.error("Missing config file argument...");
-//     process.exit();
-//   }
-
-//   let config_path = resolve(process.cwd(), config_file);
-
-//   if (!fs.existsSync(config_path)) {
-//     console.error("Config file does not exist: ", config_path);
-//     process.exit();
-//   }
-
-//   let config: LaunchConfig = require(config_path);
-
-//   return config
-// }
-
-const getFiles = (src) => {
-  let testsFiles = glob.sync('/**/*.yml', { root: src })
+export const getTestFiles = (path): TestFile[] => {
+  let testsFiles = glob.sync('/**/*.yml', { root: path })
 
   try {
-    return testsFiles = testsFiles.map(tesFile => {
-      const file = fs.readFileSync(tesFile, 'utf8')
-      return(YAML.parse(file))
+    return testsFiles = testsFiles.map(testFile => {
+      let testPath = resolve(process.cwd(), testFile);
+      let testDir = dirname(testPath);
+      const file = fs.readFileSync(testFile, 'utf8')
+      let yaml: TestsConfig = YAML.parse(file)
+      let test: TestFile = { name: testFile, dir: testDir, yaml }
+      return test
     })
   } catch(e) {
     console.log(e)
     process.exit(1)
   }
-}
-
-export const getTestsConfig = (path) => {
-  let files = getFiles(path)
-  return(files)
 }
 
 export const buildEncodedCall = (context, decodedCall: Call) => {

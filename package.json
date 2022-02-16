@@ -10,7 +10,7 @@
     "dev": "ts-node ./src/index.ts",
     "polkadot-launch": "./node_modules/.bin/polkadot-launch ./tests/statemine/config.json",
     "polkadot-launch:test": "yarn polkadot-launch & yarn test",
-    "test": "ts-node ./src/index.ts",
+    "test": "ts-node ./src/cli.ts",
     "test:xcm": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --timeout 100000 -r ts-node/register 'src/run.ts'",
     "hola": "ts-node ./src/hola.ts"
   },

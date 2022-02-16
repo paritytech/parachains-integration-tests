@@ -1,3 +1,8 @@
+export interface TestFile {
+  name: string
+  dir: string
+  yaml: TestsConfig
+}
 export interface TestsConfig {
   settings: Settings,
   tests: Describe[],
