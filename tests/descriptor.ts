@@ -19,13 +19,13 @@ export const describersBuilder = (description: Describe) => {
 
   describe(`\n📚 ${description.name}`, async () => {
     before(function () {
-      for (let i = 0; i < 4; i++){
+      for (let i = 0; i < 2; i++){
         console.group()
       }
     })
 
     after(function () {
-      for (let i = 0; i < 4; i++){
+      for (let i = 0; i < 2; i++){
         console.groupEnd()
       }
     })

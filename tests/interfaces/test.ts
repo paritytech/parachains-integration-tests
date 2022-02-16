@@ -77,7 +77,8 @@ export interface Assert {
 export type AssertOrCustom = Assert | Custom
 
 export interface Chain {
-  wsPort: number | string
+  wsPort: number
+  ws?: string
 }
 export interface Settings {
   chains: { [key: string]: Chain }
