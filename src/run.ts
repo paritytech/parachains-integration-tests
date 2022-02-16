@@ -1,6 +1,6 @@
 require('dotenv').config()
-import { getTestFiles } from "./utils"
-import { beforeConnectToProviders, beforeBuildEncodedCalls } from "./beforeTesting";
+import { addConsoleGroups, getTestFiles } from "./utils"
+import { beforeConnectToProviders, beforeBuildEncodedCalls } from "./before";
 import { TestFile } from "./interfaces";
 import { describersBuilder } from "./descriptor";
 
@@ -9,16 +9,19 @@ const run = async () => {
   let testsConfig: TestFile[] = getTestFiles(testsPath)
   let testConfig: TestFile
 
-  console.log(testsPath)
-
   for (testConfig of testsConfig) {
-    const { yaml, dir } = testConfig
-    beforeConnectToProviders(testConfig)
-    beforeBuildEncodedCalls(yaml.settings.decodedCalls)
+    const { yaml, name } = testConfig
 
-    for (const test of yaml.tests) {
-      describersBuilder(test)
-    }
+    describe(`\n📂 ${name}`, async function () {
+      addConsoleGroups(2)    
+      beforeConnectToProviders(testConfig)
+      beforeBuildEncodedCalls(yaml.settings.decodedCalls)
+  
+      for (const test of yaml.tests) {
+        describersBuilder(test)
+      }
+    })
+
   }
 }
 

@@ -7,6 +7,30 @@ import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
 import { u8aToHex } from '@polkadot/util'
 import { Call, TestFile, TestsConfig } from './interfaces';
 
+export const addConsoleGroups = (depth: number) => {
+  before(function () {
+    for (let i = 0; i < depth; i++){
+      console.group()
+    }
+  })
+
+  after(function () {
+    for (let i = 0; i < depth; i++){
+      console.groupEnd()
+    }
+  })
+}
+
+export const buildTab = (indent: number): string => {
+  let array = indent > 0 ? new Array(indent).fill('    ') : ['    ']
+
+  let tab = array.reduce((previous, current) => {
+    return previous + current
+  })
+
+  return tab
+}
+
 export const getTestFiles = (path): TestFile[] => {
   let testsFiles = glob.sync('/**/*.yml', { root: path })
 
@@ -46,16 +70,6 @@ export const getWallet = async (uri) => {
   else {
     return { address: uri, addressRaw: decodeAddress(uri)}
   }
-}
-
-export const buildTab = (indent: number): string => {
-  let array = indent > 0 ? new Array(indent).fill('    ') : ['    ']
-
-  let tab = array.reduce((previous, current) => {
-    return previous + current
-  })
-
-  return tab
 }
 
 export const parseArgs = (context, args): any[] => {
