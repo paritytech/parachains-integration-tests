@@ -28,7 +28,7 @@ const main = async () => {
 
   spawn(
     "./node_modules/.bin/mocha", 
-    ['--timeout 100000', '-r', 'ts-node/register', 'src/run.ts'], {
+    ['--timeout 100000', '--exit', '-r', 'ts-node/register', 'src/run.ts'], {
     stdio: 'inherit',
     detached: false,
     env: {
