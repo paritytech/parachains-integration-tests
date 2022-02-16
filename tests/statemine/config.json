@@ -1,7 +1,7 @@
 {
 	"relaychain": {
     "name": "kusama",
-		"bin": "../bin/polkadot",
+		"bin": "../../bin/polkadot",
 		"chain": "kusama-local",
 		"nodes": [
 			{
@@ -31,7 +31,7 @@
 	"parachains": [
 		{
       "name": "statemine",
-			"bin": "../bin/polkadot-collator",
+			"bin": "../../bin/polkadot-collator",
       "chain": "statemine-local",
 			"nodes": [
 				{
