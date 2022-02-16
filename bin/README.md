@@ -1,1 +1,1 @@
-Add here the `polkadot` and `polkadot-collator` binaries
+Add here the chain binaries in case of using `polkadot-launch`

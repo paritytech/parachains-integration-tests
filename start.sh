@@ -1,17 +1,10 @@
-#!/bin/bash
-./stop.sh
+tests=(
+  statemine
+)
 
-yarn polkadot-launch:test & pid=$!
-
-wait $pid
-
-echo "📣  TESTS START  📣"
-
-yarn test & pid2=$!
-
-wait $pid2
+for t in ${tests[@]}
+do
+  yarn test -t ./tests/$t/ -c ./tests/$t/config.json
+done
 
 ./stop.sh
-
-killall -9 polkadot
-killall -9 polkadot-collator
