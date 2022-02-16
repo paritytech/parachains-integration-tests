@@ -1,0 +1,112 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9944
+    assets_parachain: &assets_parachain
+      wsPort: 9988
+  variables:
+    signer: &signer "//Alice"
+    asset_id: &asset_id 8
+    admin: &admin 5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y #Charlie
+    existencial_deposit: &ed 1000000
+  decodedCalls:
+    transfer_balance:
+      chain: *assets_parachain
+      pallet: balances
+      call: transfer
+      args: [ *admin, *ed ]
+
+tests:
+  - name: Assets
+    before: []
+    beforeEach: [] 
+    after: []
+    afterEach: []
+    its: []
+    describes:
+      - name: Create
+        before:
+          - customs:
+              - path: ../tests/statemine/assets/custom-before.ts
+                args: [ $transfer_balance ]
+            extrinsics:
+              - chain: *relay_chain
+                signer: *signer
+                pallet: balances
+                call: transfer
+                args: [ *admin, *ed ]
+                events:
+                  - name: balances.Transfer
+                queries:
+                  balance_A:
+                    chain: *assets_parachain
+                    pallet: assets
+                    call: asset
+                    args:
+                      - *asset_id
+        its:
+          - name: Should create the asset
+            customs:
+              - path: ../tests/statemine/assets/custom-it.ts
+                args:
+                  - *admin
+                  - *ed
+              - path: ../tests/statemine/assets/custom-it.ts
+                args: [ $transfer_balance ]  
+            extrinsics:
+              - chain: *assets_parachain
+                signer: *signer
+                pallet: assets
+                call: create
+                args: [ *asset_id, Id: *admin, *ed ]
+                events:
+                  - name: assets.Created
+                    attribute:
+                      type: u32
+                      value: *asset_id
+                queries:
+                  balance_B:
+                    chain: *assets_parachain
+                    pallet: balances
+                    call: account
+                    args:
+                      - *admin 
+            asserts:
+              equal:
+                args: [ $balance_B, $balance_A ]
+              deepEqual:
+                args: [ $balance_B, $balance_A ]
+              custom:
+                path: ../tests/statemine/assets/custom-assert.ts
+                args: [ $balance_B, $balance_A ]
+        describes:
+          - name: Nested
+            after:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *signer
+                    pallet: balances
+                    call: transfer
+                    args: [ *admin, *ed ]
+                    events:
+                      - name: balances.Transfer        
+            its:
+              - name: Should create the asset nested
+                extrinsics:
+                  - chain: *assets_parachain
+                    signer: //Charlie
+                    pallet: assets
+                    call: create
+                    args: [ 9, Id: *admin, *ed ]
+                    events:
+                      - chain: *assets_parachain
+                        name: assets.Created
+                        attribute:
+                          type: u32
+                          value: 10
+          - name: "Custom Nested"
+            its: []
+  - name: "Custom"
+    its:
+      - name: Should create the asset
