@@ -1,6 +1,6 @@
 import { buildEncodedCall, waitForChainToProduceBlocks } from './utils';
 import { connectToProviders } from './connection';
-import { TestsConfig, Chain } from './interfaces';
+import { TestFile, Chain } from './interfaces';
 
 const checkChains = (chains: { [key: string]: Chain }): { [key: string]: Chain }  => {
   for (let id in chains) {
@@ -17,13 +17,14 @@ const checkChains = (chains: { [key: string]: Chain }): { [key: string]: Chain }
   return chains
 }
 
-export const beforeConnectToProviders = (testConfig: TestsConfig) => {
+export const beforeConnectToProviders = (testFile: TestFile) => {
   before(async function() {
     this.timeout(1000000)
     this.providers = {};
+    this.testPath = testFile.dir
+    this.testName = testFile.name
 
-    let chains = testConfig.settings.chains
-
+    let chains = testFile.yaml.settings.chains
     chains = checkChains(chains)
 
     for (let name in chains) {

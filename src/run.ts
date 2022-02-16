@@ -1,21 +1,22 @@
 require('dotenv').config()
-import { getTestsConfig } from "./utils"
+import { getTestFiles } from "./utils"
 import { beforeConnectToProviders, beforeBuildEncodedCalls } from "./beforeTesting";
-import { TestsConfig } from "./interfaces";
+import { TestFile } from "./interfaces";
 import { describersBuilder } from "./descriptor";
 
 const run = async () => {
   let testsPath = process.env.TESTS_PATH
-  let testsConfig: TestsConfig[] = getTestsConfig(testsPath)
-  let testConfig: TestsConfig
+  let testsConfig: TestFile[] = getTestFiles(testsPath)
+  let testConfig: TestFile
 
   console.log(testsPath)
 
   for (testConfig of testsConfig) {
+    const { yaml, dir } = testConfig
     beforeConnectToProviders(testConfig)
-    beforeBuildEncodedCalls(testConfig.settings.decodedCalls)
+    beforeBuildEncodedCalls(yaml.settings.decodedCalls)
 
-    for (const test of testConfig.tests) {
+    for (const test of yaml.tests) {
       describersBuilder(test)
     }
   }
