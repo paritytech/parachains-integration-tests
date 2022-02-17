@@ -1,7 +1,7 @@
 const chai = require('chai');
 var should = require('chai').should()
 import { Extrinsic, EventResult, Event } from "./interfaces";
-import { getWallet, buildTab, parseArgs } from "./utils";
+import { getWallet, buildTab, parseArgs, addConsoleGroups } from "./utils";
 import { queriesBuilder } from "./queries";
 import { EVENT_LISTENER_TIMEOUT } from "./config";
 
@@ -51,27 +51,46 @@ export const listenToEvent = (providers, event, indent: number): Promise<EventRe
 
         if (name === `${section}.${method}`) {
           if (attribute) {
-            const { type, value } = attribute
+            const { type, value, isComplete, isIncomplete, isError } = attribute
 
             data.forEach((data, index) => {
-              if (type === typeDef[index].type) {
-                unsubscribe()
-  
-                if (data.toString() === value.toString()) {
-                  resolve({ 
-                    ok: true, 
-                    message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${value}]\n` 
-                  });
+              if (type === typeDef[index].type || type === typeDef[index].lookupName) {
+                if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
+                  unsubscribe()
+
+                  if (data.toString() === value.toString()) {
+                    resolve({ 
+                      ok: true, 
+                      message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${value}]\n` 
+                    });
+                  } else {
+                    resolve({ 
+                      ok: false, 
+                      message: `\n${tab}❌ EVENT: (${chainName}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
+                  }
                 } else {
-                  resolve({ 
-                    ok: false, 
-                    message: `\n${tab}❌ EVENT: (${chainName}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
-                }
+                  if (isComplete && data.isComplete) {
+                    resolve({ 
+                      ok: true, 
+                      message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${data.toString()}]\n` 
+                    });
+                  } else if (isIncomplete && data.isIncomplete) {
+                    resolve({ 
+                      ok: true, 
+                      message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${data.toString()}]\n` 
+                    });
+                  } else if (isError && data.isError) {
+                    resolve({ 
+                      ok: true, 
+                      message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${data.toString()}]\n` 
+                    });    
+                  }
+                }  
               }
             });
-          } else {
-            resolve({ ok: true, message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received` });
-          }
+          }  else {
+              resolve({ ok: true, message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received\n` });
+            }
         }
       });
     });
@@ -99,20 +118,40 @@ export const extrinsicCallback = (providers, extrinsicEvents, chainContext, reso
 
           if (local && name === `${section}.${method}`) {
             if (attribute) {
-              const { type, value } = attribute
 
-              data.forEach((data, j) => {              
-                if (type === typeDef[j].type) {
-                  if (data.toString() === value.toString()) {
-                    results.push({ 
-                      ok: true, 
-                      message: `\n${tab}✅ EVENT: (${chainContext}) | ${name} received with [${type}: ${value}]\n` 
-                    });
+              const { type, value, isComplete, isIncomplete, isError } = attribute
+              
+              data.forEach((data, j) => {       
+                if (type === typeDef[j].type || type === typeDef[j].lookupName) {
+                  if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
+                    if (data.toString() === value.toString()) {
+                      results.push({ 
+                        ok: true, 
+                        message: `\n${tab}✅ EVENT: (${chainContext}) | ${name} received with [${type}: ${value}]\n` 
+                      });
+                    } else {
+                      results.push({ 
+                        ok: false, 
+                        message: `\n${tab}❌ EVENT: (${chainContext}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` 
+                      });
+                    }
                   } else {
-                    results.push({ 
-                      ok: false, 
-                      message: `\n${tab}❌ EVENT: (${chainContext}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` 
-                    });
+                    if (isComplete && data.isComplete) {
+                      results.push({ 
+                        ok: true, 
+                        message: `\n${tab}✅ EVENT: (${chainContext}) | ${name} received with [${type}: ${data.toString()}]\n` 
+                      });
+                    } else if (isIncomplete && data.isIncomplete) {
+                      results.push({ 
+                        ok: true, 
+                        message: `\n${tab}✅ EVENT: (${chainContext}) | ${name} received with [${type}: ${data.toString()}]\n` 
+                      });
+                    } else if (isError && data.isError) {
+                      results.push({ 
+                        ok: true, 
+                        message: `\n${tab}✅ EVENT: (${chainContext}) | ${name} received with [${type}: ${data.toString()}]\n` 
+                      });    
+                    }
                   }
                   extrinsicEvents[i].received = true
                 }
@@ -120,14 +159,15 @@ export const extrinsicCallback = (providers, extrinsicEvents, chainContext, reso
             } else {
               results.push({ 
                 ok: true, 
-                message: `\n${tab}✅ EVENT: (${chainContext}) | ${name} received` 
+                message: `\n${tab}✅ EVENT: (${chainContext}) | ${name} received\n` 
               });
+              extrinsicEvents[i].received = true
             }
           }
         })
       });
 
-      let eventsPromises: Promise<EventResult>[] = []
+      let remoteEventsPromises: Promise<EventResult>[] = []
 
       extrinsicEvents.forEach(event => {
           if (event.local && event.received === false) {
@@ -136,14 +176,13 @@ export const extrinsicCallback = (providers, extrinsicEvents, chainContext, reso
               message: `\n${tab}❌ EVENT: (${chainContext}) | ${event.name} never reveived\n` 
             });
           } else if (!event.local && event.received === false) {
-            indent+=1
-            eventsPromises.push(listenToEvent(providers, event, indent))
+            remoteEventsPromises.push(listenToEvent(providers, event, indent))
           }
       });
 
-      let espera = await Promise.all(eventsPromises)
+      let remoteResults = await Promise.all(remoteEventsPromises)
 
-      results = results.concat(espera)
+      results = results.concat(remoteResults)
 
       resolve(results)
     }
@@ -158,7 +197,7 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Prom
   
       checkExtrinsic(extrinsic, providers)
   
-      const { chain, signer, pallet, call, args, events } = extrinsic
+      const { chain, signer, sudo, pallet, call, args, events } = extrinsic
 
       let chainName = providers[chain.wsPort].name
       let api = providers[chain.wsPort].api
@@ -177,13 +216,25 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Prom
         }
         return event
       })
-  
+
       indent+=1
-      await api.tx[pallet][call](...parsedArgs).signAndSend(
-        wallet, 
-        { nonce, era: 0 },
-        extrinsicCallback(providers, modifiedEvents, chainName, resolve, indent)
-      );
+
+      let encodedCall = api.tx[pallet][call](...parsedArgs)
+
+      if (sudo === true) {
+        await api.tx.sudo.sudo(encodedCall).signAndSend(
+          wallet, 
+          { nonce, era: 0 },
+          extrinsicCallback(providers, modifiedEvents, chainName, resolve, indent)
+        );
+      } else {
+        await encodedCall.signAndSend(
+          wallet, 
+          { nonce, era: 0 },
+          extrinsicCallback(providers, modifiedEvents, chainName, resolve, indent)
+        );
+      }
+
     }catch(e) {
       console.log(e)
     }

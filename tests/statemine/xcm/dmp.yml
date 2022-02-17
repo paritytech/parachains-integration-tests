@@ -1,0 +1,62 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9944
+    assets_parachain: &assets_parachain
+      wsPort: 9988
+      paraId: &ap_id 1000
+  variables:
+    relay_chain:
+      signer: &signer_relay //Alice
+      assets_parachain_destination: &ap_dest { v1: { 0, interior: { x1: { parachain: *ap_id }}}}
+      assets_parachain_account: &ap_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
+      assets_parachain_beneficiary: &ap_benf {v1: { parents: 0, interior: { x1: { accountId32: { network: { any: true }, id: *ap_acc }}}}}
+      ksm: &rc_ksm { concrete: { 0, interior: { here: true }}}
+      ksm_fungible: &rc_ksm_fungible { id: *rc_ksm, fun: { fungible: 1000000000000 }}
+  decodedCalls:
+    # transfer_balance:
+    #   chain: *assets_parachain
+    #   pallet: balances
+    #   call: transfer
+    #   args: [ *admin, *ed ]
+
+tests:
+  - name: DMP
+    describes:
+      - name: xcmPallet.limitedTeleportAssets
+        its:
+          - name: Should teleport assets to the Common Good Assets Parachain
+            extrinsics:
+              - chain: *relay_chain
+                signer: *signer_relay
+                pallet: xcmPallet
+                call: limitedTeleportAssets
+                args: [ 
+                  *ap_dest, # destination 
+                  *ap_benf, # beneficiary
+                  { v1: [ *rc_ksm_fungible ] }, # assets
+                  0, # feeAssetItem
+                  { unlimited: true } # weightLimit
+                ]
+                events:
+                  - name: xcmPallet.Attempted
+                    attribute:
+                      type: XcmV2TraitsOutcome
+                      isComplete: true
+                  - name: dmpQueue.ExecutedDownward
+                    chain: *assets_parachain
+                    attribute:
+                      type: XcmV2TraitsOutcome
+                      isComplete: true
+              # - chain: *assets_parachain
+              #   signer: *signer_relay
+              #   pallet: assets
+              #   call: create
+              #   args: [ 1, Id: 5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y, 1000 ]
+              #   events:
+              #     - name: assets.Created
+              #       attribute:
+              #         type: u32
+              #         value: 1
+    its: []                

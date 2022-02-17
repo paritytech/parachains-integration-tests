@@ -51,6 +51,7 @@ export interface Call {
 export interface Extrinsic extends Call {
   chain: Chain,
   signer: string,
+  sudo?: boolean
   events: Event[],
   queries?: { [key: string]: Query }
 }
@@ -63,7 +64,10 @@ export interface Event {
 
 export interface Attribute {
   type: string,
-  value: any
+  value: any,
+  isComplete: boolean
+  isIncomplete: boolean
+  isError: boolean
 }
 
 export interface It {
