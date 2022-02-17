@@ -6,13 +6,14 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "start": "node ./bin/index.js",
-    "dev": "ts-node ./src/index.ts",
-    "polkadot-launch": "./node_modules/.bin/polkadot-launch ./tests/statemine/config.json",
-    "polkadot-launch:test": "yarn polkadot-launch & yarn test",
-    "test": "ts-node ./src/cli.ts",
-    "test:xcm": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha --timeout 100000 -r ts-node/register 'src/run.ts'",
-    "hola": "ts-node ./src/hola.ts"
+    "start": "yarn build && node dist/cli.js",
+    "test": "yarn build && ts-node src/cli.ts -m test",
+    "polkadot-launch": "yarn build && ts-node src/cli.ts -m polkadot-launch",
+    "polkadot-launch:test": "yarn build && ts-node src/cli.ts -m polkadot-launch-test",
+    "dev": "ts-node src/cli.ts",
+    "dev:test": "ts-node src/cli.ts -m test",
+    "dev:polkadot-launch": "ts-node src/cli.ts -m polkadot-launch",
+    "dev:polkadot-launch:test": "ts-node src/cli.ts -m polkadot-launch-test"
   },
   "dependencies": {
     "@types/node": "^16.7.10",

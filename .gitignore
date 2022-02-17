@@ -1,5 +1,7 @@
 node_modules
+/dist
 .vscode
 /bin/polkadot*
+/logs
 *.json
 *.log
