@@ -75,23 +75,27 @@ export const getWallet = async (uri) => {
 export const parseArgs = (context, args): any[] => {
   let variables = context.variables
   let strigifiedArg = JSON.stringify(args)
-  let keys = Object.keys(variables)
+  
+  if (variables) {
+    let keys = Object.keys(variables)
 
-  for (let i=0; i < keys.length; i++) {
-    let pattern = `"\\${keys[i]}"`
-    let regex = new RegExp(pattern, 'g')
-    if (strigifiedArg.match(regex)) {
-      let replacement = variables[keys[i]]
-      if (typeof replacement === "string") {
-        strigifiedArg = strigifiedArg.replace(regex, `"${variables[keys[i]]}"`);
-      } else if (typeof replacement === "number" ) {
-        strigifiedArg = strigifiedArg.replace(regex, `${variables[keys[i]]}`);
-      } else if (typeof replacement === "object") {
-        strigifiedArg = strigifiedArg.replace(regex, `${JSON.stringify(variables[keys[i]])}`);
+    for (let i=0; i < keys.length; i++) {
+      let pattern = `"\\${keys[i]}"`
+      let regex = new RegExp(pattern, 'g')
+      if (strigifiedArg.match(regex)) {
+        let replacement = variables[keys[i]]
+        if (typeof replacement === "string") {
+          strigifiedArg = strigifiedArg.replace(regex, `"${variables[keys[i]]}"`);
+        } else if (typeof replacement === "number" ) {
+          strigifiedArg = strigifiedArg.replace(regex, `${variables[keys[i]]}`);
+        } else if (typeof replacement === "object") {
+          strigifiedArg = strigifiedArg.replace(regex, `${JSON.stringify(variables[keys[i]])}`);
+        }
+        i=-1
       }
-      i=-1
     }
   }
+  
   return JSON.parse(strigifiedArg)
 }
 
