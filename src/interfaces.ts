@@ -49,7 +49,7 @@ export interface Call {
 }
 
 export interface Extrinsic extends Call {
-  chain: Chain,
+  // chain: Chain,
   signer: string,
   sudo?: boolean
   events: Event[],
@@ -59,7 +59,12 @@ export interface Extrinsic extends Call {
 export interface Event {
   chain: Chain,
   name: string,
-  attribute?: Attribute
+  attribute: Attribute
+}
+
+export interface ExtendedEvent extends Event {
+  local: boolean
+  received: boolean
 }
 
 export interface Attribute {
