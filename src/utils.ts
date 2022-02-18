@@ -7,20 +7,6 @@ import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
 import { u8aToHex } from '@polkadot/util'
 import { Call, TestFile, TestsConfig } from './interfaces';
 
-export const addConsoleGroups = (depth: number) => {
-  before(function () {
-    for (let i = 0; i < depth; i++){
-      console.group()
-    }
-  })
-
-  after(function () {
-    for (let i = 0; i < depth; i++){
-      console.groupEnd()
-    }
-  })
-}
-
 export const getTestFiles = (path): TestFile[] => {
   let testsFiles = glob.sync('/**/*.yml', { root: path })
 
@@ -100,5 +86,17 @@ export const waitForChainToProduceBlocks = async (provider): Promise<void> => {
       }
     });
   })
+}
+
+export const addConsoleGroup = (depth: number) => {
+  for (let i = 0; i < depth; i++){
+    console.group()
+  }
+}
+
+export const addConsoleGroupEnd = (depth: number) => {
+  for (let i = 0; i < depth; i++){
+    console.groupEnd()
+  }
 }
 

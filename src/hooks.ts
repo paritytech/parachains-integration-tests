@@ -51,9 +51,9 @@ export const hookBuilder = async (context, customs: Custom[] | undefined, extrin
       let event = await sendExtrinsic(context, extrinsic)
       console.log(event[0].message)
 
-      if (extrinsic.queries) {
-        await queriesBuilder(context, extrinsic.queries)
-      }
+      // if (extrinsic.queries) {
+      //   await queriesBuilder(context, extrinsic.queries)
+      // }
     }
   }
 }

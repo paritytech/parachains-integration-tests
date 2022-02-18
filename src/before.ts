@@ -1,4 +1,4 @@
-import { buildEncodedCall, waitForChainToProduceBlocks } from './utils';
+import { addConsoleGroup, addConsoleGroupEnd, buildEncodedCall, waitForChainToProduceBlocks } from './utils';
 import { connectToProviders } from './connection';
 import { TestFile, Chain } from './interfaces';
 import { EVENT_LISTENER_TIMEOUT } from "./config";
@@ -50,3 +50,13 @@ export const beforeBuildEncodedCalls = (decodedCalls) => {
     })
   })
 }
+
+export const beforeAddConsoleGroups = (depth: number) => {
+  before(function () {
+    addConsoleGroup(depth)
+  })
+
+  after(function () {
+    addConsoleGroupEnd(depth)
+  })
+}  

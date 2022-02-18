@@ -1,8 +1,9 @@
-import { It } from "./interfaces"
+import { It, AsserAction, ExtrinsicAction, QueryAction, CustomAction } from "./interfaces"
 import { extrinsicsBuilder } from "./extrinsics"
 import { assertsBuilder } from "./asserts"
 import { customBuilder } from "./custom"
-import { addConsoleGroups } from "./utils"
+import { queriesBuilder } from "./queries"
+import { addConsoleGroup, addConsoleGroupEnd } from "./utils"
 
 const checkIt = (it: It) => {
   if (!it.name) {
@@ -14,14 +15,15 @@ const checkIt = (it: It) => {
 export const itsBuilder = (test: It) => {
   checkIt(test)
 
-  const { name, customs, extrinsics, asserts } = test
+  // const { name, customs, extrinsics, asserts } = test
+  const { name, actions } = test
 
   it(
     name,
     async function () {
       console.log(`\n🧪 It`)
-      console.group()
-      console.group()
+
+      addConsoleGroup(2)
 
       // for (let key of Object.keys(test)) {
       //   if (key === 'customs') {
@@ -38,22 +40,32 @@ export const itsBuilder = (test: It) => {
       //   }
       // }
 
-      if (customs) {  
-        for (let custom of customs) {
-          await customBuilder(this, custom)
+      for (let action of actions) {
+        const { extrinsics } = action as ExtrinsicAction
+        const { customs } = action as CustomAction
+        const { asserts } = action as AsserAction
+        const { queries } = action as QueryAction
+
+        if (customs) {  
+          for (let custom of customs) {
+            await customBuilder(this, custom)
+          }
+        }
+  
+        if (extrinsics) {  
+          await extrinsicsBuilder(this, extrinsics)
+        }
+
+        if (queries) {
+          await queriesBuilder(this, queries)
+        }
+  
+        if (asserts) {
+          await assertsBuilder(this, asserts)
         }
       }
 
-      if (extrinsics) {  
-        await extrinsicsBuilder(this, extrinsics)
-      }
-
-      if (asserts) {
-        await assertsBuilder(this, asserts)
-      }
-
-      console.groupEnd()
-      console.groupEnd()
+      addConsoleGroupEnd(2)
     }
   )
 }

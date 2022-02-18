@@ -2,7 +2,7 @@ require('dotenv').config()
 import { Describe } from "./interfaces"
 import { beforeBuilder, beforeEachBuilder, afterBuilder, afterEachBuilder  } from "./hooks"
 import { itsBuilder } from "./it"
-import { addConsoleGroups } from "./utils"
+import { beforeAddConsoleGroups } from "./before"
 
 const checkDescriptor = (descriptor: Describe) => {
   if (!descriptor.name) {
@@ -19,8 +19,8 @@ const checkDescriptor = (descriptor: Describe) => {
 export const describersBuilder = (description: Describe) => {
   checkDescriptor(description)
 
-  describe(`\n📚 ${description.name}`, async function () {
-    addConsoleGroups(2)
+  describe(`\n🏷️  ${description.name}`, async function () {
+    beforeAddConsoleGroups(2)
 
     let timeout
 
