@@ -56,14 +56,7 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Prom
       
       console.log(`\n${tab}📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args)}`)
 
-      let modifiedEvents = events.map(event => {
-        if (event.chain === chain || !event.chain) {
-          event = {...{ local: true, received: false, chain: chain }, ...event}
-        } else {
-          event = {...{ local: false, received: false }, ...event}
-        }
-        return event
-      })
+
 
       indent+=1
 
@@ -73,7 +66,7 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Prom
       await dispatchable.signAndSend(
         wallet, 
         { nonce, era: 0 },
-        eventsHandler(providers, modifiedEvents, chainName, resolve, indent)
+        eventsHandler(providers, chain, events, resolve, indent)
       );
     }catch(e) {
       console.log(e)
