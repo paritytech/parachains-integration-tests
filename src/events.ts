@@ -1,7 +1,6 @@
 import { EventResult, Chain, Event } from "./interfaces";
-import { buildTab } from "./utils";
 
-const messageBuilder = (context, event: EventResult, tab: string): string => {
+const messageBuilder = (context, event: EventResult): string => {
   const { providers } = context
   const { name, chain, attribute, data } = event
   const { type, value } = attribute
@@ -14,10 +13,10 @@ const messageBuilder = (context, event: EventResult, tab: string): string => {
   if (attribute && event.ok) {
     hasValues = `with [${type}: ${data.toString()}]\n`
   } else if (attribute && !event.ok) {
-    hasValues = `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data.toString()}\n`
+    hasValues = `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data.toString()}`
   }
 
-  return `\n${tab}${isOk} EVENT: (${chainContext}) | ${name} ${isReceived} ${hasValues}`
+  return `${isOk} EVENT: (${chainContext}) | ${name} ${isReceived} ${hasValues}\n`
 } 
 
 const eventsResultsBuilder = (extrinsicChain: Chain, events: Event[]): EventResult[] => {
@@ -108,9 +107,8 @@ const updateEventResult = (record, event: EventResult): EventResult => {
   return event
 }
 
-export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, indent) =>
+export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Event[], resolve) =>
   async ({ events = [], status }) => {
-    let tab = buildTab(indent)
     let initialEventsResults: EventResult[] = eventsResultsBuilder(extrinsicChain, expectedEvents)
     let finalEventsResults: EventResult[] = []
     let remoteEventsPromises: Promise<EventResult>[] = []
@@ -141,7 +139,7 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
       finalEventsResults = finalEventsResults.concat(remoteEventsResults)
 
       finalEventsResults = finalEventsResults.map(result => {
-        let message = messageBuilder(context, result, tab)
+        let message = messageBuilder(context, result)
         return { ...result, message }
       })
 

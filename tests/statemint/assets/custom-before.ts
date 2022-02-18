@@ -1,5 +1,5 @@
-const myBefore = async (context, tab, ...args) => {
-  console.log(`${tab}Custom before ${args}`)
+const myBefore = async (context, ...args) => {
+  console.log(`Custom before ${args}`)
 }
 
 export default myBefore

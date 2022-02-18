@@ -30,8 +30,6 @@ export const describersBuilder = (description: Describe) => {
 
     this.timeout(timeout)
 
-    let indent = 0
-
     let hookBuilders = [
       { attribute: description.before, func: beforeBuilder },
       { attribute: description.beforeEach, func: beforeEachBuilder },
@@ -42,13 +40,13 @@ export const describersBuilder = (description: Describe) => {
     for (const builder of hookBuilders) {
       if (builder.attribute && builder.attribute.length > 0)
         for (const attr of builder.attribute) {
-          builder.func(attr, indent)
+          builder.func(attr)
         }
     }
 
     if (description.its && description.its.length > 0) {
       for (const it of description.its) {
-        itsBuilder(it, indent)
+        itsBuilder(it)
       }
     }
 

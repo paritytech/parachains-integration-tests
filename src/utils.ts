@@ -21,16 +21,6 @@ export const addConsoleGroups = (depth: number) => {
   })
 }
 
-export const buildTab = (indent: number): string => {
-  let array = indent > 0 ? new Array(indent).fill('    ') : ['    ']
-
-  let tab = array.reduce((previous, current) => {
-    return previous + current
-  })
-
-  return tab
-}
-
 export const getTestFiles = (path): TestFile[] => {
   let testsFiles = glob.sync('/**/*.yml', { root: path })
 

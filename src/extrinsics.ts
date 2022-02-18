@@ -1,7 +1,7 @@
 const chai = require('chai');
 var should = require('chai').should()
 import { Extrinsic } from "./interfaces";
-import { getWallet, buildTab, parseArgs } from "./utils";
+import { getWallet, parseArgs } from "./utils";
 import { queriesBuilder } from "./queries";
 import { eventsHandler } from "./events";
 
@@ -37,10 +37,9 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   }
 }
 
-export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Promise<any[]> => {
+export const sendExtrinsic = async (context, extrinsic: Extrinsic): Promise<any[]> => {
   return new Promise(async resolve => {
     try {
-      let tab = buildTab(indent)
       let providers = context.providers
   
       checkExtrinsic(extrinsic, providers)
@@ -54,9 +53,7 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Prom
   
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
       
-      console.log(`\n${tab}📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args, null, 2)}`)
-
-      indent+=1
+      console.log(`\n📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args, null, 2)}\n`)
 
       let encodedCall = api.tx[pallet][call](...parsedArgs)
       let dispatchable = sudo === true ? api.tx.sudo.sudo(encodedCall) : encodedCall
@@ -64,7 +61,7 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Prom
       await dispatchable.signAndSend(
         wallet, 
         { nonce, era: 0 },
-        eventsHandler(context, chain, events, resolve, indent)
+        eventsHandler(context, chain, events, resolve)
       );
     }catch(e) {
       console.log(e)
@@ -72,17 +69,23 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Prom
   })
 }
 
-export const extrinsicsBuilder = async (context, extrinsics: Extrinsic[], indent: number) => {
+export const extrinsicsBuilder = async (context, extrinsics: Extrinsic[]) => {
   for (const extrinsic of extrinsics) {
-    let eventsResult = await sendExtrinsic(context, extrinsic, indent)
+    let eventsResult = await sendExtrinsic(context, extrinsic)
 
     if (extrinsic.queries) {
       await queriesBuilder(context, extrinsic.queries)
     }
 
+    console.group()
+    console.group()
+
     eventsResult.forEach(event => {
       console.log(event.message)
       chai.assert.equal(event.ok, true, event.message)
     })
+
+    console.groupEnd()
+    console.groupEnd()
   }
 }
