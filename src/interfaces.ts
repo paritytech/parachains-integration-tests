@@ -49,11 +49,10 @@ export interface Call {
 }
 
 export interface Extrinsic extends Call {
-  // chain: Chain,
   signer: string,
   sudo?: boolean
   events: Event[],
-  queries?: { [key: string]: Query }
+  // queries?: { [key: string]: Query }
 }
 
 export interface Event {
@@ -80,11 +79,26 @@ export interface Attribute {
 
 export interface It {
   name: string,
-  customs?: Custom[]
-  extrinsics?: Extrinsic[]
-  events?: Event[]
-  asserts?: { [key: string]: AssertOrCustom }
+  actions: Action[]
+  // customs?: Custom[]
+  // extrinsics?: Extrinsic[]
+  // queries?: { [key: string]: Query }
+  // asserts?: { [key: string]: AssertOrCustom }
 }
+
+// export interface Action {
+//   extrinsics?: Extrinsic[]
+//   customs?: Custom[]
+//   queries?: { [key: string]: Query }
+//   asserts?: { [key: string]: AssertOrCustom }
+// }
+
+export type CustomAction = { customs: Custom[] }
+export type ExtrinsicAction = { extrinsics: Extrinsic[] }
+export type QueryAction = { queries: { [key: string]: Query } }
+export type AsserAction = { asserts: { [key: string]: AssertOrCustom } }
+
+export type Action = CustomAction | QueryAction | ExtrinsicAction | AsserAction
 
 export interface Assert {
   type: 'assert'

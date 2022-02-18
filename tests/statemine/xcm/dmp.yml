@@ -27,29 +27,56 @@ tests:
       - name: xcmPallet.limitedTeleportAssets
         its:
           - name: Should teleport assets to the Common Good Assets Parachain
-            extrinsics:
-              - chain: *relay_chain
-                signer: *rc_signer
-                pallet: xcmPallet
-                call: limitedTeleportAssets
-                args: [ 
-                  *ap_dest, # destination 
-                  *ap_benf, # beneficiary
-                  { v1: [ *rc_ksm_fungible ] }, # assets
-                  0, # feeAssetItem
-                  { unlimited: true } # weightLimit
-                ]
-                events:
-                  - name: xcmPallet.Attempted
-                    attribute:
-                      type: XcmV2TraitsOutcome
-                      isComplete: true
-                  - name: dmpQueue.ExecutedDownward
-                    chain: *assets_parachain
-                    attribute:
-                      type: XcmV2TraitsOutcome
-                      isComplete: true
-                      value: 4000000000
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *rc_signer
+                  pallet: xcmPallet
+                  call: limitedTeleportAssets
+                  args: [ 
+                    *ap_dest, # destination 
+                    *ap_benf, # beneficiary
+                    { v1: [ *rc_ksm_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: xcmPallet.Attempted
+                      attribute:
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *assets_parachain
+                      attribute:
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                        value: 5000000000
+          - name: Should teleport assets to the Common Good Assets Parachain 2
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *rc_signer
+                  pallet: xcmPallet
+                  call: limitedTeleportAssets
+                  args: [ 
+                    *ap_dest, # destination 
+                    *ap_benf, # beneficiary
+                    { v1: [ *rc_ksm_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: xcmPallet.Attempted
+                      attribute:
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *assets_parachain
+                      attribute:
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                        value: 4000000000        
+            
               # - chain: *assets_parachain
               #   signer: *rc_signer
               #   pallet: assets
@@ -60,4 +87,32 @@ tests:
               #       attribute:
               #         type: u32
               #         value: 1
-    its: []                
+    its: []
+  - name: UMP
+    its:
+          - name: Should teleport assets to the Common Good Assets Parachain
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *rc_signer
+                  pallet: xcmPallet
+                  call: limitedTeleportAssets
+                  args: [ 
+                    *ap_dest, # destination 
+                    *ap_benf, # beneficiary
+                    { v1: [ *rc_ksm_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: xcmPallet.Attempted
+                      attribute:
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *assets_parachain
+                      attribute:
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                        value: 4000000000
+      

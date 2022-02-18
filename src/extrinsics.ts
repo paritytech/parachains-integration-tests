@@ -1,9 +1,11 @@
 const chai = require('chai');
 var should = require('chai').should()
 import { Extrinsic } from "./interfaces";
-import { getWallet, parseArgs } from "./utils";
+import { addConsoleGroup, addConsoleGroupEnd, getWallet, parseArgs } from "./utils";
 import { queriesBuilder } from "./queries";
 import { eventsHandler } from "./events";
+import { u8aToHex } from '@polkadot/util'
+
 
 export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   const { chain, signer, pallet, call, args, events } = extrinsic
@@ -52,11 +54,12 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic): Promise<any[
       let parsedArgs = parseArgs(context, args)
   
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
-      
-      console.log(`\n📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args, null, 2)}\n`)
-
+    
       let encodedCall = api.tx[pallet][call](...parsedArgs)
       let dispatchable = sudo === true ? api.tx.sudo.sudo(encodedCall) : encodedCall
+
+      console.log(`\n🧬 ENCODED CALL: (${chainName}) | ${u8aToHex((dispatchable).toU8a().slice(2))}`)
+      console.log(`\n📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args, null, 2)}\n`)
 
       await dispatchable.signAndSend(
         wallet, 
@@ -73,19 +76,21 @@ export const extrinsicsBuilder = async (context, extrinsics: Extrinsic[]) => {
   for (const extrinsic of extrinsics) {
     let eventsResult = await sendExtrinsic(context, extrinsic)
 
-    if (extrinsic.queries) {
-      await queriesBuilder(context, extrinsic.queries)
-    }
-
-    console.group()
-    console.group()
+    // if (extrinsic.queries) {
+    //   await queriesBuilder(context, extrinsic.queries)
+    // }
+    addConsoleGroup(2)
 
     eventsResult.forEach(event => {
       console.log(event.message)
-      chai.assert.equal(event.ok, true, event.message)
+      try {
+        chai.assert.equal(event.ok, true, event.message)
+      } catch(e) {
+        addConsoleGroupEnd(4)
+        throw e
+      }
     })
 
-    console.groupEnd()
-    console.groupEnd()
+    addConsoleGroupEnd(2)
   }
 }
