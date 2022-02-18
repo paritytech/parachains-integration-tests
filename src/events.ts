@@ -1,174 +1,121 @@
-import { EventResult, Chain, Event, ExtendedEvent } from "./interfaces";
+import { EventResult, Chain, Event } from "./interfaces";
 import { buildTab } from "./utils";
 import { EVENT_LISTENER_TIMEOUT } from "./config";
 
-const extendEvents = (extrinsicChain: Chain, events: Event[]): ExtendedEvent[] => {
-  let extendedEvent: ExtendedEvent
+const remoteEventLister = (context, event: EventResult, tab: string): Promise<EventResult> => { 
+  return new Promise(async resolve => {
+    const { providers } = context
+    const { name, local, chain, attribute } = event
+    let api = providers[chain.wsPort].api
+
+    const unsubscribe = await api.query.system.events((events) => {
+      events.forEach((record) => { 
+        const { event: { data, method, section, typeDef }} = record
+
+        if (name === `${section}.${method}`) {
+          resolve(updateEventResult(context, record, event, tab))
+        }
+      })
+    })
+
+    setTimeout(() => { 
+      unsubscribe()
+      resolve(event);
+    }, EVENT_LISTENER_TIMEOUT)
+  })
+}
+
+const updateEventResult = (context, record, event: EventResult, tab: string): EventResult => {
+  const { providers } = context
+  const { event: { data, typeDef }} = record
+  const { name, local, chain, attribute } = event
+
+  event.received = true
+  let message = `\n${tab}✅ EVENT: (${providers[chain.wsPort].name}) | ${name} received`
+
+  if (attribute) {
+    const { type, value, isComplete, isIncomplete, isError } = attribute
+    
+    data.forEach((data, j) => {       
+      if (type === typeDef[j].type || type === typeDef[j].lookupName) {
+        if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
+          if (data.toString() === value.toString()) {
+            event.ok = true
+            event.message = message + `with [${type}: ${value}]\n`
+          } else {
+            event.ok = false
+            event.message = message + `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n`
+          }
+        } else {
+          if (isComplete && data.isComplete) {
+              event.ok = true,
+              event.message = message + `received with [${type}: ${data.toString()}]\n`
+          } else if (isIncomplete && data.isIncomplete) {
+              event.ok = true
+              event.message = message + `received with [${type}: ${data.toString()}]\n` 
+          } else if (isError && data.isError) {
+              event.ok = true 
+              event.message = message + `received with [${type}: ${data.toString()}]\n`  
+          }
+        }
+      }
+    });
+  }
+  return event
+}
+
+const eventsResultsBuilder = (context, extrinsicChain: Chain, events: Event[], tab: string): EventResult[] => {
+  let defaultMessage = (chain: Chain, event: Event) => {
+    const { providers } = context
+    return `\n${tab}❌ EVENT: (${providers[chain.wsPort].name}) | ${event.name} never reveived\n` 
+  } 
 
   return events.map(event => {
-    if (event.chain === extrinsicChain || !event.chain) {
-      extendedEvent = {...{ local: true, received: false, chain: extrinsicChain }, ...event}
-    } else {
-      extendedEvent = {...{ local: false, received: false }, ...event}
+    let chain = event.chain === extrinsicChain || !event.chain ? extrinsicChain : event.chain
+    let extendedEvent: EventResult = {
+      ...event,
+      ...{ 
+        chain,
+        local: false, 
+        received: false,
+        ok: false,
+        message: defaultMessage(chain, event)
+      }, 
     }
     return extendedEvent
   })
 }
 
-export const eventsHandler = (providers, extrinsicChain: Chain, expectedEvents: Event[], resolve, indent) =>
+export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, indent) =>
   async ({ events = [], status }) => {
     let tab = buildTab(indent)
-    let results: EventResult[] = []
-
-    let extrinsicChainName = providers[extrinsicChain.wsPort].name
-
-    let extendedExpectedEvents: ExtendedEvent[] = extendEvents(extrinsicChain, expectedEvents)
+    let initialEventsResults: EventResult[] = eventsResultsBuilder(context, extrinsicChain, expectedEvents, tab)
+    let finalEventsResults: EventResult[] = []
+    let remoteEventsPromises: Promise<EventResult>[] = []
 
     if (status.isInBlock) {
       events.forEach((record: any) => {
-        const { event: { data, method, section, typeDef }} = record
+        const { event: { method, section }} = record
 
-        extendedExpectedEvents.forEach((expectedEvent, i) => {
-          const { chain, name, local, attribute } = expectedEvent
-
-          let expectedEventChainName = providers[chain.wsPort].name
-          let eventInSameChain = expectedEventChainName === extrinsicChainName
-          let chainName =  eventInSameChain ? extrinsicChainName : expectedEventChainName
+        initialEventsResults.forEach(eventResult => {
+          const { name, local } = eventResult
 
           if (local && name === `${section}.${method}`) {
-            if (attribute) {
-
-              const { type, value, isComplete, isIncomplete, isError } = attribute
-              
-              data.forEach((data, j) => {       
-                if (type === typeDef[j].type || type === typeDef[j].lookupName) {
-                  if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
-                    if (data.toString() === value.toString()) {
-                      results.push({ 
-                        ok: true, 
-                        message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${value}]\n` 
-                      });
-                    } else {
-                      results.push({ 
-                        ok: false, 
-                        message: `\n${tab}❌ EVENT: (${chainName}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` 
-                      });
-                    }
-                  } else {
-                    if (isComplete && data.isComplete) {
-                      results.push({ 
-                        ok: true, 
-                        message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${data.toString()}]\n` 
-                      });
-                    } else if (isIncomplete && data.isIncomplete) {
-                      results.push({ 
-                        ok: true, 
-                        message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${data.toString()}]\n` 
-                      });
-                    } else if (isError && data.isError) {
-                      results.push({ 
-                        ok: true, 
-                        message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${data.toString()}]\n` 
-                      });    
-                    }
-                  }
-                  extendedExpectedEvents[i].received = true
-                }
-              });
-            } else {
-              results.push({ 
-                ok: true, 
-                message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received\n` 
-              });
-              extendedExpectedEvents[i].received = true
-            }
+            finalEventsResults.push(updateEventResult(context, record, eventResult, tab))
           }
         })
       });
 
-      let remoteEventsPromises: Promise<EventResult>[] = []
+      initialEventsResults.forEach(eventResult => {
+        const { local } = eventResult
 
-      extendedExpectedEvents.forEach(event => {
-          if (event.local && event.received === false) {
-            results.push({ 
-              ok: false, 
-              message: `\n${tab}❌ EVENT: (${extrinsicChainName}) | ${event.name} never reveived\n` 
-            });
-          } else if (!event.local && event.received === false) {
-            remoteEventsPromises.push(eventsListener
-              (providers, event, indent))
-          }
-      });
+        if (!local) {
+          remoteEventsPromises.push(remoteEventLister(context, eventResult, tab))
+        }
+      })
 
-      let remoteResults = await Promise.all(remoteEventsPromises)
+      let remoteEventsResults = await Promise.all(remoteEventsPromises)
 
-      results = results.concat(remoteResults)
-
-      resolve(results)
+      resolve(finalEventsResults.concat(remoteEventsResults))
     }
   }
-
-const eventsListener = (providers, event, indent: number): Promise<EventResult> => {
-  return new Promise(async resolve => {
-    let tab = buildTab(indent)
-
-    const { chain, name, attribute } = event
-    let api = providers[chain?.wsPort].api
-    let chainName = providers[chain?.wsPort].name
-
-    const unsubscribe = await api.query.system.events((events) => {
-      events.forEach((record) => {
-        const { event: { data, method, section, typeDef }} = record
-
-        if (name === `${section}.${method}`) {
-          if (attribute) {
-            const { type, value, isComplete, isIncomplete, isError } = attribute
-
-            data.forEach((data, index) => {
-              if (type === typeDef[index].type || type === typeDef[index].lookupName) {
-                if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
-                  unsubscribe()
-
-                  if (data.toString() === value.toString()) {
-                    resolve({ 
-                      ok: true, 
-                      message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${value}]\n` 
-                    });
-                  } else {
-                    resolve({ 
-                      ok: false, 
-                      message: `\n${tab}❌ EVENT: (${chainName}) | ${name} received with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n` });
-                  }
-                } else {
-                  if (isComplete && data.isComplete) {
-                    resolve({ 
-                      ok: true, 
-                      message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${data.toString()}]\n` 
-                    });
-                  } else if (isIncomplete && data.isIncomplete) {
-                    resolve({ 
-                      ok: true, 
-                      message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${data.toString()}]\n` 
-                    });
-                  } else if (isError && data.isError) {
-                    resolve({ 
-                      ok: true, 
-                      message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received with [${type}: ${data.toString()}]\n` 
-                    });    
-                  }
-                }  
-              }
-            });
-          }  else {
-              resolve({ ok: true, message: `\n${tab}✅ EVENT: (${chainName}) | ${name} received\n` });
-            }
-        }
-      });
-    });
-
-    setTimeout(() => { 
-        unsubscribe()
-        resolve({ ok: false, message: `\n${tab}❌ EVENT: (${chainName}) | ${name} never reveived\n` });
-    }, EVENT_LISTENER_TIMEOUT)
-  })
-}

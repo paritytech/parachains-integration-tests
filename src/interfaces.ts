@@ -62,14 +62,17 @@ export interface Event {
   attribute: Attribute
 }
 
-export interface ExtendedEvent extends Event {
+export interface EventResult extends Event {
   local: boolean
   received: boolean
+  ok: boolean,
+  message: string
 }
 
 export interface Attribute {
   type: string,
   value: any,
+  data?: any,
   isComplete: boolean
   isIncomplete: boolean
   isError: boolean
@@ -98,8 +101,4 @@ export interface Settings {
   chains: { [key: string]: Chain }
   variables: { [key: string]: any }
   decodedCalls: { [key: string]: Call }
-}
-export interface EventResult {
-  ok: boolean,
-  message: string
 }
