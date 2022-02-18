@@ -54,7 +54,7 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic, indent): Prom
   
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
       
-      console.log(`\n${tab}📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args)}`)
+      console.log(`\n${tab}📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args, null, 2)}`)
 
       indent+=1
 
