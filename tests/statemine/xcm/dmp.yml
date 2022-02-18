@@ -49,6 +49,7 @@ tests:
                     attribute:
                       type: XcmV2TraitsOutcome
                       isComplete: true
+                      value: 4000000000
               # - chain: *assets_parachain
               #   signer: *rc_signer
               #   pallet: assets

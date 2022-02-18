@@ -1,19 +1,54 @@
 import { EventResult, Chain, Event } from "./interfaces";
 import { buildTab } from "./utils";
-import { EVENT_LISTENER_TIMEOUT } from "./config";
 
-const remoteEventLister = (context, event: EventResult, tab: string): Promise<EventResult> => { 
+const messageBuilder = (context, event: EventResult, tab: string): string => {
+  const { providers } = context
+  const { name, chain, attribute, data } = event
+  const { type, value } = attribute
+
+  let chainContext = providers[chain.wsPort].name
+  let isOk = event.ok ? '✅'  : '❌'
+  let isReceived = event.received ? 'was received' : 'was never received (timeout)'
+  let hasValues = ''
+
+  if (attribute && event.ok) {
+    hasValues = `with [${type}: ${data.toString()}]\n`
+  } else if (attribute && !event.ok) {
+    hasValues = `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data.toString()}\n`
+  }
+
+  return `\n${tab}${isOk} EVENT: (${chainContext}) | ${name} ${isReceived} ${hasValues}`
+} 
+
+const eventsResultsBuilder = (extrinsicChain: Chain, events: Event[]): EventResult[] => {
+  return events.map(event => {
+    let chain = event.chain === extrinsicChain || !event.chain ? extrinsicChain : event.chain
+    let extendedEvent: EventResult = {
+      ...event,
+      ...{ 
+        chain,
+        local: chain === extrinsicChain, 
+        received: false,
+        ok: false,
+        message: ''
+      }, 
+    }
+    return extendedEvent
+  })
+}
+
+const remoteEventLister = (context, event: EventResult): Promise<EventResult> => { 
   return new Promise(async resolve => {
     const { providers } = context
-    const { name, local, chain, attribute } = event
+    const { name, chain, } = event
     let api = providers[chain.wsPort].api
 
     const unsubscribe = await api.query.system.events((events) => {
       events.forEach((record) => { 
-        const { event: { data, method, section, typeDef }} = record
+        const { event: { method, section }} = record
 
         if (name === `${section}.${method}`) {
-          resolve(updateEventResult(context, record, event, tab))
+          resolve(updateEventResult(record, event))
         }
       })
     })
@@ -21,17 +56,15 @@ const remoteEventLister = (context, event: EventResult, tab: string): Promise<Ev
     setTimeout(() => { 
       unsubscribe()
       resolve(event);
-    }, EVENT_LISTENER_TIMEOUT)
+    }, context.eventListenerTimeout)
   })
 }
 
-const updateEventResult = (context, record, event: EventResult, tab: string): EventResult => {
-  const { providers } = context
-  const { event: { data, typeDef }} = record
-  const { name, local, chain, attribute } = event
-
+const updateEventResult = (record, event: EventResult): EventResult => {
   event.received = true
-  let message = `\n${tab}✅ EVENT: (${providers[chain.wsPort].name}) | ${name} received`
+
+  const { event: { data, typeDef }} = record
+  const { attribute } = event
 
   if (attribute) {
     const { type, value, isComplete, isIncomplete, isError } = attribute
@@ -41,21 +74,32 @@ const updateEventResult = (context, record, event: EventResult, tab: string): Ev
         if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
           if (data.toString() === value.toString()) {
             event.ok = true
-            event.message = message + `with [${type}: ${value}]\n`
           } else {
             event.ok = false
-            event.message = message + `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}\n`
           }
+          event.data = data
         } else {
           if (isComplete && data.isComplete) {
-              event.ok = true,
-              event.message = message + `received with [${type}: ${data.toString()}]\n`
-          } else if (isIncomplete && data.isIncomplete) {
+            if (!value || (value && value == data.asComplete)) {
               event.ok = true
-              event.message = message + `received with [${type}: ${data.toString()}]\n` 
+            } else if (value && value !== data.asComplete) {
+              event.ok = false
+            }
+            event.data = data.asComplete
+          } else if (isIncomplete && data.isIncomplete) {
+            if (!value || (value && value === data.asIncomplete)) {
+              event.ok = true
+            } else if (value && value !== data.asIncomplete) {
+              event.ok = false
+            }
+            event.data = data.asIncomplete
           } else if (isError && data.isError) {
-              event.ok = true 
-              event.message = message + `received with [${type}: ${data.toString()}]\n`  
+            if (!value || (value && value === data.asError)) {
+              event.ok = true
+            } else if (value && value !== data.asError) {
+              event.ok = false
+            }
+            event.data = data.asError
           }
         }
       }
@@ -64,32 +108,10 @@ const updateEventResult = (context, record, event: EventResult, tab: string): Ev
   return event
 }
 
-const eventsResultsBuilder = (context, extrinsicChain: Chain, events: Event[], tab: string): EventResult[] => {
-  let defaultMessage = (chain: Chain, event: Event) => {
-    const { providers } = context
-    return `\n${tab}❌ EVENT: (${providers[chain.wsPort].name}) | ${event.name} never reveived\n` 
-  } 
-
-  return events.map(event => {
-    let chain = event.chain === extrinsicChain || !event.chain ? extrinsicChain : event.chain
-    let extendedEvent: EventResult = {
-      ...event,
-      ...{ 
-        chain,
-        local: false, 
-        received: false,
-        ok: false,
-        message: defaultMessage(chain, event)
-      }, 
-    }
-    return extendedEvent
-  })
-}
-
 export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, indent) =>
   async ({ events = [], status }) => {
     let tab = buildTab(indent)
-    let initialEventsResults: EventResult[] = eventsResultsBuilder(context, extrinsicChain, expectedEvents, tab)
+    let initialEventsResults: EventResult[] = eventsResultsBuilder(extrinsicChain, expectedEvents)
     let finalEventsResults: EventResult[] = []
     let remoteEventsPromises: Promise<EventResult>[] = []
 
@@ -98,24 +120,31 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
         const { event: { method, section }} = record
 
         initialEventsResults.forEach(eventResult => {
-          const { name, local } = eventResult
+          const { name, chain } = eventResult
 
-          if (local && name === `${section}.${method}`) {
-            finalEventsResults.push(updateEventResult(context, record, eventResult, tab))
+          if (chain === extrinsicChain && name === `${section}.${method}`) {
+            finalEventsResults.push(updateEventResult(record, eventResult))
           }
         })
       });
 
       initialEventsResults.forEach(eventResult => {
-        const { local } = eventResult
+        const { chain } = eventResult
 
-        if (!local) {
-          remoteEventsPromises.push(remoteEventLister(context, eventResult, tab))
+        if (chain !== extrinsicChain) {
+          remoteEventsPromises.push(remoteEventLister(context, eventResult))
         }
       })
 
       let remoteEventsResults = await Promise.all(remoteEventsPromises)
 
-      resolve(finalEventsResults.concat(remoteEventsResults))
+      finalEventsResults = finalEventsResults.concat(remoteEventsResults)
+
+      finalEventsResults = finalEventsResults.map(result => {
+        let message = messageBuilder(context, result, tab)
+        return { ...result, message }
+      })
+
+      resolve(finalEventsResults)
     }
   }

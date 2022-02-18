@@ -1,10 +1,10 @@
 import { buildEncodedCall, waitForChainToProduceBlocks } from './utils';
 import { connectToProviders } from './connection';
 import { TestFile, Chain } from './interfaces';
+import { EVENT_LISTENER_TIMEOUT } from "./config";
 
 const checkChains = (chains: { [key: string]: Chain }): { [key: string]: Chain }  => {
   for (let id in chains) {
-    // if (!chains[id].wsPort || typeof chains[id].wsPort !== 'number') {
     if (!chains[id].wsPort) {
       console.log(`\n⚠️  "wsPort" should be defined for chain ${id}:`)
       process.exit(1)
@@ -20,6 +20,7 @@ const checkChains = (chains: { [key: string]: Chain }): { [key: string]: Chain }
 export const beforeConnectToProviders = (testFile: TestFile) => {
   before(async function() {
     this.timeout(1000000)
+    this.eventListenerTimeout = EVENT_LISTENER_TIMEOUT
     this.providers = {};
     this.testPath = testFile.dir
     this.testName = testFile.name

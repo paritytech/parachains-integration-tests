@@ -67,12 +67,12 @@ export interface EventResult extends Event {
   received: boolean
   ok: boolean,
   message: string
+  data?: any,
 }
 
 export interface Attribute {
   type: string,
   value: any,
-  data?: any,
   isComplete: boolean
   isIncomplete: boolean
   isError: boolean
