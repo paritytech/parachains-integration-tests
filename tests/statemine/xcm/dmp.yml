@@ -8,7 +8,7 @@ settings:
       paraId: &ap_id 1000
   variables:
     relay_chain:
-      signer: &signer_relay //Alice
+      signer: &rc_signer //Alice
       assets_parachain_destination: &ap_dest { v1: { 0, interior: { x1: { parachain: *ap_id }}}}
       assets_parachain_account: &ap_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
       assets_parachain_beneficiary: &ap_benf {v1: { parents: 0, interior: { x1: { accountId32: { network: { any: true }, id: *ap_acc }}}}}
@@ -29,7 +29,7 @@ tests:
           - name: Should teleport assets to the Common Good Assets Parachain
             extrinsics:
               - chain: *relay_chain
-                signer: *signer_relay
+                signer: *rc_signer
                 pallet: xcmPallet
                 call: limitedTeleportAssets
                 args: [ 
@@ -50,7 +50,7 @@ tests:
                       type: XcmV2TraitsOutcome
                       isComplete: true
               # - chain: *assets_parachain
-              #   signer: *signer_relay
+              #   signer: *rc_signer
               #   pallet: assets
               #   call: create
               #   args: [ 1, Id: 5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y, 1000 ]
