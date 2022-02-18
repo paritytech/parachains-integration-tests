@@ -1,6 +1,6 @@
 import { resolve } from "path"
 import { Custom } from "./interfaces"
-import { buildTab, parseArgs } from "./utils"
+import { parseArgs } from "./utils"
 
 export const checkCustom = (custom: Custom) => {
   const { path, args } = custom
@@ -16,12 +16,11 @@ export const checkCustom = (custom: Custom) => {
   }
 }
 
-export const customBuilder = async (context, custom: Custom, indent) => {
-  let tab = buildTab(indent)
+export const customBuilder = async (context, custom: Custom) => {
   checkCustom(custom)
   const { path, args } = custom
   let parsedArgs = parseArgs(context, args)
   let absolutePath = resolve(context.testPath, path)
   const customFunction = await import(absolutePath)
-  await customFunction.default(context, tab, parsedArgs)
+  await customFunction.default(context, parsedArgs)
 }

@@ -1,8 +1,8 @@
 const chai = require('chai');
 var should = require('chai').should()
 
-const myIt = async (context, tab, ...args) => {
-  console.log(`${tab}Custom it ${args[0]}`)
+const myIt = async (context, ...args) => {
+  console.log(`Custom it ${args[0]}`)
   chai.assert.equal(true, true)
 }
 
