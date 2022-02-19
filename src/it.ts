@@ -10,6 +10,10 @@ const checkIt = (it: It) => {
     console.log(`\n⚠️  "name" should be defined for it:`, JSON.stringify(it))
     process.exit(1)
   }
+  if (!it.actions || !Array.isArray(it.actions)) {
+    console.log(`\n⚠️  "actions" should be defined for it:`, JSON.stringify(it))
+    process.exit(1)
+  }
 }
 
 export const itsBuilder = (test: It) => {
@@ -46,7 +50,7 @@ export const itsBuilder = (test: It) => {
         const { asserts } = action as AsserAction
         const { queries } = action as QueryAction
 
-        if (customs) {  
+        if (customs) {
           for (let custom of customs) {
             await customBuilder(this, custom)
           }

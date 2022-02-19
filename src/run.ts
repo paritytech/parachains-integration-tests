@@ -15,9 +15,7 @@ const run = async () => {
     describe(`\n📂 ${name}`, async function () {
       beforeAddConsoleGroups(2)    
       beforeConnectToProviders(testConfig)
-      if (yaml.settings.decodedCalls) {
-        beforeBuildEncodedCalls(yaml.settings.decodedCalls)
-      }
+      beforeBuildEncodedCalls(yaml.settings.decodedCalls)
       
       for (const test of yaml.tests) {
         describersBuilder(test)
