@@ -38,10 +38,11 @@ export const describersBuilder = (description: Describe) => {
     ]
 
     for (const builder of hookBuilders) {
-      if (builder.attribute && builder.attribute.length > 0)
+      if (builder.attribute && Array.isArray(builder.attribute)) {
         for (const attr of builder.attribute) {
           builder.func(attr)
         }
+      }  
     }
 
     if (description.its && description.its.length > 0) {

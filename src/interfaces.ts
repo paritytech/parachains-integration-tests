@@ -18,8 +18,10 @@ export interface Describe {
 }
 
 export interface Before {
-  customs?: Custom[]
-  extrinsics?: Extrinsic[]
+  name?: string
+  actions: Action[]
+  // customs?: Custom[]
+  // extrinsics?: Extrinsic[]
 }
 
 export interface BeforeEach  extends Before {}

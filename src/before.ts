@@ -38,16 +38,17 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
 
 export const beforeBuildEncodedCalls = (decodedCalls) => {
   before(async function() {
-    this.variables = {}
-
-    Object.keys(decodedCalls).forEach(key => {
-      if (!this.variables[`\$${key}`]) {
-        this.variables[`\$${key}`] = buildEncodedCall(this, decodedCalls[key])
-      } else {
-        console.log(`\n⚠️  the key $"${key}" can not be reassigend`)
-        process.exit(1)
-      }
-    })
+    this.variables = {a: 1}
+    if (decodedCalls) {
+      Object.keys(decodedCalls).forEach(key => {
+        if (!this.variables[`\$${key}`]) {
+          this.variables[`\$${key}`] = buildEncodedCall(this, decodedCalls[key])
+        } else {
+          console.log(`\n⚠️  the key $"${key}" can not be reassigend`)
+          process.exit(1)
+        }
+      })
+    }
   })
 }
 
