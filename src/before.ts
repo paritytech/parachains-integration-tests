@@ -1,7 +1,8 @@
+require('dotenv').config()
 import { addConsoleGroup, addConsoleGroupEnd, buildEncodedCall, waitForChainToProduceBlocks } from './utils';
 import { connectToProviders } from './connection';
 import { TestFile, Chain } from './interfaces';
-import { EVENT_LISTENER_TIMEOUT } from "./config";
+import { DEFAULT_EVENT_LISTENER_TIMEOUT, DEFAULT_QUERY_DELAY, DEFAULT_TIMEOUT } from "./constants";
 
 const checkChains = (chains: { [key: string]: Chain }): { [key: string]: Chain }  => {
   for (let id in chains) {
@@ -19,8 +20,12 @@ const checkChains = (chains: { [key: string]: Chain }): { [key: string]: Chain }
 
 export const beforeConnectToProviders = (testFile: TestFile) => {
   before(async function() {
-    this.timeout(1000000)
-    this.eventListenerTimeout = EVENT_LISTENER_TIMEOUT
+    let timeout = process.env.TIMEOUT ? process.env.TIMEOUT : DEFAULT_TIMEOUT
+    this.timeout(timeout)
+    let eventListenerTimeout = process.env.EVENT_LISTENER_TIMEOUT
+    this.eventListenerTimeout = eventListenerTimeout ? parseInt(eventListenerTimeout) : DEFAULT_EVENT_LISTENER_TIMEOUT
+    let queryDelay = process.env.QUERY_DELAY
+    this.queryDelay = queryDelay ? queryDelay : DEFAULT_QUERY_DELAY
     this.providers = {};
     this.testPath = testFile.dir
     this.testName = testFile.name

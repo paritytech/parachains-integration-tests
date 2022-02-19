@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import { Command, Option } from 'commander';
+import { DEFAULT_EVENT_LISTENER_TIMEOUT, DEFAULT_QUERY_DELAY, DEFAULT_TIMEOUT } from './constants';
 const program = new Command();
 
 const spawnPolkadotLaunch = (options) => {
@@ -21,7 +22,9 @@ const spawnTests = (options) => {
       ...process.env,
       TS_NODE_COMPILER_OPTIONS: '{\"module\": \"commonjs\" }',
       TESTS_PATH: options.tests,
-      TIMEOUT: options.timeout ? options.timeout : 100000
+      TIMEOUT: options.timeout,
+      EVENT_LISTENER_TIMEOUT: options.eventListenerTimeout,
+      QUERY_DELAY: options.queryDelay,
     }
   });
 }
@@ -36,6 +39,9 @@ const main = async () => {
     .addOption(new Option('-m, --mode <mode>', 'polkadot-launch, test or both').choices(['polkadot-launch', 'test','polkadot-launch-test']).makeOptionMandatory())
     .addOption(new Option('-c, --config <path>', 'path to polkadot-launch config file'))
     .addOption(new Option('-t, --tests <path>', 'path to tests'))
+    .addOption(new Option('-to, --timeout <millisecons>', 'tests timeout').default(DEFAULT_TIMEOUT).argParser(parseInt))
+    .addOption(new Option('-el, --event-listener-timeout <millisecons>', 'events listener timeout').default(DEFAULT_EVENT_LISTENER_TIMEOUT).argParser(parseInt))
+    .addOption(new Option('-qd, --query-delay <millisecons>', 'query delay for state update').default(DEFAULT_QUERY_DELAY).argParser(parseInt))
   
   program.parse(process.argv);
   let options = program.opts();
