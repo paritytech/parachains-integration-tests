@@ -1,5 +1,5 @@
 import { Query } from "./interfaces";
-import { parseArgs } from "./utils";
+import { parseArgs, sleep } from "./utils";
 
 export const checkQuery = (key: string, query: Query, providers) => {
   const { chain, pallet, call, args } = query
@@ -29,6 +29,7 @@ export const sendQuery = async (context, key: string, query: Query) => {
   const { chain, pallet, call, args } = query
   let api = providers[chain.wsPort].api
   let parsedArgs = parseArgs(context, args)
+  await sleep(context.queryDelay)
   let result = await api.query[pallet][call](...parsedArgs)
   return result.toJSON()
 }

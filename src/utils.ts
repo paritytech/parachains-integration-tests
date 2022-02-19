@@ -100,3 +100,6 @@ export const addConsoleGroupEnd = (depth: number) => {
   }
 }
 
+export const sleep = (ms) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

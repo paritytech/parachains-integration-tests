@@ -2,18 +2,20 @@ import { EventResult, Chain, Event } from "./interfaces";
 
 const messageBuilder = (context, event: EventResult): string => {
   const { providers } = context
-  const { name, chain, attribute, data } = event
+  const { name, chain, attribute, data, ok, received } = event
   const { type, value } = attribute
 
   let chainContext = providers[chain.wsPort].name
-  let isOk = event.ok ? '✅'  : '❌'
-  let isReceived = event.received ? 'was received' : 'was never received (timeout)'
+  let isOk = ok ? '✅'  : '❌'
+  let isReceived = received ? 'was received' : 'was never received'
   let hasValues = ''
 
-  if (attribute && event.ok) {
-    hasValues = `with [${type}: ${data.toString()}]\n`
-  } else if (attribute && !event.ok) {
-    hasValues = `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data.toString()}`
+  if (received && attribute) {
+    if (ok) {
+      hasValues = `with [${type}: ${data.toString()}]\n`
+    } else {
+      hasValues = `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data.toString()}`
+    }
   }
 
   return `${isOk} EVENT: (${chainContext}) | ${name} ${isReceived} ${hasValues}\n`
@@ -47,62 +49,65 @@ const remoteEventLister = (context, event: EventResult): Promise<EventResult> =>
         const { event: { method, section }} = record
 
         if (name === `${section}.${method}`) {
-          resolve(updateEventResult(record, event))
+          resolve(updateEventResult(true, record, event))
         }
       })
     })
 
     setTimeout(() => { 
       unsubscribe()
-      resolve(event);
+      resolve(updateEventResult(false, undefined, event))
     }, context.eventListenerTimeout)
   })
 }
 
-const updateEventResult = (record, event: EventResult): EventResult => {
-  event.received = true
+const updateEventResult = (received: boolean, record, event: EventResult): EventResult => {
+  event.received = received
+  event.data = ''
 
-  const { event: { data, typeDef }} = record
-  const { attribute } = event
+  if (received && record) {
+    const { event: { data, typeDef }} = record
+    const { attribute } = event
 
-  if (attribute) {
-    const { type, value, isComplete, isIncomplete, isError } = attribute
-    
-    data.forEach((data, j) => {       
-      if (type === typeDef[j].type || type === typeDef[j].lookupName) {
-        if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
-          if (data.toString() === value.toString()) {
-            event.ok = true
+    if (attribute) {
+      const { type, value, isComplete, isIncomplete, isError } = attribute
+      
+      data.forEach((data, j) => {       
+        if (type === typeDef[j].type || type === typeDef[j].lookupName) {
+          if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
+            if (data.toString() === value.toString()) {
+              event.ok = true
+            } else {
+              event.ok = false
+            }
+            event.data = data
           } else {
-            event.ok = false
-          }
-          event.data = data
-        } else {
-          if (isComplete && data.isComplete) {
-            if (!value || (value && value == data.asComplete)) {
-              event.ok = true
-            } else if (value && value !== data.asComplete) {
-              event.ok = false
+            if (isComplete && data.isComplete) {
+              if (!value || (value && value == data.asComplete)) {
+                event.ok = true
+              } else if (value && value !== data.asComplete) {
+                event.ok = false
+              }
+              event.data = data.asComplete
+            } else if (isIncomplete && data.isIncomplete) {
+              if (!value || (value && value === data.asIncomplete)) {
+                event.ok = true
+              } else if (value && value !== data.asIncomplete) {
+                event.ok = false
+              }
+              event.data = data.asIncomplete
+            } else if (isError && data.isError) {
+              if (!value || (value && value === data.asError)) {
+                event.ok = true
+              } else if (value && value !== data.asError) {
+                event.ok = false
+              }
+              event.data = data.asError
             }
-            event.data = data.asComplete
-          } else if (isIncomplete && data.isIncomplete) {
-            if (!value || (value && value === data.asIncomplete)) {
-              event.ok = true
-            } else if (value && value !== data.asIncomplete) {
-              event.ok = false
-            }
-            event.data = data.asIncomplete
-          } else if (isError && data.isError) {
-            if (!value || (value && value === data.asError)) {
-              event.ok = true
-            } else if (value && value !== data.asError) {
-              event.ok = false
-            }
-            event.data = data.asError
           }
         }
-      }
-    });
+      });
+    }
   }
   return event
 }
@@ -121,15 +126,16 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
           const { name, chain } = eventResult
 
           if (chain === extrinsicChain && name === `${section}.${method}`) {
-            finalEventsResults.push(updateEventResult(record, eventResult))
+            finalEventsResults.push(updateEventResult(true, record, eventResult))
           }
         })
       });
 
       initialEventsResults.forEach(eventResult => {
-        const { chain } = eventResult
-
-        if (chain !== extrinsicChain) {
+        const { chain, received } = eventResult
+        if (chain === extrinsicChain && !received) {
+          finalEventsResults.push(updateEventResult(received, undefined, eventResult))
+        } else if (chain !== extrinsicChain) {
           remoteEventsPromises.push(remoteEventLister(context, eventResult))
         }
       })
