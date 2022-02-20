@@ -33,7 +33,7 @@ export interface AfterEach  extends Before {}
 export interface Custom {
   type: 'custom'
   path: string
-  args: any[]
+  args: any
 }
 
 export interface Query {
