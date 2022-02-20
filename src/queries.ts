@@ -31,7 +31,7 @@ export const sendQuery = async (context, key: string, query: Query) => {
   let parsedArgs = parseArgs(context, args)
   await sleep(context.queryDelay)
   let result = await api.query[pallet][call](...parsedArgs)
-  return result.toJSON()
+  return result
 }
 
 export const queriesBuilder = async (context, queries: { [key: string]: Query }) => {

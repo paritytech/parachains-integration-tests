@@ -29,7 +29,7 @@ settings:
 tests:
   - name: DMP
     before:
-      - name: get the balance of the Relay Chain sender & Assets Parachain receiver
+      - name: get the balances of the Relay Chain's sender & Assets Parachain's receiver
         actions:
           - queries:
               balance_rc_sender_before:
@@ -46,7 +46,7 @@ tests:
     describes:
       - name: xcmPallet.limitedTeleportAssets
         its:
-          - name: Should teleport assets to the Common Good Assets Parachain
+          - name: Should teleport native assets from the Relay Chain to the Common Good Assets Parachain
             actions:
               - extrinsics:
                 - chain: *relay_chain
@@ -82,22 +82,32 @@ tests:
                     pallet: system
                     call: account
                     args: [ *ap_wallet ]        
+          - name: Should reduce the balance of the sender
+            actions:
               - asserts:
                   custom:
-                    path: ./asserts/checkBalances.ts
+                    path: ./asserts/checkSenderBalances.ts
                     args: 
-                      - { 
-                          balances: { 
-                            sender: {
-                              before: $balance_rc_sender_before,
-                              after: $balance_rc_sender_after
-                            },
-                            receiver: {
-                              before: $balance_ap_receiver_before,
-                              after: $balance_ap_receiver_after
-                            }
-                          },
-                          amount: *amount
-                        }    
+                      { 
+                        balances: { 
+                          before: $balance_rc_sender_before,
+                          after: $balance_rc_sender_after,
+                        },
+                        amount: *amount
+                      }
+          - name: Should increase the balance of the receiver
+            actions:
+              - asserts:
+                  custom:
+                    path: ./asserts/checkReceiverBalances.ts
+                    args: 
+                      { 
+                        balances: { 
+                          before: $balance_ap_receiver_before,
+                          after: $balance_ap_receiver_after,
+                        },
+                        amount: *amount,
+                        fee: null
+                      }   
   - name: UMP
     its: []
