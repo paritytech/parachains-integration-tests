@@ -69,6 +69,12 @@ export interface EventResult extends Event {
   ok: boolean,
   message: string
   data?: any,
+  xcmOutput: XcmOutput
+}
+
+export interface XcmOutput {
+  expected: string | undefined
+  real: string | undefined
 }
 
 export interface Attribute {
