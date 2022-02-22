@@ -16,6 +16,7 @@
     "dev:polkadot-launch:test": "ts-node src/cli.ts -m polkadot-launch-test"
   },
   "dependencies": {
+    "@polkadot/api": "^7.9.1",
     "@types/node": "^16.7.10",
     "bn.js": "^5.2.0",
     "command-line-args": "^5.2.0",
@@ -23,6 +24,7 @@
     "dotenv": "^10.0.0",
     "glob": "^7.2.0",
     "polkadot-launch": "^1.9.0",
+    "traverse": "^0.6.6",
     "typescript": "^4.4.2",
     "yaml": "^1.10.2"
   },
