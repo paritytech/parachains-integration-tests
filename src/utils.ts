@@ -1,12 +1,11 @@
 import YAML from "yaml"
 import glob from "glob";
 import fs from "fs";
-import traverse from 'traverse'
 import { resolve , dirname } from "path";
-import { hexToU8a, u8aToHex, compactAddLength } from '@polkadot/util';
+import { u8aToHex, compactAddLength } from '@polkadot/util';
 import { Keyring } from '@polkadot/api';
 import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
-import { Call, Extrinsic, TestFile, TestsConfig, PaymentInfo } from './interfaces';
+import { Extrinsic, TestFile, TestsConfig, PaymentInfo } from './interfaces';
 
 export const getTestFiles = (path): TestFile[] => {
   let testsFiles = glob.sync('/**/*.yml', { root: path })
@@ -28,21 +27,11 @@ export const getTestFiles = (path): TestFile[] => {
 
 export const buildEncodedCall = (context, decodedCall: Extrinsic) => {
   let dispatchable = buildDispatchable(context, decodedCall)
-
-  // return encodedCall
-
-  // return u8aToHex((encodedCall).toU8a().slice(2))
-  // return compactAddLength(encodedCall.toU8a().slice(2))
-  return compactAddLength(dispatchable.toU8a().slice(2))
+  return u8aToHex(compactAddLength(dispatchable.toU8a().slice(2)))
 }
 
 export const buildEncodedCallHex = (context, decodedCall: Extrinsic) => {
   let dispatchable = buildDispatchable(context, decodedCall)
-
-  // return encodedCall
-
-  // return u8aToHex((encodedCall).toU8a().slice(2))
-  // return compactAddLength(encodedCall.toU8a().slice(2))
   return u8aToHex((dispatchable).toU8a().slice(2))
 }
 
@@ -58,7 +47,6 @@ export const buildDispatchable = (context, extrinsic: Extrinsic) => {
   if (sudo === true) {
     dispatchable = api.tx.sudo.sudo(dispatchable)
   }
-
   return dispatchable
 }
 
@@ -82,51 +70,55 @@ export const getWallet = async (uri) => {
   }
 }
 
-// export const parseArgs = (context, args): any[] => {
-//   let variables = context.variables
-//   let strigifiedArg = JSON.stringify(args)
-  
-//   if (variables) {
-//     let keys = Object.keys(variables)
-
-//     for (let i=0; i < keys.length; i++) {
-//       let pattern = `"\\${keys[i]}"`
-//       console.log(pattern)
-//       let regex = new RegExp(pattern, 'g')
-//       if (strigifiedArg.match(regex)) {
-//         console.log("There is a Match")
-//         let replacement = variables[keys[i]]
-//         console.log("Replacement", replacement)
-//         console.log("Typeof Replacement", typeof replacement)
-//         console.log("Type ", typeof replacement)
-//         if (typeof replacement === "string") {
-//           strigifiedArg = strigifiedArg.replace(regex, `"${replacement}"`);
-//         } else if (typeof replacement === "number" ) {
-//           strigifiedArg = strigifiedArg.replace(regex, `${replacement}`);
-//         } else if (typeof replacement === "object") {
-//           strigifiedArg = strigifiedArg.replace(regex, `${JSON.stringify(replacement)}`);
-//           console.log(strigifiedArg)
-//         }
-//         i=-1
-//       }
-//     }
-//   }
-//   console.log("JSON PARSED",JSON.parse(strigifiedArg))
-//   return JSON.parse(strigifiedArg)
-// }
-
-export const parseArgs = function(context, args) {
+export const parseArgs = (context, args): any[] => {
   let variables = context.variables
+  let strigifiedArg = JSON.stringify(args)
+  
+  if (variables) {
+    let keys = Object.keys(variables)
 
-  let parsedArgs = traverse(args).map(function (this, value) {
-    if (variables[value]) {
-      let valueToUpdate = variables[value].toJSON ? variables[value].toJSON() : variables[value]
-      this.update(valueToUpdate)
+    for (let i=0; i < keys.length; i++) {
+      let pattern = `"\\${keys[i]}"`
+      let regex = new RegExp(pattern, 'g')
+      if (strigifiedArg.match(regex)) {
+        let replacement = variables[keys[i]]
+        if (typeof replacement === "string") {
+          strigifiedArg = strigifiedArg.replace(regex, `"${replacement}"`);
+        } else if (typeof replacement === "number" ) {
+          strigifiedArg = strigifiedArg.replace(regex, `${replacement}`);
+        } else if (typeof replacement === "object") {
+          strigifiedArg = strigifiedArg.replace(regex, `${JSON.stringify(replacement)}`);
+        }
+        i=-1
+      }
     }
-  })
-
-  return parsedArgs
+  }
+  return JSON.parse(strigifiedArg)
 }
+
+// export const parseArgs = function(context, args) {
+//   let variables = context.variables
+
+//   let parsedArgs = args
+//   let replaced: boolean = false
+//   let exit: boolean = false
+
+//   do {
+//     replaced = false
+//     console.log(parsedArgs)
+//     parsedArgs = traverse(parsedArgs).map(function (this, value) {
+//       if (variables[value]) {
+//         replaced = true
+//         let valueToUpdate = variables[value].toJSON ? variables[value].toJSON() : variables[value]
+//         this.update(valueToUpdate)
+//       }
+//     })
+//     exit = replaced ? false : true
+//   }
+//   while (!exit)
+
+//   return parsedArgs
+// }
 
 export const waitForChainToProduceBlocks = async (provider): Promise<void> => {
   return new Promise(async resolve => {

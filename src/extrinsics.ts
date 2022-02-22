@@ -1,6 +1,5 @@
 const chai = require('chai');
 var should = require('chai').should()
-import { u8aToHex } from '@polkadot/util'
 import { Extrinsic, Call } from "./interfaces";
 import { 
   addConsoleGroup, 
