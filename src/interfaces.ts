@@ -45,6 +45,7 @@ export interface Query {
 
 export interface Call {
   chain: Chain,
+  sudo?: boolean,
   pallet: string,
   call: string,
   args: any[],
@@ -52,7 +53,6 @@ export interface Call {
 
 export interface Extrinsic extends Call {
   signer: string,
-  sudo?: boolean
   events: Event[],
   // queries?: { [key: string]: Query }
 }
@@ -60,7 +60,7 @@ export interface Extrinsic extends Call {
 export interface Event {
   chain: Chain,
   name: string,
-  attribute: Attribute
+  attribute?: Attribute
 }
 
 export interface EventResult extends Event {
@@ -117,4 +117,9 @@ export interface Settings {
   chains: { [key: string]: Chain }
   variables: { [key: string]: any }
   decodedCalls: { [key: string]: Call }
+}
+
+export interface PaymentInfo {
+  partialFee: any,
+  weight: any
 }

@@ -1,11 +1,15 @@
 const chai = require('chai');
 var should = require('chai').should()
-import { Extrinsic } from "./interfaces";
-import { addConsoleGroup, addConsoleGroupEnd, getWallet, parseArgs } from "./utils";
-import { queriesBuilder } from "./queries";
-import { eventsHandler } from "./events";
 import { u8aToHex } from '@polkadot/util'
-
+import { Extrinsic, Call } from "./interfaces";
+import { 
+  addConsoleGroup, 
+  addConsoleGroupEnd, 
+  buildEncodedCallHex, 
+  getWallet, 
+  buildDispatchable 
+} from "./utils";
+import { eventsHandler } from "./events";
 
 export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   const { chain, signer, pallet, call, args, events } = extrinsic
@@ -46,23 +50,21 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic): Promise<any[
   
       checkExtrinsic(extrinsic, providers)
   
-      const { chain, signer, sudo, pallet, call, args, events } = extrinsic
+      const { chain, signer, pallet, call, args, events } = extrinsic
 
+      let encodedCallHex = buildEncodedCallHex(context, extrinsic)
       let chainName = providers[chain.wsPort].name
-      let api = providers[chain.wsPort].api
-      let wallet = await getWallet(signer)
-      let parsedArgs = parseArgs(context, args)
-  
-      let nonce = await api.rpc.system.accountNextIndex(wallet.address);
-    
-      let encodedCall = api.tx[pallet][call](...parsedArgs)
-      let dispatchable = sudo === true ? api.tx.sudo.sudo(encodedCall) : encodedCall
+      console.log(`\n🧬 ENCODED CALL: (${chainName}) | ${encodedCallHex}`)
 
-      console.log(`\n🧬 ENCODED CALL: (${chainName}) | ${u8aToHex((dispatchable).toU8a().slice(2))}`)
+      let dispatchable = buildDispatchable(context, extrinsic)
       console.log(`\n📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args, null, 2)}\n`)
 
+      let api = providers[chain.wsPort].api
+      let wallet = await getWallet(signer)
+      let nonce = await api.rpc.system.accountNextIndex(wallet.address);
+
       await dispatchable.signAndSend(
-        wallet, 
+        wallet,
         { nonce, era: 0 },
         eventsHandler(context, chain, events, resolve)
       );
@@ -76,9 +78,6 @@ export const extrinsicsBuilder = async (context, extrinsics: Extrinsic[]) => {
   for (const extrinsic of extrinsics) {
     let eventsResult = await sendExtrinsic(context, extrinsic)
 
-    // if (extrinsic.queries) {
-    //   await queriesBuilder(context, extrinsic.queries)
-    // }
     addConsoleGroup(2)
 
     eventsResult.forEach(event => {

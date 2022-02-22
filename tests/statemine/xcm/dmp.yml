@@ -16,15 +16,23 @@ settings:
       ksm: &rc_ksm { concrete: { 0, interior: { here: true }}}
       amount: &amount 1000000000000
       ksm_fungible: &rc_ksm_fungible { id: *rc_ksm, fun: { fungible: *amount }}
+      require_weight_at_most: &rc_weight_at_most 1000000000
     assets_parachain_account:
       signer: &ap_signer //Alice
       wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
+      asset_id: &asset_id 1
+      asset_min_balance: &asset_ed 1000 
   decodedCalls:
-    # transfer_balance:
-    #   chain: *assets_parachain
-    #   pallet: balances
-    #   call: transfer
-    #   args: [ *admin, *ed ]
+    force_create_asset:
+      chain: *assets_parachain
+      pallet: assets
+      call: forceCreate
+      args: [
+        *asset_id,
+        { Id: *ap_wallet }, # owner
+        true, # isSufficient
+        *asset_ed # minBalance
+      ]
 
 tests:
   - name: DMP
@@ -48,7 +56,7 @@ tests:
         its:
           - name: Should teleport native assets from the Relay Chain to the Common Good Assets Parachain
             actions:
-              - extrinsics:
+              - extrinsics: &xcmPallet.limitedTeleportAssets
                 - chain: *relay_chain
                   signer: *rc_signer
                   pallet: xcmPallet
@@ -93,7 +101,11 @@ tests:
                           before: $balance_rc_sender_before,
                           after: $balance_rc_sender_after,
                         },
-                        amount: *amount
+                        amount: *amount,
+                        fees: {
+                          from: *xcmPallet.limitedTeleportAssets,
+                          index: 0
+                        }
                       }
           - name: Should increase the balance of the receiver
             actions:
@@ -108,6 +120,44 @@ tests:
                         },
                         amount: *amount,
                         fee: null
-                      }   
+                      }                 
+      - name: xcmPallet.send (Root - Transact)
+        its:
+          - name: Relay Chain Root should be able to execute a XCM Transact instruction in the Assets Parachain 
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *rc_signer
+                  sudo: true
+                  pallet: xcmPallet
+                  call: send
+                  args: [ 
+                    *ap_dest, # destination 
+                    { 
+                      v2: [ #message
+                        { 
+                          Transact: { 
+                            originType: Superuser, 
+                            requireWeightAtMost: *rc_weight_at_most, 
+                            call: $force_create_asset 
+                          }
+                        }
+                      ]  
+                    }
+                  ]  
+                  events:
+                    - name: xcmPallet.Sent
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *assets_parachain
+                      attribute:
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                        value: 2000000000
+              - queries:
+                  forced_created_asset:
+                    chain: *assets_parachain
+                    pallet: assets
+                    call: asset
+                    args: [ *asset_id ]         
   - name: UMP
     its: []
