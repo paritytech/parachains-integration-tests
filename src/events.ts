@@ -13,9 +13,9 @@ const messageBuilder = (context, event: EventResult): string => {
     const { type, value } = attribute
 
     if (ok) {
-      hasValues = `with [${type}: ${data.toString()}]\n`
+      hasValues = `with [${type}: ${data}]\n`
     } else {
-      hasValues = `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data.toString()}`
+      hasValues = `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data}`
     }
   }
   return `${isOk} EVENT: (${chainContext}) | ${name} ${isReceived} ${hasValues}\n`
@@ -54,7 +54,7 @@ const remoteEventLister = (context, event: EventResult): Promise<EventResult> =>
       })
     })
 
-    setTimeout(() => { 
+    setTimeout(() => {
       unsubscribe()
       resolve(updateEventResult(false, undefined, event))
     }, context.eventListenerTimeout)
@@ -77,34 +77,45 @@ const updateEventResult = (received: boolean, record, event: EventResult): Event
       data.forEach((data, j) => {       
         if (type === typeDef[j].type || type === typeDef[j].lookupName) {
           if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
-            if (data.toString() === value.toString()) {
+            if (data.toHuman() === value) {
               event.ok = true
             } else {
               event.ok = false
             }
-            event.data = data
+            event.data = data.toHuman()
           } else {
+            // console.log("isIncomplete", isIncomplete)
+            // console.log("data.isIncomplete", data.isIncomplete)
+            // console.log("data.isError", data.isError)
+            // console.log("data", data)
+
             if (isComplete && data.isComplete) {
-              if (!value || (value && value == data.asComplete)) {
+              let asComplete = data.asComplete.toHuman()
+
+              if (!value || (value && value === asComplete)) {
                 event.ok = true
-              } else if (value && value !== data.asComplete) {
+              } else if (value && value !== asComplete) {
                 event.ok = false
               }
-              event.data = data.asComplete
+              event.data = asComplete
             } else if (isIncomplete && data.isIncomplete) {
-              if (!value || (value && value === data.asIncomplete)) {
+              let asIncomplete = data.asIncomplete.toHuman()
+
+              if (!value || (value && value === asIncomplete)) {
                 event.ok = true
-              } else if (value && value !== data.asIncomplete) {
+              } else if (value && value !== asIncomplete) {
                 event.ok = false
               }
-              event.data = data.asIncomplete
+              event.data = asIncomplete
             } else if (isError && data.isError) {
-              if (!value || (value && value === data.asError)) {
+              let asError = data.asError.toHuman()
+
+              if (!value || (value && value === asError)) {
                 event.ok = true
-              } else if (value && value !== data.asError) {
+              } else if (value && value !== asError) {
                 event.ok = false
               }
-              event.data = data.asError
+              event.data = asError
             }
           }
         }

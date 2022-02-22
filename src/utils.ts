@@ -1,6 +1,7 @@
 import YAML from "yaml"
 import glob from "glob";
 import fs from "fs";
+import traverse from 'traverse'
 import { resolve , dirname } from "path";
 import { u8aToHex, compactAddLength } from '@polkadot/util';
 import { Keyring } from '@polkadot/api';
@@ -73,7 +74,7 @@ export const getWallet = async (uri) => {
 export const parseArgs = (context, args): any[] => {
   let variables = context.variables
   let strigifiedArg = JSON.stringify(args)
-  
+
   if (variables) {
     let keys = Object.keys(variables)
 
@@ -93,32 +94,18 @@ export const parseArgs = (context, args): any[] => {
       }
     }
   }
+
+    traverse(JSON.parse(strigifiedArg)).map(function (this, value) {
+      let pattern = /\$/
+      let regex = new RegExp(pattern, 'g')
+
+      if (typeof value === 'string' && value.match(regex)) {
+        console.log(`\n⚠️  no value found for the variable "${value}". Check that the action where it is defined has not been skipped after a failing assert`)
+        process.exit(1)
+      } 
+  })
   return JSON.parse(strigifiedArg)
 }
-
-// export const parseArgs = function(context, args) {
-//   let variables = context.variables
-
-//   let parsedArgs = args
-//   let replaced: boolean = false
-//   let exit: boolean = false
-
-//   do {
-//     replaced = false
-//     console.log(parsedArgs)
-//     parsedArgs = traverse(parsedArgs).map(function (this, value) {
-//       if (variables[value]) {
-//         replaced = true
-//         let valueToUpdate = variables[value].toJSON ? variables[value].toJSON() : variables[value]
-//         this.update(valueToUpdate)
-//       }
-//     })
-//     exit = replaced ? false : true
-//   }
-//   while (!exit)
-
-//   return parsedArgs
-// }
 
 export const waitForChainToProduceBlocks = async (provider): Promise<void> => {
   return new Promise(async resolve => {
