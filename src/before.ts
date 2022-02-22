@@ -43,7 +43,7 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
 
 export const beforeBuildEncodedCalls = (decodedCalls) => {
   before(async function() {
-    this.variables = {a: 1}
+    this.variables = {}
     if (decodedCalls) {
       Object.keys(decodedCalls).forEach(key => {
         if (!this.variables[`\$${key}`]) {

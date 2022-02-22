@@ -2,35 +2,50 @@ const chai = require('chai');
 var should = require('chai').should()
 const BN = require('bn.js');
 chai.use(require('chai-bn')(BN));
+import { expect } from 'chai';
+import { PaymentInfo } from '../../../../src/interfaces'
+import { getPaymentInfoForExtrinsic } from '../../../../src/utils'
 
 const checkSenderBalances = async (context, ...args) => {
-  console.log("checkSenderBalances", args[0])
-
   const {
     balances: 
       {
           before: { data: { free: senderBefore } }, 
           after: { data: { free: senderAfter } }
       },  
-    amount
+    amount,
+    fees
   } = args[0]
+
   
-  // console.log("Sender BEFORE", senderBefore.toBn())
-  console.log("Sender AFTER", BigInt(senderAfter))
   let amountSent = BigInt(amount)
   let previousBalance = BigInt(senderBefore)
   let currentBalance = BigInt(senderAfter)
-  let expectedBalance = previousBalance - amountSent
-
-  // let balanceChange = senderBefore.sub(senderAfter)
+  let expectedBalance: bigint
+  let fee = BigInt(0)
   
+  expectedBalance = previousBalance - amountSent;
+  
+  // console.log("Real Fee", expectedBalance - currentBalance);
+
+
+  if (fees) {
+    const { from: extrinsic, index } = fees
+    let paymentInfo: PaymentInfo = await getPaymentInfoForExtrinsic(context, extrinsic[index]) 
+    const { partialFee } = paymentInfo
+    fee = BigInt(partialFee)
+    // console.log("Fee", fee);
+    // expectedBalance = previousBalance - amountSent - fee
+  }
+  // console.log("Previous Balance", previousBalance)
+  // console.log("Current Balance", currentBalance)
+  // console.log("Amount", amountSent)
+  // console.log("Fees", fee)
+
   // Assert
-  chai.assert.equal(true, currentBalance < expectedBalance)
-  // chai.assert.equal(balanceChange, new BN(amount))
-  // console.log(JSON.stringify(args[0], null, 2))
+  // chai.assert.equal(currentBalance, expectedBalance)
+  // expect(currentBalance).to.be.lt(expectedBalance)
+  (new BN(currentBalance)).should.be.a.bignumber.that.is.lessThan(new BN(expectedBalance))
 }
 
 export default checkSenderBalances
-
-// 999,984,998,281,811,445 before
-// 999,983,998,167,385,021 

@@ -1,7 +1,14 @@
 import { Assert, Custom, AssertOrCustom } from './interfaces'
 import { customBuilder } from './custom'
+import { addConsoleGroupEnd } from './utils'
 
 const customAssert = async (context, assert: Custom) => {
+  try {
+    await customBuilder(context, assert)
+  } catch(e) {
+    addConsoleGroupEnd(2)
+    throw e
+  }
   await customBuilder(context, assert)
 }
 

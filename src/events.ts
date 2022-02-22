@@ -3,7 +3,6 @@ import { EventResult, Chain, Event } from "./interfaces";
 const messageBuilder = (context, event: EventResult): string => {
   const { providers } = context
   const { name, chain, attribute, data, ok, received } = event
-  const { type, value } = attribute
 
   let chainContext = providers[chain.wsPort].name
   let isOk = ok ? '✅'  : '❌'
@@ -11,13 +10,14 @@ const messageBuilder = (context, event: EventResult): string => {
   let hasValues = ''
 
   if (received && attribute) {
+    const { type, value } = attribute
+
     if (ok) {
       hasValues = `with [${type}: ${data.toString()}]\n`
     } else {
       hasValues = `with different value - Expected: ${type}: ${value}, Received: ${type}: ${data.toString()}`
     }
   }
-
   return `${isOk} EVENT: (${chainContext}) | ${name} ${isReceived} ${hasValues}\n`
 } 
 
@@ -66,6 +66,8 @@ const updateEventResult = (received: boolean, record, event: EventResult): Event
   event.data = ''
 
   if (received && record) {
+    event.ok = true
+
     const { event: { data, typeDef }} = record
     const { attribute } = event
 
