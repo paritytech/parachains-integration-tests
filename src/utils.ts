@@ -41,6 +41,7 @@ export const buildDispatchable = (context, extrinsic: Extrinsic) => {
 
   let providers = context.providers
   let api = providers[chain.wsPort].api
+
   let parsedArgs = parseArgs(context, args)
 
   let dispatchable = api.tx[pallet][call](...parsedArgs)
@@ -100,7 +101,7 @@ export const parseArgs = (context, args): any[] => {
       let regex = new RegExp(pattern, 'g')
 
       if (typeof value === 'string' && value.match(regex)) {
-        console.log(`\n⚠️  no value found for the variable "${value}". Check that the action where it is defined has not been skipped after a failing assert`)
+        console.log(`\n⚠️  no value found for the variable "${value}". Check that the action where it is defined was not skipped after a failing assert`)
       } 
   })
   return JSON.parse(strigifiedArg)

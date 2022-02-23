@@ -15,18 +15,22 @@ import { waitForDebugger } from "inspector";
 export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   const { chain, signer, pallet, call, args, events } = extrinsic
 
-  if (events === undefined) {
-    console.log(`\n⚠️  "events" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
+  if (events && !Array.isArray(events)) {
+    console.log(`\n⚠️  "events" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   }
 
+  if (events === undefined) {
+    extrinsic.events = []
+  }
+
   if (signer === undefined) {
-    console.log(`\n⚠️  "signer" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
+    console.log(`\n⚠️  "signer" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   }
 
   if (chain === undefined) {
-    console.log(`\n⚠️  "chain" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
+    console.log(`\n⚠️  "chain" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   } else if (providers[chain.wsPort] === undefined) {
     console.log(`\n⚠️  The chain name does not exist`)
@@ -34,18 +38,18 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   }
 
   if (pallet === undefined || call === undefined) {
-    console.log(`\n⚠️  "pallet" & "call" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
+    console.log(`\n⚠️  "pallet" & "call" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   }
 
-  if (args === undefined) {
-    console.log(`\n⚠️  "args" should be defined for the following extrinsic:`, JSON.stringify(extrinsic))
+  if (!Array.isArray(args)) {
+    console.log(`\n⚠️  "args" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   }
 }
 
 export const sendExtrinsic = async (context, extrinsic: Extrinsic): Promise<any[]> => {
-  return new Promise(async resolve => {
+  return new Promise(async (resolve, reject) => {
     try {
       let providers = context.providers
   
@@ -72,7 +76,8 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic): Promise<any[
         eventsHandler(context, chain, events, resolve)
       );
     }catch(e) {
-      console.log(e)
+      addConsoleGroupEnd(2)
+      reject(e)
     }
   })
 }

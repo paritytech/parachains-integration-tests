@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { EventResult, Chain, Event, Attribute } from "./interfaces";
+import { addConsoleGroupEnd } from './utils'
 
 const messageBuilder = (context, event: EventResult): string => {
   const { providers } = context
@@ -75,6 +76,7 @@ const remoteEventLister = (context, event: EventResult): Promise<EventResult> =>
         resolve(updateEventResult(false, undefined, event))
       }, context.eventListenerTimeout)
     } catch(e) {
+      addConsoleGroupEnd(2)
       reject(e)
     }
   })
@@ -107,7 +109,7 @@ const buildXcmOutput = (data, event: EventResult) => {
       }
     }
 
-    if (!value || ((value && _.isEqual(value, typeData) && event.xcmOutput.expected === event.xcmOutput.real))) {
+    if (!value || (value && _.isEqual(value, typeData) && event.xcmOutput.expected === event.xcmOutput.real)) {
       event.ok = true
     }
   }
@@ -160,6 +162,9 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
           if (chain === extrinsicChain && name === `${section}.${method}`) {
             finalEventsResults.push(updateEventResult(true, record, eventResult))
           }
+          // setTimeout(() => {
+          //   finalEventsResults.push(updateEventResult(false, undefined, eventResult))
+          // }, context.eventListenerTimeout)
         })
       });
 
