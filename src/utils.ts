@@ -101,7 +101,6 @@ export const parseArgs = (context, args): any[] => {
 
       if (typeof value === 'string' && value.match(regex)) {
         console.log(`\n⚠️  no value found for the variable "${value}". Check that the action where it is defined has not been skipped after a failing assert`)
-        process.exit(1)
       } 
   })
   return JSON.parse(strigifiedArg)
