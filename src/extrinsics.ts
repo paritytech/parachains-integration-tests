@@ -6,9 +6,11 @@ import {
   addConsoleGroupEnd, 
   buildEncodedCallHex, 
   getWallet, 
-  buildDispatchable 
+  buildDispatchable,
+  sleep 
 } from "./utils";
 import { eventsHandler } from "./events";
+import { waitForDebugger } from "inspector";
 
 export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   const { chain, signer, pallet, call, args, events } = extrinsic
@@ -62,6 +64,8 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic): Promise<any[
       let wallet = await getWallet(signer)
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
 
+      await sleep(context.queryDelay)
+      
       await dispatchable.signAndSend(
         wallet,
         { nonce, era: 0 },

@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import _ from 'lodash'
 import { EventResult, Chain, Event, Attribute } from "./interfaces";
 
@@ -18,17 +17,18 @@ const messageBuilder = (context, event: EventResult): string => {
       const { expected, real } = xcmOutput
 
       if (real === expected) {
-        xcmOutcome = `, as ${expected}`
+        xcmOutcome = `, ${expected}`
       } else {
-        xcmOutcome = `, with different status - ( Expected: '${expected}', Received: '${real} )'`
+        xcmOutcome = `, with different status ( Expected: '${expected}', Received: '${real}' )`
       }
     }
     
-
-    if (ok) {
-      hasValues = `, with: '${type}': ${JSON.stringify(data)}\n`
-    } else {
-      hasValues = `, with different value - ( Expected: '${type}': ${JSON.stringify(value)}, Received: '${type}': ${JSON.stringify(data)} )`
+    if (value) {
+      if (_.isEqual(value, data)) {
+        hasValues = `, with: '${type}': ${JSON.stringify(data)}\n`
+      } else {
+        hasValues = `, with different value ( Expected: '${type}': ${JSON.stringify(value)}, Received: '${type}': ${JSON.stringify(data)} )`
+      }
     }
   }
   return `${isOk} EVENT: (${chainContext}) '${name}' ${isReceived}${xcmOutcome}${hasValues}\n`
@@ -53,25 +53,30 @@ const eventsResultsBuilder = (extrinsicChain: Chain, events: Event[]): EventResu
 }
 
 const remoteEventLister = (context, event: EventResult): Promise<EventResult> => { 
-  return new Promise(async resolve => {
-    const { providers } = context
-    const { name, chain, } = event
-    let api = providers[chain.wsPort].api
-
-    const unsubscribe = await api.query.system.events((events) => {
-      events.forEach((record) => { 
-        const { event: { method, section }} = record
-
-        if (name === `${section}.${method}`) {
-          resolve(updateEventResult(true, record, event))
-        }
+  return new Promise(async (resolve, reject) => {
+    try {
+      const { providers } = context
+      const { name, chain, } = event
+      let api = providers[chain.wsPort].api
+  
+      const unsubscribe = await api.query.system.events((events) => {
+        events.forEach((record) => { 
+          const { event: { method, section, data, typeDef }} = record
+  
+          if (name === `${section}.${method}`) {
+            unsubscribe()
+            resolve(updateEventResult(true, record, event))
+          }
+        })
       })
-    })
-
-    setTimeout(() => {
-      unsubscribe()
-      resolve(updateEventResult(false, undefined, event))
-    }, context.eventListenerTimeout)
+  
+      setTimeout(() => {
+        unsubscribe()
+        resolve(updateEventResult(false, undefined, event))
+      }, context.eventListenerTimeout)
+    } catch(e) {
+      reject(e)
+    }
   })
 }
 
@@ -130,43 +135,6 @@ const updateEventResult = (received: boolean, record, event: EventResult): Event
             event.data = data.toHuman()
           } else {
             buildXcmOutput(data, event)
-            // if (isComplete) {
-            //   event.xcmOutput.expected ='Complete'
-
-            //   if (data.isComplete) {
-            //     let asComplete = data.asComplete.toHuman()
-
-            //     if (!value || (value && _.isEqual(value, asComplete))) {
-            //       event.ok = true
-            //     }
-            //     event.data = asComplete
-            //     event.xcmOutput.real = 'Complete'
-            //   }  
-            // } else if (isIncomplete) {
-            //   event.xcmOutput.expected = 'Incomplete'
-
-            //   if(data.isIncomplete) {
-            //     let asIncomplete = data.asIncomplete.toHuman()
-
-            //     if (!value || (value && _.isEqual(value, asIncomplete))) {
-            //       event.ok = true
-            //     }
-            //     event.data = asIncomplete
-            //     event.xcmOutput.real = 'Incomplete'
-            //   }  
-            // } else if (isError) {
-            //   event.xcmOutput.expected = 'Error'
-
-            //   if (data.isError) {
-            //     let asError = data.asError.toHuman()
-
-            //     if (!value || (value && _.isEqual(value, asError))) {
-            //       event.ok = true
-            //     }
-            //     event.data = asError
-            //   }
-            // }
-
           }
         }
       });
@@ -186,7 +154,6 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
     if (status.isInBlock) {
       events.forEach((record: any) => {
         const { event: { method, section }} = record
-
         initialEventsResults.forEach(eventResult => {
           const { name, chain } = eventResult
 
@@ -205,9 +172,9 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
         }
       })
 
-      let remoteEventsResults = await Promise.all(remoteEventsPromises)
-
-      finalEventsResults = finalEventsResults.concat(remoteEventsResults)
+      for (let remoteEventsPromise of remoteEventsPromises) {
+        finalEventsResults.push(await remoteEventsPromise)
+      }
 
       finalEventsResults = finalEventsResults.map(result => {
         let message = messageBuilder(context, result)
