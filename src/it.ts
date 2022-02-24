@@ -6,12 +6,14 @@ import { queriesBuilder } from "./queries"
 import { addConsoleGroup, addConsoleGroupEnd } from "./utils"
 
 const checkIt = (it: It) => {
-  if (!it.name) {
-    console.log(`\n⚠️  "name" should be defined for it:`, JSON.stringify(it))
+  const { name, actions } = it
+
+  if (!name) {
+    console.log(`\n🚫 ERROR: "name" should be defined for the following 'it':`, JSON.stringify(it, null, 2))
     process.exit(1)
   }
-  if (!it.actions || !Array.isArray(it.actions)) {
-    console.log(`\n⚠️  "actions" should be defined for it:`, JSON.stringify(it))
+  if (actions && !Array.isArray(actions)) {
+    console.log(`\n🚫 ERROR: "actions" invalid type, it should be of type Array for the 'it':`, JSON.stringify(it, null, 2))
     process.exit(1)
   }
 }

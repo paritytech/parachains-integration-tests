@@ -2,7 +2,8 @@ import {
   Before, 
   BeforeEach, 
   After, 
-  AfterEach, 
+  AfterEach,
+  Hook, 
   Action,
   ExtrinsicAction,
   QueryAction,
@@ -15,14 +16,27 @@ import { queriesBuilder } from "./queries"
 import { assertsBuilder } from './asserts'
 import { addConsoleGroup, addConsoleGroupEnd } from "./utils"
 
-const checkHooks = (actions: Action[]) => {
-  if (!actions || !Array.isArray(actions)) {
-    console.log(`\n⚠️  "actions" should be defined for the hook`)
+const checkHooks = (hook: Hook) => {
+  const { name, actions } = hook
+  
+  if (!name) {
+    console.log(`\n🚫 ERROR: "name" should be defined for all hooks`)
     process.exit(1)
+  }
+
+  if (actions && !Array.isArray(actions)) {
+    console.log(`\n🚫 ERROR: "actions" invalid type, it should be of type Array for the hook: ${hook.name}`)
+    process.exit(1)
+  }
+
+  if (!actions) {
+    hook.actions = []
   }
 }
 
 export const beforeBuilder = (hook: Before) => {
+  checkHooks(hook)
+
   const { name, actions } = hook
 
   before(async function () {
@@ -59,8 +73,6 @@ export const afterEachBuilder = async (hook: AfterEach) => {
 }
 
 export const hookBuilder = async (context, actions: Action[]) => {
-  checkHooks(actions)
-
   addConsoleGroup(2)
 
   for (let action of actions) {

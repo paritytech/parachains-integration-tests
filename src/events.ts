@@ -18,7 +18,7 @@ const messageBuilder = (context, event: EventResult): string => {
       const { expected, real } = xcmOutput
 
       if (real === expected) {
-        xcmOutcome = `, ${expected}`
+        xcmOutcome = `, '${expected}'`
       } else {
         xcmOutcome = `, with different status ( Expected: '${expected}', Received: '${real}' )`
       }
@@ -46,14 +46,16 @@ const eventsResultsBuilder = (extrinsicChain: Chain, events: Event[]): EventResu
         received: false,
         ok: false,
         message: '',
-        xcmOutput: { expected: undefined, real: undefined }
+        xcmOutput: { expected: undefined, real: undefined },
+        id: Math.random()
       }, 
     }
     return extendedEvent
   })
 }
 
-const remoteEventLister = (context, event: EventResult): Promise<EventResult> => { 
+const remoteEventLister = (context, event: EventResult): Promise<EventResult> => {
+  // console.log("Event in Listener for event", event)
   return new Promise(async (resolve, reject) => {
     try {
       const { providers } = context
@@ -61,6 +63,7 @@ const remoteEventLister = (context, event: EventResult): Promise<EventResult> =>
       let api = providers[chain.wsPort].api
   
       const unsubscribe = await api.query.system.events((events) => {
+        // console.log("Listener subscriptor going on for event", event)
         events.forEach((record) => { 
           const { event: { method, section, data, typeDef }} = record
   
@@ -147,45 +150,54 @@ const updateEventResult = (received: boolean, record, event: EventResult): Event
   return event
 }
 
-export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Event[], resolve) =>
+export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) =>
   async ({ events = [], status }) => {
-    let initialEventsResults: EventResult[] = eventsResultsBuilder(extrinsicChain, expectedEvents)
-    let finalEventsResults: EventResult[] = []
-    let remoteEventsPromises: Promise<EventResult>[] = []
+    try {
+      let initialEventsResults: EventResult[] = eventsResultsBuilder(extrinsicChain, expectedEvents)
+      let finalEventsResults: EventResult[] = []
+      let remoteEventsPromises: Promise<EventResult>[] = []
 
-    if (status.isInBlock) {
-      events.forEach((record: any) => {
-        const { event: { method, section }} = record
+      // console.log("initialEventsResults", initialEventsResults)
+  
+      if (status.isInBlock) {
+        events.forEach((record: any) => {
+          const { event: { method, section }} = record
+          initialEventsResults.forEach(eventResult => {
+            const { name, chain } = eventResult
+  
+            if (chain === extrinsicChain && name === `${section}.${method}`) {
+              finalEventsResults.push(updateEventResult(true, record, eventResult))
+            }
+          })
+        });
+
         initialEventsResults.forEach(eventResult => {
-          const { name, chain } = eventResult
+          const { chain, received } = eventResult
+          if (chain === extrinsicChain && !received) {
+            finalEventsResults.push(updateEventResult(received, undefined, eventResult))
+          } else if (chain !== extrinsicChain) {
 
-          if (chain === extrinsicChain && name === `${section}.${method}`) {
-            finalEventsResults.push(updateEventResult(true, record, eventResult))
+            remoteEventsPromises.push(remoteEventLister(context, eventResult))
           }
-          // setTimeout(() => {
-          //   finalEventsResults.push(updateEventResult(false, undefined, eventResult))
-          // }, context.eventListenerTimeout)
         })
-      });
-
-      initialEventsResults.forEach(eventResult => {
-        const { chain, received } = eventResult
-        if (chain === extrinsicChain && !received) {
-          finalEventsResults.push(updateEventResult(received, undefined, eventResult))
-        } else if (chain !== extrinsicChain) {
-          remoteEventsPromises.push(remoteEventLister(context, eventResult))
+  
+        for (let remoteEventsPromise of remoteEventsPromises) {
+          finalEventsResults.push(await remoteEventsPromise)
         }
-      })
+  
+        finalEventsResults = finalEventsResults.map(result => {
+          let message = messageBuilder(context, result)
+          return { ...result, message }
+        })
 
-      for (let remoteEventsPromise of remoteEventsPromises) {
-        finalEventsResults.push(await remoteEventsPromise)
+        // console.log("finalEventsResults", finalEventsResults)
+
+  
+        resolve(finalEventsResults)
+        return
       }
-
-      finalEventsResults = finalEventsResults.map(result => {
-        let message = messageBuilder(context, result)
-        return { ...result, message }
-      })
-
-      resolve(finalEventsResults)
+    } catch (e) {
+      addConsoleGroupEnd(2)
+      reject(e)
     }
   }

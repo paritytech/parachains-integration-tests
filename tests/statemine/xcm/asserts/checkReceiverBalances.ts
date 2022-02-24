@@ -22,10 +22,9 @@ const checkReceiverBalances = async (context, ...args) => {
   let previousBalance = BigInt(receiverBefore)
   let currentBalance =  BigInt(receiverAfter)
 
-  console.log(new BN(previousBalance));
 
   // Assert
-  (new BN(currentBalance)).should.be.a.bignumber.that.is.greaterThan(BN(previousBalance))
+  new BN(currentBalance).should.be.a.bignumber.that.is.greaterThan(new BN(previousBalance))
 }
 
 export default checkReceiverBalances

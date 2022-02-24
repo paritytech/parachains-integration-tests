@@ -9,12 +9,30 @@ import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
 import { Extrinsic, TestFile, TestsConfig, PaymentInfo } from './interfaces';
 
 export const getTestFiles = (path): TestFile[] => {
-  let testsFiles = glob.sync('/**/*.yml', { root: path })
+  console.log(resolve(process.cwd(), path))
 
-  try {
+  let testsFiles
+
+  try { 
+    let absolutePath = resolve(process.cwd(), path)
+
+    if (fs.lstatSync(absolutePath).isFile()) {
+      testsFiles = [absolutePath]
+    } else if (fs.lstatSync(absolutePath).isDirectory()) {
+      testsFiles = glob.sync('/**/*.yml', { root: path })
+    }
+    // console.log("testsFiles", testsFiles)
+
+
     return testsFiles = testsFiles.map(testFile => {
+      // console.log("testFile", testFile)
+
       let testPath = resolve(process.cwd(), testFile);
+      // console.log("testPath", testPath)
+
       let testDir = dirname(testPath);
+      // console.log("testDir", testDir)
+
       const file = fs.readFileSync(testFile, 'utf8')
       let yaml: TestsConfig = YAML.parse(file)
       let test: TestFile = { name: testFile, dir: testDir, yaml }
@@ -101,7 +119,7 @@ export const parseArgs = (context, args): any[] => {
       let regex = new RegExp(pattern, 'g')
 
       if (typeof value === 'string' && value.match(regex)) {
-        console.log(`\n⚠️  no value found for the variable "${value}". Check that the action where it is defined was not skipped after a failing assert`)
+        console.log(`\n⚠️  WARNING: no value was found for the variable "${value}". Check that the action where it is declared was not skipped after a failing assert`)
       } 
   })
   return JSON.parse(strigifiedArg)
