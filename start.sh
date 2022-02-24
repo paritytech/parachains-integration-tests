@@ -13,7 +13,7 @@
 
 tests=(
   statemine
-  statemint
+  # statemint
 )
 
 rm -R logs &> /dev/null

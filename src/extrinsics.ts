@@ -16,34 +16,34 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
   const { chain, signer, pallet, call, args, events } = extrinsic
 
   if (events && !Array.isArray(events)) {
-    console.log(`\n⚠️  "events" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
+    console.log(`\n🚫 ERROR: "events" invalid type, it should be defined as an 'Array' for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   }
 
-  if (events === undefined) {
+  if (!events) {
     extrinsic.events = []
   }
 
   if (signer === undefined) {
-    console.log(`\n⚠️  "signer" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
+    console.log(`\n🚫 ERROR: "signer" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   }
 
   if (chain === undefined) {
-    console.log(`\n⚠️  "chain" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
+    console.log(`\n🚫 ERROR: "chain" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   } else if (providers[chain.wsPort] === undefined) {
-    console.log(`\n⚠️  The chain name does not exist`)
+    console.log(`\n🚫 ERROR: The chain name does not exist`)
     process.exit(1)
   }
 
   if (pallet === undefined || call === undefined) {
-    console.log(`\n⚠️  "pallet" & "call" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
+    console.log(`\n🚫 ERROR: "pallet" & "call" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   }
 
   if (!Array.isArray(args)) {
-    console.log(`\n⚠️  "args" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
+    console.log(`\n🚫 ERROR: "args" should be defined for the following extrinsic:`, JSON.stringify(extrinsic, null, 2))
     process.exit(1)
   }
 }
@@ -59,7 +59,7 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic): Promise<any[
 
       let encodedCallHex = buildEncodedCallHex(context, extrinsic)
       let chainName = providers[chain.wsPort].name
-      console.log(`\n🧬 ENCODED CALL: (${chainName}) | ${encodedCallHex}`)
+      console.log(`\n🧬 ENCODED CALL: (${chainName}) | '${encodedCallHex}'`)
 
       let dispatchable = buildDispatchable(context, extrinsic)
       console.log(`\n📩 EXTRINSIC: (${chainName}) | ${pallet}.${call} with ${JSON.stringify(args, null, 2)}\n`)
@@ -73,7 +73,7 @@ export const sendExtrinsic = async (context, extrinsic: Extrinsic): Promise<any[
       await dispatchable.signAndSend(
         wallet,
         { nonce, era: 0 },
-        eventsHandler(context, chain, events, resolve)
+        eventsHandler(context, chain, events, resolve, reject)
       );
     }catch(e) {
       addConsoleGroupEnd(2)

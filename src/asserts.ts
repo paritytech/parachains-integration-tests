@@ -24,12 +24,12 @@ const checkAssert = (key: string, assert: AssertOrCustom) => {
     const { path } = assert
 
     if (!path) {
-      console.log(`\n⚠️  "path" should be defined for the following assert: "custom": ${JSON.stringify(assert)}`)
+      console.log(`\n🚫 ERROR: "path" should be defined for the following assert: "custom": ${JSON.stringify(assert)}`)
       process.exit(1)
     }
   } else {
     if (!Array.isArray(args)) {
-      console.log(`\n⚠️  "args" should be defined and should be an array for the following assert: "${key}": ${JSON.stringify(assert)}`)
+      console.log(`\n🚫 ERROR: "args" should be defined and should be an array for the following assert: "${key}": ${JSON.stringify(assert)}`)
       process.exit(1)
     }
   }

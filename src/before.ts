@@ -7,7 +7,7 @@ import { DEFAULT_EVENT_LISTENER_TIMEOUT, DEFAULT_QUERY_DELAY, DEFAULT_TIMEOUT } 
 const checkChains = (chains: { [key: string]: Chain }): { [key: string]: Chain }  => {
   for (let id in chains) {
     if (!chains[id].wsPort) {
-      console.log(`\n⚠️  "wsPort" should be defined for chain ${id}:`)
+      console.log(`\n🚫 ERROR: "wsPort" should be defined for chain ${id}:`)
       process.exit(1)
     }
 
@@ -49,8 +49,8 @@ export const beforeBuildEncodedCalls = (decodedCalls) => {
         if (!this.variables[`\$${key}`]) {
           this.variables[`\$${key}`] = buildEncodedCall(this, decodedCalls[key])
         } else {
-          console.log(`\n⚠️  the key $"${key}" can not be reassigend`)
-          process.exit(1)
+          console.log(`\n⚠️  WARNING: the key $"${key}" is being reassigned`)
+          // process.exit(1)
         }
       })
     }

@@ -45,7 +45,7 @@ const checkSenderBalances = async (context, ...args) => {
   // Assert
   // chai.assert.equal(currentBalance, expectedBalance)
   // expect(currentBalance).to.be.lt(expectedBalance)
-  (new BN(currentBalance)).should.be.a.bignumber.that.is.lessThan(new BN(expectedBalance))
+  new BN(currentBalance).should.be.a.bignumber.that.is.lessThan(new BN(expectedBalance))
 }
 
 export default checkSenderBalances

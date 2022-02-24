@@ -30,6 +30,8 @@ export interface After  extends Before {}
 
 export interface AfterEach  extends Before {}
 
+export type Hook = Before | BeforeEach | After | AfterEach
+
 export interface Custom {
   type: 'custom'
   path: string
@@ -70,6 +72,7 @@ export interface EventResult extends Event {
   message: string
   data?: any,
   xcmOutput: XcmOutput
+  id: number
 }
 
 export interface XcmOutput {
