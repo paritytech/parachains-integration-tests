@@ -5,20 +5,20 @@ export const checkQuery = (key: string, query: Query, providers) => {
   const { chain, pallet, call, args } = query
 
   if (chain === undefined) {
-    console.log(`\n⚠️  "chain" should be defined for the following query id:`, key)
+    console.log(`\n⛔ ERROR: "chain" should be defined for the following query id:`, key)
     process.exit(1)
   } else if (providers[chain.wsPort] === undefined) {
-    console.log(`\n⚠️  The chain name does not exist`)
+    console.log(`\n⛔ ERROR: The chain name does not exist`)
     process.exit(1)
   }
 
   if (pallet === undefined || call === undefined) {
-    console.log(`\n⚠️  "pallet" & "call" should be defined for the following query id:`, key)
+    console.log(`\n⛔ ERROR: "pallet" & "call" should be defined for the following query id:`, key)
     process.exit(1)
   }
 
   if (args === undefined) {
-    console.log(`\n⚠️  "args" should be defined for the following query id:`, key)
+    console.log(`\n⛔ ERROR: "args" should be defined for the following query id:`, key)
     process.exit(1)
   }
 }
@@ -40,7 +40,6 @@ export const queriesBuilder = async (context, queries: { [key: string]: Query })
         context.variables[`\$${key}`] = await sendQuery(context, key, queries[key])
       } else {
         console.log(`\n⚠️  WARNING: the key $"${key}" is being reassigned`)
-        // process.exit(1)
       }
     }
 }

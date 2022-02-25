@@ -20,8 +20,6 @@ export interface Describe {
 export interface Before {
   name?: string
   actions: Action[]
-  // customs?: Custom[]
-  // extrinsics?: Extrinsic[]
 }
 
 export interface BeforeEach  extends Before {}
@@ -33,7 +31,6 @@ export interface AfterEach  extends Before {}
 export type Hook = Before | BeforeEach | After | AfterEach
 
 export interface Custom {
-  type: 'custom'
   path: string
   args: any
 }
@@ -56,17 +53,18 @@ export interface Call {
 export interface Extrinsic extends Call {
   signer: string,
   events: Event[],
-  // queries?: { [key: string]: Query }
 }
 
 export interface Event {
   chain: Chain,
   name: string,
+  remote: boolean
+  timeout?: number
   attribute?: Attribute
 }
 
 export interface EventResult extends Event {
-  local: boolean
+  remote: boolean
   received: boolean
   ok: boolean,
   message: string
@@ -91,18 +89,7 @@ export interface Attribute {
 export interface It {
   name: string,
   actions: Action[]
-  // customs?: Custom[]
-  // extrinsics?: Extrinsic[]
-  // queries?: { [key: string]: Query }
-  // asserts?: { [key: string]: AssertOrCustom }
 }
-
-// export interface Action {
-//   extrinsics?: Extrinsic[]
-//   customs?: Custom[]
-//   queries?: { [key: string]: Query }
-//   asserts?: { [key: string]: AssertOrCustom }
-// }
 
 export type CustomAction = { customs: Custom[] }
 export type ExtrinsicAction = { extrinsics: Extrinsic[] }
@@ -112,7 +99,6 @@ export type AsserAction = { asserts: { [key: string]: AssertOrCustom } }
 export type Action = CustomAction | QueryAction | ExtrinsicAction | AsserAction
 
 export interface Assert {
-  type: 'assert'
   args: any[],
 }
 

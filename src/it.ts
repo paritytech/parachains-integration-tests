@@ -9,11 +9,11 @@ const checkIt = (it: It) => {
   const { name, actions } = it
 
   if (!name) {
-    console.log(`\n🚫 ERROR: "name" should be defined for the following 'it':`, JSON.stringify(it, null, 2))
+    console.log(`\n⛔ ERROR: "name" should be defined for the following 'it':`, JSON.stringify(it, null, 2))
     process.exit(1)
   }
   if (actions && !Array.isArray(actions)) {
-    console.log(`\n🚫 ERROR: "actions" invalid type, it should be of type Array for the 'it':`, JSON.stringify(it, null, 2))
+    console.log(`\n⛔ ERROR: "actions" invalid type, it should be of type Array for the 'it':`, JSON.stringify(it, null, 2))
     process.exit(1)
   }
 }

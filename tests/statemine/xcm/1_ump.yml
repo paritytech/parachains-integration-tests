@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9944
+      wsPort: 9900
     assets_parachain: &assets_parachain
-      wsPort: 9988
+      wsPort: 9910
       paraId: &ap_id 1000
   variables:
     common:
@@ -40,7 +40,7 @@ tests:
     describes:
       - name: polkadotXcm.limitedTeleportAssets
         before:
-          - name: DEPENDANCY | Do a 'limitedTeleportAssets' from the Relay Chain to the Common Good Assets Parachain to have funds to send them back
+          - name: DEPENDANCY | Do a 'limitedTeleportAssets' from the Relay Chain to the Assets Parachain to have funds to send them back
             actions:
               - extrinsics:
                 - chain: *relay_chain
@@ -79,7 +79,7 @@ tests:
                     call: account
                     args: [ *rc_wallet ]                      
         its:
-          - name: Should teleport native assets back from Common Good Assets Parachain to the Relay Chain
+          - name: Should teleport native assets back from Assets Parachain to the Relay Chain
             actions:
               - extrinsics: &polkadotXcm.limitedTeleportAssets
                 - chain: *assets_parachain
@@ -150,7 +150,7 @@ tests:
 
       - name: polkadotXcm.send | Native - Transact(system.remark)
         its:
-          - name: Common Good Assets Parachain SHOULD NOT be able to dipatch 'send' call
+          - name: Assets Parachain SHOULD NOT be able to dipatch 'send' call
             actions:
               - extrinsics:
                 - chain: *assets_parachain
@@ -179,7 +179,7 @@ tests:
 
       - name: polkadotXcm.limitedReserveTransferAssets
         before:
-            - name: DEPENDANCY | Do a 'limitedReserveTransferAssets' from the Relay Chain to the Common Good Assets Parachain to have funds to send them back
+            - name: DEPENDANCY | Do a 'limitedReserveTransferAssets' from the Relay Chain to the Assets Parachain to have funds to send them back
               actions:
                 - extrinsics:
                   - chain: *relay_chain
@@ -206,7 +206,7 @@ tests:
                           isComplete: true
                         value: 4,000,000,000
         its:
-          - name: Should reserved transfer native assets from the Common Good Assets Parachain to the Relay Chain
+          - name: Should reserved transfer native assets from the Assets Parachain to the Relay Chain
             actions:
               - extrinsics: &polkadotXcm.limitedTeleportAssets
                 - chain: *assets_parachain

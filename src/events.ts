@@ -42,7 +42,7 @@ const eventsResultsBuilder = (extrinsicChain: Chain, events: Event[]): EventResu
       ...event,
       ...{ 
         chain,
-        local: chain === extrinsicChain, 
+        remote: event.remote ? event.remote : !_.isEqual(chain, extrinsicChain), 
         received: false,
         ok: false,
         message: '',
@@ -55,11 +55,10 @@ const eventsResultsBuilder = (extrinsicChain: Chain, events: Event[]): EventResu
 }
 
 const remoteEventLister = (context, event: EventResult): Promise<EventResult> => {
-  // console.log("Event in Listener for event", event)
   return new Promise(async (resolve, reject) => {
     try {
       const { providers } = context
-      const { name, chain, } = event
+      const { name, chain, timeout } = event
       let api = providers[chain.wsPort].api
   
       const unsubscribe = await api.query.system.events((events) => {
@@ -77,7 +76,7 @@ const remoteEventLister = (context, event: EventResult): Promise<EventResult> =>
       setTimeout(() => {
         unsubscribe()
         resolve(updateEventResult(false, undefined, event))
-      }, context.eventListenerTimeout)
+      }, timeout ? timeout : context.eventListenerTimeout)
     } catch(e) {
       addConsoleGroupEnd(2)
       reject(e)
@@ -156,27 +155,24 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
       let initialEventsResults: EventResult[] = eventsResultsBuilder(extrinsicChain, expectedEvents)
       let finalEventsResults: EventResult[] = []
       let remoteEventsPromises: Promise<EventResult>[] = []
-
-      // console.log("initialEventsResults", initialEventsResults)
   
       if (status.isInBlock) {
         events.forEach((record: any) => {
           const { event: { method, section }} = record
           initialEventsResults.forEach(eventResult => {
-            const { name, chain } = eventResult
+            const { name, remote } = eventResult
   
-            if (chain === extrinsicChain && name === `${section}.${method}`) {
+            if (!remote && name === `${section}.${method}`) {
               finalEventsResults.push(updateEventResult(true, record, eventResult))
             }
           })
         });
 
         initialEventsResults.forEach(eventResult => {
-          const { chain, received } = eventResult
-          if (chain === extrinsicChain && !received) {
+          const { remote, received } = eventResult
+          if (!remote && !received) {
             finalEventsResults.push(updateEventResult(received, undefined, eventResult))
-          } else if (chain !== extrinsicChain) {
-
+          } else if (remote) {
             remoteEventsPromises.push(remoteEventLister(context, eventResult))
           }
         })
@@ -189,9 +185,6 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
           let message = messageBuilder(context, result)
           return { ...result, message }
         })
-
-        // console.log("finalEventsResults", finalEventsResults)
-
   
         resolve(finalEventsResults)
         return
