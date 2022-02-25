@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9944
+      wsPort: 9900
     assets_parachain: &assets_parachain
-      wsPort: 9988
+      wsPort: 9910
       paraId: &ap_id 1000
   variables:
     relay_chain:
@@ -54,7 +54,7 @@ tests:
                     call: account
                     args: [ *ap_wallet ]
         its:
-          - name: Should teleport native assets from the Relay Chain to the Common Good Assets Parachain
+          - name: Should teleport native assets from the Relay Chain to the Assets Parachain
             actions:
               - extrinsics: &xcmPallet.limitedTeleportAssets
                 - chain: *relay_chain
@@ -200,7 +200,7 @@ tests:
       - name: xcmPallet.limitedReserveTransferAssets
         before: *before_get_balances
         its:
-          - name: Should reserved transfer native assets from the Relay Chain to the Common Good Assets Parachain
+          - name: Should reserved transfer native assets from the Relay Chain to the Assets Parachain
             actions:
               - extrinsics: &xcmPallet.limitedTeleportAssets
                 - chain: *relay_chain

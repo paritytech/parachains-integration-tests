@@ -6,12 +6,12 @@ import { beforeAddConsoleGroups } from "./before"
 
 const checkDescriptor = (descriptor: Describe) => {
   if (!descriptor.name) {
-    console.log(`\n🚫 ERROR: "name" should be defined for all descriptors`)
+    console.log(`\n⛔ ERROR: "name" should be defined for all descriptors`)
     process.exit(1)
   }
 
   if (descriptor.its && !Array.isArray(descriptor.its)) {
-    console.log(`\n🚫 ERROR: "its" invalid type, it should be defined as an 'Array' for the following descriptor: `, descriptor.name)
+    console.log(`\n⛔ ERROR: "its" invalid type, it should be defined as an 'Array' for the following descriptor: `, descriptor.name)
     process.exit(1)
   }
 

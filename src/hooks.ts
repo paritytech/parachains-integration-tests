@@ -20,12 +20,12 @@ const checkHooks = (hook: Hook) => {
   const { name, actions } = hook
   
   if (!name) {
-    console.log(`\n🚫 ERROR: "name" should be defined for all hooks`)
+    console.log(`\n⛔ ERROR: "name" should be defined for all hooks`)
     process.exit(1)
   }
 
   if (actions && !Array.isArray(actions)) {
-    console.log(`\n🚫 ERROR: "actions" invalid type, it should be of type Array for the hook: ${hook.name}`)
+    console.log(`\n⛔ ERROR: "actions" invalid type, it should be of type Array for the hook: ${hook.name}`)
     process.exit(1)
   }
 
