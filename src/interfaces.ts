@@ -70,7 +70,6 @@ export interface EventResult extends Event {
   message: string
   data?: any,
   xcmOutput: XcmOutput
-  id: number
 }
 
 export interface XcmOutput {

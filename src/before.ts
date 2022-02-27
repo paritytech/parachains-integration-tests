@@ -49,8 +49,8 @@ export const beforeBuildEncodedCalls = (decodedCalls) => {
         if (!this.variables[`\$${key}`]) {
           this.variables[`\$${key}`] = buildEncodedCall(this, decodedCalls[key])
         } else {
-          console.log(`\n⚠️  WARNING: the key $"${key}" is being reassigned`)
-          // process.exit(1)
+          console.log(`\n⛔ ERROR: the key $"${key}" can not be reassigned for encoding calls`)
+          process.exit(1)
         }
       })
     }

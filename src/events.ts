@@ -37,7 +37,8 @@ const messageBuilder = (context, event: EventResult): string => {
 
 const eventsResultsBuilder = (extrinsicChain: Chain, events: Event[]): EventResult[] => {
   return events.map(event => {
-    let chain = event.chain === extrinsicChain || !event.chain ? extrinsicChain : event.chain
+    // let chain = event.chain === extrinsicChain || !event.chain ? extrinsicChain : event.chain
+    let chain = event.chain ? event.chain : extrinsicChain
     let extendedEvent: EventResult = {
       ...event,
       ...{ 
@@ -47,7 +48,6 @@ const eventsResultsBuilder = (extrinsicChain: Chain, events: Event[]): EventResu
         ok: false,
         message: '',
         xcmOutput: { expected: undefined, real: undefined },
-        id: Math.random()
       }, 
     }
     return extendedEvent
@@ -72,10 +72,12 @@ const remoteEventLister = (context, event: EventResult): Promise<EventResult> =>
           }
         })
       })
-  
+
       setTimeout(() => {
         unsubscribe()
-        resolve(updateEventResult(false, undefined, event))
+        if (!event.received) {
+          resolve(updateEventResult(false, undefined, event))
+        }
       }, timeout ? timeout : context.eventListenerTimeout)
     } catch(e) {
       addConsoleGroupEnd(2)
@@ -185,6 +187,7 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
           let message = messageBuilder(context, result)
           return { ...result, message }
         })
+        // console.log("finalEventsResults", finalEventsResults)
   
         resolve(finalEventsResults)
         return
