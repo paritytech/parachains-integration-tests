@@ -1,44 +1,109 @@
-# Introduction
-The goal of this repository is to provide **Integraton Tests** for the **Common & System Parachains** in the Polkadot ecosystem. The tests are run against a locally deployed _Parachain<>Relaychain_  infra using [Polkadot Launch](https://github.com/paritytech/polkadot-launch).
+Parachains Integration Tests is a tool that was created to ease testing interactions between Substrate based blockchains.
+Since the arrival of XCM, communications between different consensus systems became real in the Polkadot's ecosystem.
 
-A CLI (which the tests make use of) is also available to interact directly with the chains.
+This tool allows you to develop tests radipdly describing them in a YAML file. Behind the scenes, the YAML files are converted to (Mocha)[https://mochajs.org/] tests.
 
-# Versioning
-Each _Parachain<>Relaychain_ combination has its own features and configurations. Thus, not all tests are valid for all possible _Parachain<>Relaychain_ combination. Because of it, it is necessary to have different branches for each combination and keep a well structured naming format:
+It can work alongside with (Polkadot Launch)[https://github.com/paritytech/polkadot-launch], or you can connect your tests to the testnet of your choice.
 
+# Set Up
+```bash
+yarn
 ```
-release-<parachain_name>-<parachain_version>-<relaychain_name>-<relaychain_version>
+# YAML Schema
+There are two main sections: `settings` and `tests`.
+
+```yaml
+settings:
+  chains: # key(<chain_id>) -> value(Chain)
+  variables: # Arbitrary declaration of constants that are used (or reused) across the tets
+  decodedCalls: # key(<decoded_call_id>) -> value(Call)
+
+tests: # array of Describe interfaces
 ```
 
-For example: `release-westmint-v6-westend-v0.9.13` is telling us that:
-- `release-v0.9.13` from [Polkadot](https://github.com/paritytech/polkadot/tree/release-v0.9.13)
-- `release-statemine-v6` from [Cumulus](https://github.com/paritytech/cumulus/tree/release-statemine-v6)
+```typescript
+export interface TestsConfig {
+  settings: Settings,
+  tests: Describe[],
+}
+```
+## Settings
+```yaml
+settings: # Settings
+  chains:
+    my_chain_id: &relay_chain # a Relay Chain, for instance
+      wsPort: 9966
+      ws: ws://my-custom-url
+    my_other_chain_id: &parachain # a Parachain, for instance
+      wsPort: 9988
 
-releases were used to build the `polkadot` (Relay Chain) and `polkadot-collator` (Parachain) binaries
+  variables:
+    my_variable: &my_variable { concrete: { 0, interior: { here: true }}}
 
-Each release branch will also inlude the `config.json` file that is used to deploy the `polkadot-launch` infra the tests where developed for.
+  decodedCalls:
+    my_call_id:
+        chain: *relay_chain
+        pallet: system
+        call: remark
+        args: [ 0x0011 ]
+```
 
-**Note**: The `master` branch of this repository will be up to date with the last release of the _Westmint<>Westend_ combinantion.
+```typescript
+interface Settings {
+  chains: { [key: string]: Chain };
+  variables: { [key: string]: any };
+  decodedCalls: { [key: string]: Call };
+}
+```
 
-# Set up
-- Include the `polkadot` and `polkadot-collator` binaries under the `./bin` folder
-- `yarn`
-# Tests
-- To run all tests: `yarn polkadot-launch:test`
+```typescript
+interface Chain {
+  wsPort: number;
+  ws?: string; // if undefined, it fallsback to the default value -> ws://localhost
+}
+```
 
-- To run individual tests:
-    1. `yarn polkadot-launch`
-    2. When the Parachain is producing blocks -> Run a specific test from the list below
+```typescript
+interface Call {
+  chain: Chain;
+  sudo?: boolean; // if 'true', the call will be wrapped with 'sudo.sudo()'
+  pallet: string;
+  call: string;
+  args: any[];
+}
+```
 
-Implemented tests:
+## Tests
 
-- **xcm** -> `$ yarn test:xcm`
-  - `$ yarn test:xcm:limited-teleport-asset` -> Limited Teleport Asset (DMP & UMP)
-  - `$ yarn test:xcm:transact` -> Transact (DMP & UMP)
+```yaml
+tests: # Describe[]
+  - name: My Describe
+    before: # Before[]
+      - name: 'before' description to console log
+        actions: [...]
+    beforeEach: ... # BeforeEach[]
+    after: ... # After[]
+    afterEach: ... # AfterEach[]
+    its: [...] # It[]
+    describes:
+      - name: My nested Describe
+  - name: My other Describe          
+    its: []  
+```
 
-- **assets** -> `$ yarn test:assets`
+```typescript
+interface Describe {
+  name: string,
+  before?: Before[],
+  beforeEach?: BeforeEach[],
+  after?: After[],
+  afterEach?: AfterEach[],
+  its: It[],
+  describes?: Describe[]
+}
+```
 
-- **uniques** -> `$ yarn test:uniques`
+
 
 # Contributions
 
