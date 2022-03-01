@@ -14,7 +14,7 @@ export interface Describe {
   after?: After[],
   afterEach?: AfterEach[],
   its: It[],
-  describes?: Describe[]
+  describes?: Describe[] // It is possible to nest Describes
 }
 
 export interface Before {
@@ -41,6 +41,8 @@ export interface Query {
   call: string,
   args: any[],
 }
+
+export interface Rpc  extends Query {}
 
 export interface Call {
   chain: Chain,
@@ -90,12 +92,13 @@ export interface It {
   actions: Action[]
 }
 
-export type CustomAction = { customs: Custom[] }
 export type ExtrinsicAction = { extrinsics: Extrinsic[] }
 export type QueryAction = { queries: { [key: string]: Query } }
+export type RpcAction = { rpcs: { [key: string]: Rpc } }
 export type AsserAction = { asserts: { [key: string]: AssertOrCustom } }
+export type CustomAction = { customs: Custom[] }
 
-export type Action = CustomAction | QueryAction | ExtrinsicAction | AsserAction
+export type Action = ExtrinsicAction | QueryAction | AsserAction | RpcAction | CustomAction 
 
 export interface Assert {
   args: any[],
