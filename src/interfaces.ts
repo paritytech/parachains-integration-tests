@@ -44,7 +44,7 @@ export interface Query {
 
 export interface Call {
   chain: Chain,
-  sudo?: boolean,
+  sudo?: boolean, // if 'true', the call will be wrapped with 'sudo.sudo()'
   pallet: string,
   call: string,
   args: any[],
@@ -105,7 +105,7 @@ export type AssertOrCustom = Assert | Custom
 
 export interface Chain {
   wsPort: number
-  ws?: string
+  ws?: string // if undefined, it fallsback to the default value -> ws://localhost
 }
 export interface Settings {
   chains: { [key: string]: Chain }
