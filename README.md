@@ -477,8 +477,9 @@ interface Rpc  extends Query {};
 ```
 
 ### Assert
-
-// TODO
+Unlike _Query_ and _Rpc_ where their keys can be arbitrarily chosen to generate a new variable, _AssertOrCustom_ keys can only be set to two different values: `equal` and `custom`.
+- `equal`: it has a single attribute `args` which is expecting an array of two values to be `deepEqual()` compared.
+- `custom`: assertion cases can be endless, therefore they are diffucult to standarize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom]().
 
 **Example**:
 
@@ -518,11 +519,11 @@ tests: # Describe[]
                 args: [ 
                   *sender 
                 ]            
-    its:
+    its: # It[]
       - name: Something happens here than modifies the balance
         actions: [...]
       - name: Should reduce the balance of the sender
-        actions:
+        actions: # Action[]
           - asserts: # { [key: string]: AssertOrCustom }
               custom:
                 path: ./asserts/checkSenderBalances.ts
@@ -559,11 +560,23 @@ type AssertOrCustom = Assert | Custom;
 
 ### Custom
 
-// TODO
+This particular _Action_ enables the possibility of refering to your own files to perform those actions that a constrained YAML schema can not provide. The file must export a very specific function signature that the tool is expecting to import: `async (context, ...args)`
+- `context`:
+- `args`: 
 
 **Example**:
-
+- yaml
 ```yaml
+```
+
+- file
+```typescript
+const myCustomFunction = async (context, ...args) => {
+  let myArgs = args[0];
+  let myVariables = 
+}
+
+export default myCustomFunction
 ```
 
 **Interfaces**:
