@@ -4,5 +4,5 @@ node_modules
 /bin/polkadot*
 /bin/parachain*
 /logs
-*.json
+/*.json
 *.log

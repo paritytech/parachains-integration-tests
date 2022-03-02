@@ -1,0 +1,87 @@
+{
+	"relaychain": {
+    "name": "kusama",
+		"bin": "../../bin/polkadot",
+		"chain": "polkadot-local",
+		"nodes": [
+			{
+				"name": "alice",
+				"wsPort": 9900,
+				"port": 30444
+			},
+			{
+				"name": "bob",
+				"wsPort": 9901,
+				"port": 30555
+			},
+      {
+				"name": "charlie",
+				"wsPort": 9902,
+				"port": 30666
+			},
+      {
+				"name": "dave",
+				"wsPort": 9903,
+				"port": 30777
+			}
+		],
+		"genesis": {
+			"runtime": {
+				"runtime_genesis_config": {
+					"configuration": {
+						"config": {
+							"validation_upgrade_frequency": 1,
+							"validation_upgrade_delay": 1
+						}
+					}
+				}
+			}
+		}
+	},
+	"parachains": [
+		{
+      "name": "statemine",
+			"bin": "../../bin/polkadot-collator",
+      "chain": "statemint-local",
+			"nodes": [
+				{
+					"wsPort": 9910,
+					"port": 31200,
+					"name": "alice",
+					"flags": ["--force-authoring", "--", "--execution=wasm"]
+				},
+        {
+					"wsPort": 9911,
+					"port": 31201,
+					"name": "bob",
+					"flags": ["--force-authoring", "--", "--execution=wasm"]
+				}
+			]
+		},
+    {
+			"bin": "../../bin/parachain-collator",
+      "chain": "kusama-community-parachain-2000",
+			"nodes": [
+        {
+					"wsPort": 9920,
+					"port": 31202,
+					"name": "alice",
+					"flags": ["--force-authoring", "--", "--execution=wasm"]
+				},
+        {
+					"wsPort": 9921,
+					"port": 31203,
+					"name": "bob",
+					"flags": ["--force-authoring", "--", "--execution=wasm"]
+					
+				}
+			]
+		}
+	],
+	"simpleParachains": [
+	],
+	"hrmpChannels": [
+	],
+	"types": {},
+	"finalization": false
+}

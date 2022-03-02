@@ -13,7 +13,7 @@
 
 tests=(
   statemine
-  # statemint
+  statemint
 )
 
 rm -R logs &> /dev/null
@@ -36,7 +36,7 @@ do
 
   ./stop.sh
 
-  find . -name "*.log" -exec cp {} logs/$t &> /dev/null \; -exec rm '{}' \;
+  find . -name "*.log" -maxdepth 1 -exec cp {} logs/$t &> /dev/null \; -exec rm '{}' \;
 done
 
 

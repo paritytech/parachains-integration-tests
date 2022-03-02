@@ -25,7 +25,7 @@ const messageBuilder = (context, event: EventResult): string => {
     }
     
     if (value) {
-      if (_.isEqual(value, data)) {
+      if (ok) {
         hasValues = `, with: '${type}': ${JSON.stringify(data)}\n`
       } else {
         hasValues = `, with different value ( Expected: '${type}': ${JSON.stringify(value)}, Received: '${type}': ${JSON.stringify(data)} )`
@@ -133,7 +133,7 @@ const updateEventResult = (received: boolean, record, event: EventResult): Event
       data.forEach((data, j) => {
         if (type === typeDef[j].type || type === typeDef[j].lookupName) {
           if (isComplete === undefined && isIncomplete === undefined && isError === undefined) {
-            if (data.toHuman() === value) {
+            if (_.isEqual(value, data.toHuman())) {
               event.ok = true
             } else {
               event.ok = false

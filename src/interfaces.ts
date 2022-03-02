@@ -14,7 +14,7 @@ export interface Describe {
   after?: After[],
   afterEach?: AfterEach[],
   its: It[],
-  describes?: Describe[]
+  describes?: Describe[] // It is possible to nest Describes
 }
 
 export interface Before {
@@ -42,9 +42,11 @@ export interface Query {
   args: any[],
 }
 
+export interface Rpc  extends Query {}
+
 export interface Call {
   chain: Chain,
-  sudo?: boolean,
+  sudo?: boolean, // if 'true', the call will be wrapped with 'sudo.sudo()'
   pallet: string,
   call: string,
   args: any[],
@@ -58,8 +60,8 @@ export interface Extrinsic extends Call {
 export interface Event {
   chain: Chain,
   name: string,
-  remote: boolean
-  timeout?: number
+  remote: boolean // indicates if its considered as a remote event (different chain context)
+  timeout?: number // overrides de default event listener timeout
   attribute?: Attribute
 }
 
@@ -79,10 +81,10 @@ export interface XcmOutput {
 
 export interface Attribute {
   type: string,
-  value: any,
-  isComplete: boolean
-  isIncomplete: boolean
-  isError: boolean
+  value?: any,
+  isComplete?: boolean  // only for 'XcmV2TraitsOutcome' type
+  isIncomplete?: boolean  // only for 'XcmV2TraitsOutcome' type
+  isError?: boolean  // only for 'XcmV2TraitsOutcome' type
 }
 
 export interface It {
@@ -90,12 +92,13 @@ export interface It {
   actions: Action[]
 }
 
-export type CustomAction = { customs: Custom[] }
 export type ExtrinsicAction = { extrinsics: Extrinsic[] }
 export type QueryAction = { queries: { [key: string]: Query } }
+export type RpcAction = { rpcs: { [key: string]: Rpc } }
 export type AsserAction = { asserts: { [key: string]: AssertOrCustom } }
+export type CustomAction = { customs: Custom[] }
 
-export type Action = CustomAction | QueryAction | ExtrinsicAction | AsserAction
+export type Action = ExtrinsicAction | QueryAction | AsserAction | RpcAction | CustomAction 
 
 export interface Assert {
   args: any[],
@@ -105,7 +108,7 @@ export type AssertOrCustom = Assert | Custom
 
 export interface Chain {
   wsPort: number
-  ws?: string
+  ws?: string // if undefined, it fallsback to the default value -> ws://localhost
 }
 export interface Settings {
   chains: { [key: string]: Chain }
