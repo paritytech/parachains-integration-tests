@@ -1,4 +1,4 @@
-# Parachains Integration Tests ✅ 
+# Parachains Integration Tests  ✅ 
 Since the arrival of XCMP, communication between different consensus systems became a reality in the Polkadot's ecosystem.  _Parachains Integration Tests_ is a tool that was created with the ambtion of easing testing interactions between Substrate based blockchains that implement XCMP.
 
 This tool allows you to develop tests radipdly describing them in a YAML file. Behind the scenes, the YAML files are converted to [Mocha](https://mochajs.org/) tests using [Chai](https://www.chaijs.com/) for assertions.
@@ -7,6 +7,12 @@ It can work alongside with [Polkadot Launch](https://github.com/paritytech/polka
 
 Under the `./test` folder, this repository includes integration tests for the _Common Good Assets Parachains_ (Statemine & Statemint). You can take them as examples of how to write tests with this tool.
 
+## Set Up
+```bash
+yarn
+```
+
+## How to use
 ## YAML Schema
 It is formed by two main sections: `settings` and `tests`.
 
@@ -150,7 +156,7 @@ tests: # Describe[]
     ...
 ```
 
-**Interfaces**
+**Interfaces**:
 ```typescript
 type Hook = Before | BeforeEach | After | AfterEach
 
@@ -194,7 +200,7 @@ tests: # Describe[]
     ...
 ```
 
-**Interfaces**
+**Interfaces**:
 
 ```typescript
 export type ExtrinsicAction = { 
@@ -288,7 +294,7 @@ tests: # Describe[]
     ...
 ```
 
-**Interfaces**
+**Interfaces**:
 
 ```typescript
 interface Call {
@@ -371,7 +377,7 @@ tests: # Describe[]
     ...
 ```
 
-**Interfaces**
+**Interfaces**:
 
 ```typescript
 interface Event {
@@ -424,7 +430,7 @@ tests: # Describe[]
     its: [...]           
 ```
 
-**Interfaces**
+**Interfaces**:
 
 ```typescript
 interface Query {
@@ -464,7 +470,7 @@ tests: # Describe[]
     its: [...]           
 ```
 
-**Interfaces**
+**Interfaces**:
 
 ```typescript
 interface Rpc  extends Query {};
@@ -483,6 +489,8 @@ settings:
       wsPort: 9900
 
   variables:
+    relay_chain:
+      sender: &sender HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
     ...
   encodedCalls:
     ...
@@ -497,23 +505,44 @@ tests: # Describe[]
                 pallet: system
                 call: account
                 args: [ 
-                  HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F 
+                  *sender 
                 ]
     after: # After[]
       - name: Get the balance of an account after an event
         actions:
           - queries:
-              balance_sender_before:
+              balance_sender_after:
                 chain: *relay_chain
                 pallet: system
                 call: account
                 args: [ 
-                  HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F 
+                  *sender 
                 ]            
-    its: [...] # Something happens here than modifies the balance         
+    its:
+      - name: Something happens here than modifies the balance
+        actions: [...]
+      - name: Should reduce the balance of the sender
+        actions:
+          - asserts: # { [key: string]: AssertOrCustom }
+              custom:
+                path: ./asserts/checkSenderBalances.ts
+                args: 
+                  { 
+                    balances: { 
+                      before: $balance_rc_sender_before,
+                      after: $balance_rc_sender_after,
+                    },
+                    amount: *amount,
+                    fees: {
+                      from: *xcmPallet.limitedTeleportAssets,
+                      index: 0
+                    }
+                  }
+              equal:
+                args: [true, true]      
 ```
 
-**Interfaces**
+**Interfaces**:
 
 ```typescript
 interface Assert {
@@ -537,7 +566,7 @@ type AssertOrCustom = Assert | Custom;
 ```yaml
 ```
 
-**Interfaces**
+**Interfaces**:
 
 ```typescript
 interface Custom {
@@ -545,13 +574,6 @@ interface Custom {
   args: any;
 }
 ```
-
-## Set Up
-```bash
-yarn
-```
-
-## How to use
 
 // TODO
 ## Contributions
