@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import { Command, Option } from 'commander';
-import { DEFAULT_EVENT_LISTENER_TIMEOUT, DEFAULT_QUERY_DELAY, DEFAULT_TIMEOUT } from './constants';
+import { DEFAULT_EVENT_LISTENER_TIMEOUT, DEFAULT_ACTION_DELAY, DEFAULT_TIMEOUT } from './constants';
 const program = new Command();
 
 const spawnPolkadotLaunch = (options) => {
@@ -24,7 +24,7 @@ const spawnTests = (options) => {
       TESTS_PATH: options.tests,
       TIMEOUT: options.timeout,
       EVENT_LISTENER_TIMEOUT: options.eventListenerTimeout,
-      QUERY_DELAY: options.queryDelay,
+      QUERY_DELAY: options.actionDelay,
     }
   });
 }
@@ -41,7 +41,7 @@ const main = async () => {
     .addOption(new Option('-t, --tests <path>', 'path to tests'))
     .addOption(new Option('-to, --timeout <millisecons>', 'tests timeout').default(DEFAULT_TIMEOUT).argParser(parseInt))
     .addOption(new Option('-el, --event-listener-timeout <millisecons>', 'events listener timeout').default(DEFAULT_EVENT_LISTENER_TIMEOUT).argParser(parseInt))
-    .addOption(new Option('-qd, --query-delay <millisecons>', 'query delay for state update').default(DEFAULT_QUERY_DELAY).argParser(parseInt))
+    .addOption(new Option('-ad, --action-delay <millisecons>', 'delay before actions').default(DEFAULT_ACTION_DELAY).argParser(parseInt))
   
   program.parse(process.argv);
   let options = program.opts();

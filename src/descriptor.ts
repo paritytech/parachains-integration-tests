@@ -6,23 +6,18 @@ import { beforeAddConsoleGroups } from "./before"
 
 const checkDescriptor = (descriptor: Describe) => {
   if (!descriptor.name) {
-    console.log(`\n⛔ ERROR: "name" should be defined for all descriptors`)
+    console.log(`\n⛔ ERROR: 'name' should be present for all descriptors`)
     process.exit(1)
   }
 
   if (descriptor.its && !Array.isArray(descriptor.its)) {
-    console.log(`\n⛔ ERROR: "its" invalid type, it should be defined as an 'Array' for the following descriptor: `, descriptor.name)
+    console.log(`\n⛔ ERROR: 'its' invalid type, it should be present as an 'Array' for the following descriptor: `, descriptor.name)
     process.exit(1)
   }
 
   if (!descriptor.its) {
     descriptor.its = []
   }
-
-  // if (!descriptor.its) {
-  //   console.log(`\n⚠️  "its" can not be empty and should be defined for descriptor if there are not other nested descriptors for: "${descriptor.name}"`)
-  //   process.exit(1)
-  // }
 }
 
 export const describersBuilder = (description: Describe) => {

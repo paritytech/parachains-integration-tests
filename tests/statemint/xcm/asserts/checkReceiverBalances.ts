@@ -4,7 +4,6 @@ const BN = require('bn.js');
 chai.use(require('chai-bn')(BN));
 
 const checkReceiverBalances = async (context, ...args) => {
-  // console.log(args[0].balances.before)
   const {
     balances: 
       { 
@@ -15,10 +14,6 @@ const checkReceiverBalances = async (context, ...args) => {
     fees
   } = args[0]
   
-
-  // let receivedAmount = new BN(amount)
-  // let previousBalance = new BN(receiverBefore)
-  // let currentBalance =  new BN(receiverAfter)
   let previousBalance = BigInt(receiverBefore)
   let currentBalance =  BigInt(receiverAfter)
 

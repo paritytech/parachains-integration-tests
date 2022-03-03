@@ -15,10 +15,6 @@ const checkReceiverBalances = async (context, ...args) => {
     fees
   } = args[0]
   
-
-  // let receivedAmount = new BN(amount)
-  // let previousBalance = new BN(receiverBefore)
-  // let currentBalance =  new BN(receiverAfter)
   let previousBalance = BigInt(receiverBefore)
   let currentBalance =  BigInt(receiverAfter)
 

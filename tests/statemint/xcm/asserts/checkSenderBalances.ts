@@ -25,22 +25,14 @@ const checkSenderBalances = async (context, ...args) => {
   let fee = BigInt(0)
   
   expectedBalance = previousBalance - amountSent;
-  
-  // console.log("Real Fee", expectedBalance - currentBalance);
-
 
   if (fees) {
     const { from: extrinsic, index } = fees
     let paymentInfo: PaymentInfo = await getPaymentInfoForExtrinsic(context, extrinsic[index]) 
     const { partialFee } = paymentInfo
     fee = BigInt(partialFee)
-    // console.log("Fee", fee);
     // expectedBalance = previousBalance - amountSent - fee
   }
-  // console.log("Previous Balance", previousBalance)
-  // console.log("Current Balance", currentBalance)
-  // console.log("Amount", amountSent)
-  // console.log("Fees", fee)
 
   // Assert
   // chai.assert.equal(currentBalance, expectedBalance)

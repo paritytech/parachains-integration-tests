@@ -34,12 +34,12 @@ const checkAssert = (key: string, assert: AssertOrCustom) => {
     const { path } = assert as Custom
 
     if (!path) {
-      console.log(`\n⛔ ERROR: "path" should be defined for the following assert: "custom": ${JSON.stringify(assert)}`)
+      console.log(`\n⛔ ERROR: 'path' should be present for the following assert: 'custom': ${JSON.stringify(assert)}`)
       process.exit(1)
     }
   } else {
     if (!Array.isArray(args)) {
-      console.log(`\n⛔ ERROR: "args" should be defined and should be an array for the following assert: "${key}": ${JSON.stringify(assert)}`)
+      console.log(`\n⛔ ERROR: 'args' should be present and should be an array for the following assert: '${key}': ${JSON.stringify(assert)}`)
       process.exit(1)
     }
   }
@@ -67,7 +67,7 @@ export const assertsBuilder = async (context, asserts: { [key: string]: AssertOr
     if (isRegisteredAssert(key)) {
       await runAssert(context, key, asserts[key])
     } else {
-      console.log(`\n⚠️  the assert type "${key}" is not implemented`)
+      console.log(`\n⚠️  the assert type '${key}' is not implemented`)
       process.exit(1)
     }
   }

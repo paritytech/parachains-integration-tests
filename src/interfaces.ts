@@ -37,12 +37,19 @@ export interface Custom {
 
 export interface Query {
   chain: Chain,
+  delay?: number;
   pallet: string,
   call: string,
   args: any[],
 }
 
-export interface Rpc  extends Query {}
+export interface Rpc {
+  chain: Chain,
+  delay?: number;
+  method: string,
+  call: string,
+  args: any[],
+}
 
 export interface Call {
   chain: Chain,
@@ -54,6 +61,7 @@ export interface Call {
 
 export interface Extrinsic extends Call {
   signer: string,
+  delay?: number;
   events: Event[],
 }
 

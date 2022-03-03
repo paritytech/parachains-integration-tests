@@ -2,6 +2,24 @@ import _ from 'lodash'
 import { EventResult, Chain, Event, Attribute } from "./interfaces";
 import { addConsoleGroupEnd } from './utils'
 
+export const checkEvent = (event: Event) => {
+  const { chain, name, attribute } = event
+
+  if (name == undefined) {
+    console.log(`\n⛔ ERROR: 'name' should be present for the following event:`, JSON.stringify(event, null, 2))
+    process.exit(1)
+  }
+
+  if (attribute) {
+    const { type } = attribute
+
+    if (type == undefined) {
+      console.log(`\n⛔ ERROR: 'type' should be present for the 'attribute' of the following event:`, JSON.stringify(event, null, 2))
+      process.exit(1)
+    }
+  }
+}
+
 const messageBuilder = (context, event: EventResult): string => {
   const { providers } = context
   const { name, chain, attribute, data, ok, received, xcmOutput } = event
@@ -37,7 +55,6 @@ const messageBuilder = (context, event: EventResult): string => {
 
 const eventsResultsBuilder = (extrinsicChain: Chain, events: Event[]): EventResult[] => {
   return events.map(event => {
-    // let chain = event.chain === extrinsicChain || !event.chain ? extrinsicChain : event.chain
     let chain = event.chain ? event.chain : extrinsicChain
     let extendedEvent: EventResult = {
       ...event,
@@ -62,7 +79,6 @@ const remoteEventLister = (context, event: EventResult): Promise<EventResult> =>
       let api = providers[chain.wsPort].api
   
       const unsubscribe = await api.query.system.events((events) => {
-        // console.log("Listener subscriptor going on for event", event)
         events.forEach((record) => { 
           const { event: { method, section, data, typeDef }} = record
   
@@ -154,6 +170,12 @@ const updateEventResult = (received: boolean, record, event: EventResult): Event
 export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) =>
   async ({ events = [], status }) => {
     try {
+      let providers = context.providers
+
+      for (let expectedEvent of expectedEvents) {
+        checkEvent(expectedEvent)
+      }
+
       let initialEventsResults: EventResult[] = eventsResultsBuilder(extrinsicChain, expectedEvents)
       let finalEventsResults: EventResult[] = []
       let remoteEventsPromises: Promise<EventResult>[] = []
@@ -187,7 +209,6 @@ export const eventsHandler = (context, extrinsicChain: Chain, expectedEvents: Ev
           let message = messageBuilder(context, result)
           return { ...result, message }
         })
-        // console.log("finalEventsResults", finalEventsResults)
   
         resolve(finalEventsResults)
         return

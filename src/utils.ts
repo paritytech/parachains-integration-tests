@@ -19,19 +19,14 @@ export const getTestFiles = (path): TestFile[] => {
     if (fs.lstatSync(absolutePath).isFile()) {
       testsFiles = [absolutePath]
     } else if (fs.lstatSync(absolutePath).isDirectory()) {
-      testsFiles = glob.sync('/**/*.yml', { root: path })
+      testsFiles = glob.sync('/**/*.{yml,yaml}', { root: path })
     }
-    // console.log("testsFiles", testsFiles)
-
 
     return testsFiles = testsFiles.map(testFile => {
-      // console.log("testFile", testFile)
 
       let testPath = resolve(process.cwd(), testFile);
-      // console.log("testPath", testPath)
 
       let testDir = dirname(testPath);
-      // console.log("testDir", testDir)
 
       const file = fs.readFileSync(testFile, 'utf8')
       let yaml: TestsConfig = YAML.parse(file)
@@ -132,7 +127,7 @@ export const waitForChainToProduceBlocks = async (provider): Promise<void> => {
         unsubHeads();
         resolve()
       } else {
-        console.log(`\n⏳ Waiting for the chain ${provider.name} to produce blocks...\n`)
+        console.log(`\n⏳ Waiting for the chain '${provider.name}' to produce blocks...\n`)
       }
     });
   })
