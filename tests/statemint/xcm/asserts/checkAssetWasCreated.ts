@@ -7,7 +7,6 @@ const checkSenderBalances = async (context, ...args) => {
   let assetExist = asset ? true : false
 
   chai.assert.equal(assetExist, true)
-  // console.log("Asset Created", args[0])
 }
 
 export default checkSenderBalances

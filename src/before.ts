@@ -2,12 +2,12 @@ require('dotenv').config()
 import { addConsoleGroup, addConsoleGroupEnd, buildEncodedCall, waitForChainToProduceBlocks } from './utils';
 import { connectToProviders } from './connection';
 import { TestFile, Chain } from './interfaces';
-import { DEFAULT_EVENT_LISTENER_TIMEOUT, DEFAULT_QUERY_DELAY, DEFAULT_TIMEOUT } from "./constants";
+import { DEFAULT_EVENT_LISTENER_TIMEOUT, DEFAULT_ACTION_DELAY, DEFAULT_TIMEOUT } from './constants';
 
 const checkChains = (chains: { [key: string]: Chain }): { [key: string]: Chain }  => {
   for (let id in chains) {
     if (!chains[id].wsPort) {
-      console.log(`\n⛔ ERROR: "wsPort" should be defined for chain ${id}:`)
+      console.log(`\n⛔ ERROR: 'wsPort' should be present for chain ${id}:`)
       process.exit(1)
     }
 
@@ -24,8 +24,8 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
     this.timeout(timeout)
     let eventListenerTimeout = process.env.EVENT_LISTENER_TIMEOUT
     this.eventListenerTimeout = eventListenerTimeout ? parseInt(eventListenerTimeout) : DEFAULT_EVENT_LISTENER_TIMEOUT
-    let queryDelay = process.env.QUERY_DELAY
-    this.queryDelay = queryDelay ? queryDelay : DEFAULT_QUERY_DELAY
+    let actionDelay = process.env.QUERY_DELAY
+    this.actionDelay = actionDelay ? actionDelay : DEFAULT_ACTION_DELAY
     this.providers = {};
     this.testPath = testFile.dir
     this.testName = testFile.name
@@ -34,7 +34,7 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
     chains = checkChains(chains)
 
     for (let name in chains) {
-      console.log(`\n🔌 Connecting to ${name}...\n`)
+      console.log(`\n🔌 Connecting to '${name}'...\n`)
       this.providers[chains[name].wsPort] = await connectToProviders(chains[name])
       await waitForChainToProduceBlocks(this.providers[chains[name].wsPort])
     }
@@ -49,7 +49,7 @@ export const beforeBuildEncodedCalls = (decodedCalls) => {
         if (!this.variables[`\$${key}`]) {
           this.variables[`\$${key}`] = buildEncodedCall(this, decodedCalls[key])
         } else {
-          console.log(`\n⛔ ERROR: the key $"${key}" can not be reassigned for encoding calls`)
+          console.log(`\n⛔ ERROR: the key $'${key}' can not be reassigned for encoding calls`)
           process.exit(1)
         }
       })

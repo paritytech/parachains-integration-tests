@@ -8,13 +8,13 @@ It can work alongside with [Polkadot Launch](https://github.com/paritytech/polka
 Under the `./test` folder, this repository contains integration tests for the _Common Good Assets Parachains_ (Statemine & Statemint). You can take them as examples of how to write tests with this tool.
 
 ## Set Up
-```bash
+```
 yarn
 ```
 
 ## How to use
 The tool implements a simple CLI.
-```bash
+```
 yarn start -m <mode> -c <path> -t <path> -to <millisecons> -el <milliseconds> -qd <milliseconds>
 ```
 - `-m`, `--mode`:
@@ -25,19 +25,19 @@ yarn start -m <mode> -c <path> -t <path> -to <millisecons> -el <milliseconds> -q
 - `-t`, `--test`: path to the tests folder or to a single test yaml file. All files under the _path_ with a `yml` extension  will be run. To choose the order, is necessary to add an index in front of the file name. E.g: `0_my_test.yml`, `1_my_other_test`
 - `-to`, `--timeout`: overrides the default Mocha tests timeout set to `200000`
 - `-el`, `--event-listener-timeout`: overrides the default event listener timeout set to `40000`
-- `-qd`, `--query-day`: delay before state queries, rpc calls and extrinsics. Overrides the default delay set to `40000`. Some delay is necessary to make sure the state is already updated. In the case of extrisics, it is also necessary until ID hashes are available in [XCM v3](https://github.com/paritytech/polkadot/pull/4756). Without an indentifier, it is not posible to distinguish what XCM message event was triggered as a result of a specific extrinsic from another chain/context. For this reason, it is necessary to add a big delay between XCM messages, to avoid interferences from other unrelated events.
+- `-ad`, `--action-delay`: delay before state queries, rpc calls and extrinsics. Overrides the default delay set to `40000`. Some delay is necessary to make sure the state is already updated. In the case of extrisics, it is also necessary until ID hashes are available in [XCM v3](https://github.com/paritytech/polkadot/pull/4756). Without an indentifier, it is not posible to distinguish what XCM message event was triggered as a result of a specific extrinsic from another chain/context. For this reason, it is necessary to add a big delay between XCM messages, to avoid interferences from other unrelated events.
 
 Examples:
 - Run tests using Polkadot Launch as testnet
-    ```bash
+    ```
     yarn start -m polkadot-launch-test -t <tests_path> -c <polkadot_launch_config_path>
     ```
 - Run tests using other testnet
-    ```bash
+    ```
     yarn start -m test -t <tests_path>
     ```
 - Only deploy a testnet with Polkadot Launch
-    ```bash
+    ```
     yarn start -m polkadot-launch -c <polkadot_launch_config_path>
     ```
 ## YAML Schema
@@ -251,10 +251,6 @@ export type CustomAction = {
 export type Action = ExtrinsicAction | QueryAction | AsserAction | RpcAction | CustomAction;
 ```
 
-```typescript
-
-```
-
 ### Extrinsic
 Extends the _Call_ interface adding two new attributes: `signer` (indispensable) and `events` (optional). A _Extrinsic_ by itself will not perform any chai assertion. Assertions are build based on the `events` that the extrinsic is expetected to trigger. Each event defined under the `events` attribute will build and perform its corresponding chai assertion.
 
@@ -332,6 +328,7 @@ interface Call {
 
 interface Extrinsic extends Call {
   signer: string;
+  delay?: number; // Overrides the default action delay
   events: Event[];
 }
 ```
@@ -341,7 +338,7 @@ If the `chain` attribute is not defined, it means the event is expected to happp
 
 If the event is expected to happen in the same chain context, but as a result of another extrinsic in a remote context, `remote` attribute must be set to `true`.
 
-Default event listener timeout can be overrided by the `timeout` attribute.
+Default event listener timeout can be overriden by the `timeout` attribute.
 
 Example:
 
@@ -465,6 +462,7 @@ Interfaces:
 ```typescript
 interface Query {
   chain: Chain;
+  delay?: number;
   pallet: string;
   call: string;
   args: any[];
@@ -494,7 +492,7 @@ tests: # Describe[]
           - rpcs: # { key: Rpc }
               block:
                 chain: *relay_chain
-                pallet: chain
+                method: chain
                 call: getBlock
                 args: []
     its: [...]           
@@ -503,7 +501,13 @@ tests: # Describe[]
 Interfaces:
 
 ```typescript
-interface Rpc  extends Query {};
+interface Rpc {
+  chain: Chain;
+  delay?: number;
+  method: string;
+  call: string;
+  args: any[];
+}
 ```
 
 ### Assert

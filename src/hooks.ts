@@ -20,12 +20,12 @@ const checkHooks = (hook: Hook) => {
   const { name, actions } = hook
   
   if (!name) {
-    console.log(`\n⛔ ERROR: "name" should be defined for all hooks`)
+    console.log(`\n⛔ ERROR: 'name' should be present for all hooks`)
     process.exit(1)
   }
 
   if (actions && !Array.isArray(actions)) {
-    console.log(`\n⛔ ERROR: "actions" invalid type, it should be of type Array for the hook: ${hook.name}`)
+    console.log(`\n⛔ ERROR: 'actions' invalid type, it should be of type Array for the hook: ${hook.name}`)
     process.exit(1)
   }
 
@@ -101,20 +101,4 @@ export const hookBuilder = async (context, actions: Action[]) => {
   }
 
   addConsoleGroupEnd(2)
-  // if (customs && customs.length > 0) {
-  //   for (let custom of customs) {
-  //     await customBuilder(context, custom)
-  //   }
-  // }
-
-  // if (extrinsics && extrinsics.length > 0) {
-  //   for (let extrinsic of extrinsics) {
-  //     let event = await sendExtrinsic(context, extrinsic)
-  //     console.log(event[0].message)
-
-  //     // if (extrinsic.queries) {
-  //     //   await queriesBuilder(context, extrinsic.queries)
-  //     // }
-  //   }
-  // }
 }
