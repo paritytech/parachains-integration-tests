@@ -1,11 +1,11 @@
 # Parachains Integration Tests  ✅ 
 Since the arrival of XCMP, communication between different consensus systems became a reality in the Polkadot's ecosystem.  _Parachains Integration Tests_ is a tool that was created with the ambtion of easing testing interactions between Substrate based blockchains that implement XCMP.
 
-This tool allows you to develop tests radipdly describing them in a YAML file. Behind the scenes, the YAML files are converted to [Mocha](https://mochajs.org/) tests using [Chai](https://www.chaijs.com/) for assertions.
+This tool allows you to develop tests radipdly describing them in a YAML file. Behind the scenes, the YAML files are converted to [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
 
 It can work alongside with [Polkadot Launch](https://github.com/paritytech/polkadot-launch), or you can run your tests against the testnet of your preference.
 
-Under the `./test` folder, this repository includes integration tests for the _Common Good Assets Parachains_ (Statemine & Statemint). You can take them as examples of how to write tests with this tool.
+Under the `./test` folder, this repository contains integration tests for the _Common Good Assets Parachains_ (Statemine & Statemint). You can take them as examples of how to write tests with this tool.
 
 ## Set Up
 ```bash
@@ -13,6 +13,33 @@ yarn
 ```
 
 ## How to use
+The tool implements a simple CLI.
+```bash
+yarn start -m <mode> -c <path> -t <path> -to <millisecons> -el <milliseconds> -qd <milliseconds>
+```
+- `-m`, `--mode`:
+  - `polkadot-launch-test`: deploy a Polkadot Launch testnet and run your tests against it
+  - `test`: only run your tests
+  - `polkadot-launch`: only deploy a Polkadot Launch network
+- `-c`, `--config`: path to the Polkadot Launch config file. Option only valid for `polkadot-launch-test` and `polkadot-launch` methods
+- `-t`, `--test`: path to the tests folder or to a single test yaml file. All files under the _path_ with a `yml` extension  will be run. To choose the order, is necessary to add an index in front of the file name. E.g: `0_my_test.yml`, `1_my_other_test`
+- `-to`, `--timeout`: overrides the default Mocha tests timeout set to `200000`
+- `-el`, `--event-listener-timeout`: overrides the default event listener timeout set to `40000`
+- `-qd`, `--query-day`: delay before state queries, rpc calls and extrinsics. Overrides the default delay set to `40000`. Some delay is necessary to make sure the state is already updated. In the case of extrisics, it is also necessary until ID hashes are available in [XCM v3](https://github.com/paritytech/polkadot/pull/4756). Without an indentifier, it is not posible to distinguish what XCM message event was triggered as a result of a specific extrinsic from another chain/context. For this reason, it is necessary to add a big delay between XCM messages, to avoid interferences from other unrelated events.
+
+Examples:
+- Run tests using Polkadot Launch as testnet
+    ```bash
+    yarn start -m polkadot-launch-test -t <tests_path> -c <polkadot_launch_config_path>
+    ```
+- Run tests using other testnet
+    ```bash
+    yarn start -m test -t <tests_path>
+    ```
+- Only deploy a testnet with Polkadot Launch
+    ```bash
+    yarn start -m polkadot-launch -c <polkadot_launch_config_path>
+    ```
 ## YAML Schema
 It is formed by two main sections: `settings` and `tests`.
 
@@ -41,7 +68,7 @@ export interface TestsConfig {
 
 - `decodedCalls`: declaration of the different calls you want to calculate their econded call hex value. Each result is stored in a variable that will become available in the rest of the file ONLY after its declaration. The way to access those variables is appending a `$` symbol to the defined `decodedCalls` key. For instance, in the following example, the encoded call result for `my_call_id` will be accesible from `$my_call_id`
 
-**Example**:
+Example:
 ```yaml
 settings: # Settings
   chains:
@@ -68,8 +95,6 @@ settings: # Settings
         call: remark
         args: [ *my_variable ]
 ```
-
-**Interfaces**:
 
 ```typescript
 interface Settings {
@@ -99,7 +124,7 @@ interface Call {
 ### Tests
 Tests are formed by an array of _Describe_ interfaces. Tests can be nested through the `describes` attribute.
 
-**Example**:
+Example:
 
 ```yaml
 tests: # Describe[]
@@ -120,7 +145,7 @@ tests: # Describe[]
     its: [...] # It[]
 ```
 
-**Interfaces**:
+Interfaces:
 ```typescript
 interface Describe {
   name: string;
@@ -138,7 +163,7 @@ Both have a similar interface. They are formed by a `name` for descriptions and 
 
 The available hooks are: `before`, `beforeEach`, `after` and `afterEach`
 
-**Example**:
+Example:
 
 ```yaml
 tests: # Describe[]
@@ -156,7 +181,7 @@ tests: # Describe[]
     ...
 ```
 
-**Interfaces**:
+Interfaces:
 ```typescript
 type Hook = Before | BeforeEach | After | AfterEach
 
@@ -177,7 +202,7 @@ interface It {
 ### Action
 There are five available actions types that can be performed inside a _Hook_ or an _It_: `extrinsics`, `queries`, `rpcs`, `asserts` and `customs`. The order they are executed depends on the order they are defined in the _Action_ array. Since `actions` is an array, multiple actions of the same type can be declared.
 
-**Example**:
+Example:
 
 ```yaml
 tests: # Describe[]
@@ -200,7 +225,7 @@ tests: # Describe[]
     ...
 ```
 
-**Interfaces**:
+Interfaces:
 
 ```typescript
 export type ExtrinsicAction = { 
@@ -233,7 +258,7 @@ export type Action = ExtrinsicAction | QueryAction | AsserAction | RpcAction | C
 ### Extrinsic
 Extends the _Call_ interface adding two new attributes: `signer` (indispensable) and `events` (optional). A _Extrinsic_ by itself will not perform any chai assertion. Assertions are build based on the `events` that the extrinsic is expetected to trigger. Each event defined under the `events` attribute will build and perform its corresponding chai assertion.
 
-**Example**:
+Example:
 
 ```yaml
 settings:
@@ -294,7 +319,7 @@ tests: # Describe[]
     ...
 ```
 
-**Interfaces**:
+Interfaces:
 
 ```typescript
 interface Call {
@@ -312,8 +337,13 @@ interface Extrinsic extends Call {
 ```
 
 ### Event
+If the `chain` attribute is not defined, it means the event is expected to happpen in the same chain context where the extrinsic was dispatched and as a result of it. Otherwise, the `chain` attribute referring to another context must be defined.
 
-**Example**:
+If the event is expected to happen in the same chain context, but as a result of another extrinsic in a remote context, `remote` attribute must be set to `true`.
+
+Default event listener timeout can be overrided by the `timeout` attribute.
+
+Example:
 
 ```yaml
 settings:
@@ -377,7 +407,7 @@ tests: # Describe[]
     ...
 ```
 
-**Interfaces**:
+Interfaces:
 
 ```typescript
 interface Event {
@@ -400,9 +430,9 @@ interface Attribute {
 ```
 
 ### Query
-The result of the query will be stored in a new variable based on the key name of the _Query_. The variable naming follows the same format of `decodedCalls`. Therefore, for the followig example, the result of the query is stored in: `$balance_sender_before`. The variable becomes available in the rest of the file ONLY after its declaration.
+Query the chain state. The result of the query will be stored in a new variable based on the key name of the _Query_. The variable naming follows the same format of `decodedCalls`. Therefore, for the followig example, the result of the query is stored in: `$balance_sender_before`. The variable becomes available in the rest of the file ONLY after its declaration.
 
-**Example**:
+Example:
 
 ```yaml
 settings:
@@ -430,7 +460,7 @@ tests: # Describe[]
     its: [...]           
 ```
 
-**Interfaces**:
+Interfaces:
 
 ```typescript
 interface Query {
@@ -442,9 +472,9 @@ interface Query {
 ```
 
 ### Rpc
-Same approach as _Query_. For the following example, the result of the RPC call will be stored in `$block`.
+RPC call to the chain's node. Same approach as _Query_. For the following example, the result of the RPC call will be stored in `$block`.
 
-**Example**:
+Example:
 
 ```yaml
 settings:
@@ -470,7 +500,7 @@ tests: # Describe[]
     its: [...]           
 ```
 
-**Interfaces**:
+Interfaces:
 
 ```typescript
 interface Rpc  extends Query {};
@@ -479,9 +509,9 @@ interface Rpc  extends Query {};
 ### Assert
 Unlike _Query_ and _Rpc_ where their keys can be arbitrarily chosen to generate a new variable, _AssertOrCustom_ keys can only be set to two different values: `equal` and `custom`.
 - `equal`: it has a single attribute `args` which is expecting an array of two values to be `deepEqual()` compared.
-- `custom`: assertion cases can be endless, therefore they are diffucult to standarize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom]().
+- `custom`: assertion cases can be endless, therefore they are diffucult to standarize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom](#custom).
 
-**Example**:
+Example:
 
 ```yaml
 settings:
@@ -534,16 +564,12 @@ tests: # Describe[]
                       after: $balance_rc_sender_after,
                     },
                     amount: *amount,
-                    fees: {
-                      from: *xcmPallet.limitedTeleportAssets,
-                      index: 0
-                    }
                   }
               equal:
                 args: [true, true]      
 ```
 
-**Interfaces**:
+Interfaces:
 
 ```typescript
 interface Assert {
@@ -560,26 +586,52 @@ type AssertOrCustom = Assert | Custom;
 
 ### Custom
 
-This particular _Action_ enables the possibility of refering to your own files to perform those actions that a constrained YAML schema can not provide. The file must export a very specific function signature that the tool is expecting to import: `async (context, ...args)`
-- `context`:
-- `args`: 
+This _Action_ type enables the possibility of referring to your own files to perform those actions that a constrained YAML schema can not provide. The file must export a very specific function signature that the tool is expecting to import: `async (context, ...args)`
+- `context`: corresponds to the test's `this` object. All user created variables (in `encodedCalls`, `queries` and `rpcs`) are stored and accessible from the `this.variables` key. In a similar way, `context` can be use to stored new variables that will become available in the rest of the tests.
+- `args`: the arguments used as input for your custom file function.
 
-**Example**:
-- yaml
+The following example shows how to use a `custom` action to perform an assertion, but there are not limitations about what to achive.
+
+Example:
+
 ```yaml
-```
+settings:
+  ...
+tests: # Describe[]
+  - name: My Describe
+    before: # I declare $coin_symbol
+    its: # It[]
+      ...
+      - name: My custom action should do something
+        actions: # Action[]
+          custom: # Custom[]
+            - path: ./queryExternalOracle.ts
+              args: {
+                url: https://www.my-oracle.com/price/
+              }
+          asserts:
+            equal: [$dot_price, 30]
 
-- file
+```
 ```typescript
+// queryExternalOracle.ts
+
 const myCustomFunction = async (context, ...args) => {
-  let myArgs = args[0];
-  let myVariables = 
+  const { url } = args[0]
+
+  let coinSymbol = context.variables.$coin_symbol
+  
+  let price = myApi.get(url + coinSymbol)
+
+  // Save the result in context (this) variables
+  // to make it available for the rests of the tests
+  context.variables['$dot_price'] = price
 }
 
 export default myCustomFunction
 ```
 
-**Interfaces**:
+Interfaces:
 
 ```typescript
 interface Custom {
@@ -588,7 +640,7 @@ interface Custom {
 }
 ```
 
-// TODO
+## Get Help
+Open an [issue](https://github.com/NachoPal/parachains-integration-tests/issues) if you have problems.
 ## Contributions
-
 PRs and contributions are welcome :)
