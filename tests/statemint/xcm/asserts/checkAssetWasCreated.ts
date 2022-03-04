@@ -1,12 +1,12 @@
 const chai = require('chai');
-var should = require('chai').should()
+var should = require('chai').should();
 
 const checkSenderBalances = async (context, ...args) => {
-  let asset = args[0]
+  let asset = args[0];
 
-  let assetExist = asset ? true : false
+  let assetExist = asset ? true : false;
 
-  chai.assert.equal(assetExist, true)
-}
+  chai.assert.equal(assetExist, true);
+};
 
-export default checkSenderBalances
+export default checkSenderBalances;

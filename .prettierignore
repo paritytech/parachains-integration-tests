@@ -1,0 +1,9 @@
+
+bin
+logs
+dist
+node_modules
+README.md
+*.json
+*.yml
+*.yaml
