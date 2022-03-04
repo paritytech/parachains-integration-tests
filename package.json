@@ -2,10 +2,11 @@
   "name": "parachains-integration-test",
   "version": "1.0.0",
   "main": "index.js",
-  "author": "Ignacio Palacios Santos",
+  "author": "Ignacio Palacios Santos <ignacio.palacios.santos@gmail.com>",
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "prepare": "tsc",
     "start": "yarn build && node dist/cli.js",
     "test": "yarn build && ts-node dist/cli.js -m test",
     "polkadot-launch": "yarn build && node dist/cli.js -m polkadot-launch",
@@ -31,6 +32,12 @@
     "typescript": "^4.4.2",
     "yaml": "^1.10.2"
   },
+  "files": [
+		"dist"
+	],
+  "bin": {
+		"parachains-integration-tests": "dist/cli.js"
+	},
   "devDependencies": {
     "@types/chai": "^4.2.22",
     "@types/mocha": "^9.0.0",
