@@ -189,13 +189,10 @@ tests:
                     }
                   ]  
                   events:
-                    - name: xcmPallet.Sent
-                    - name: dmpQueue.ExecutedDownward
-                      chain: *assets_parachain
+                    - name: system.ExtrinsicFailed
                       attribute:
-                        type: XcmV2TraitsOutcome
-                        isIncomplete: true
-                        value: ['3,000,000,000', BadOrigin]
+                        type: SpRuntimeDispatchError
+                        value: BadOrigin
 
       - name: xcmPallet.limitedReserveTransferAssets
         before: *before_get_balances

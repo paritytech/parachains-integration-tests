@@ -225,7 +225,7 @@ tests:
                       attribute:
                         type: XcmV2TraitsOutcome
                         isIncomplete: true
-                        value: ['1,000,000,000', FailedToTransactAsset] 
+                        value: ['1,000,000,000', FailedToTransactAsset] # FailedToTransactAsset("AssetIdConversionFailed")
               - queries:
                   balance_ap_sender_after:
                     chain: *assets_parachain

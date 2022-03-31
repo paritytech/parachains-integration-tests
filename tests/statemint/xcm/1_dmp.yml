@@ -39,22 +39,22 @@ tests:
     its: []            
     describes:
       - name: xcmPallet.limitedTeleportAssets
-        # before: &before_get_balances
-        #   - name: Get the balances of the Relay Chain's sender & Assets Parachain's receiver
-        #     actions:
-        #       - queries:
-        #           balance_rc_sender_before:
-        #             chain: *relay_chain
-        #             pallet: system
-        #             call: account
-        #             args: [ *rc_wallet ]
-        #           balance_ap_receiver_before:
-        #             chain: *assets_parachain
-        #             pallet: system
-        #             call: account
-        #             args: [ *ap_wallet ]
+        before: &before_get_balances
+          - name: Get the balances of the Relay Chain's sender & Assets Parachain's receiver
+            actions:
+              - queries:
+                  balance_rc_sender_before:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *rc_wallet ]
+                  balance_ap_receiver_before:
+                    chain: *assets_parachain
+                    pallet: system
+                    call: account
+                    args: [ *ap_wallet ]
         its:
-          - name: Should NOT be able to teleport native assets from the Relay Chain to the Assets Parachain
+          - name: Should be able to teleport native assets from the Relay Chain to the Assets Parachain
             actions:
               - extrinsics: &xcmPallet.limitedTeleportAssets
                 - chain: *relay_chain
@@ -69,67 +69,67 @@ tests:
                     { unlimited: true } # weightLimit
                   ]
                   events:
-                    - name: system.ExtrinsicFailed
+                    # - name: system.ExtrinsicFailed
+                    #   attribute:
+                    #     type: SpRuntimeDispatchError
+                    #     value: {
+                    #       Module: {
+                    #         index: '99',
+                    #         error: '2' # Filtered
+                    #       }
+                    #     }
+                    - name: xcmPallet.Attempted
                       attribute:
-                        type: SpRuntimeDispatchError
-                        value: {
-                          Module: {
-                            index: '99',
-                            error: '2' # Filtered
-                          }
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *assets_parachain
+                      attribute:
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                        value: 4,000,000,000
+              - queries:
+                  balance_rc_sender_after:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *rc_wallet ]
+                  balance_ap_receiver_after:
+                    chain: *assets_parachain
+                    pallet: system
+                    call: account
+                    args: [ *ap_wallet ]              
+          - name: Should reduce the balance of the sender
+            actions:
+              - asserts:
+                  custom:
+                    path: ./asserts/checkSenderBalances.ts
+                    args: 
+                      { 
+                        balances: { 
+                          before: $balance_rc_sender_before,
+                          after: $balance_rc_sender_after,
+                        },
+                        amount: *amount,
+                        fees: {
+                          from: *xcmPallet.limitedTeleportAssets,
+                          index: 0
                         }
-                    # - name: xcmPallet.Attempted
-                    #   attribute:
-                    #     type: XcmV2TraitsOutcome
-                    #     isComplete: true
-                    # - name: dmpQueue.ExecutedDownward
-                    #   chain: *assets_parachain
-                    #   attribute:
-                    #     type: XcmV2TraitsOutcome
-                    #     isComplete: true
-                    #     value: 4,000,000,000
-              # - queries:
-              #     balance_rc_sender_after:
-              #       chain: *relay_chain
-              #       pallet: system
-              #       call: account
-              #       args: [ *rc_wallet ]
-              #     balance_ap_receiver_after:
-              #       chain: *assets_parachain
-              #       pallet: system
-              #       call: account
-              #       args: [ *ap_wallet ]              
-          # - name: Should reduce the balance of the sender
-          #   actions:
-          #     - asserts:
-          #         custom:
-          #           path: ./asserts/checkSenderBalances.ts
-          #           args: 
-          #             { 
-          #               balances: { 
-          #                 before: $balance_rc_sender_before,
-          #                 after: $balance_rc_sender_after,
-          #               },
-          #               amount: *amount,
-          #               fees: {
-          #                 from: *xcmPallet.limitedTeleportAssets,
-          #                 index: 0
-          #               }
-          #             }
-          # - name: Should increase the balance of the receiver
-          #   actions:
-          #     - asserts:
-          #         custom:
-          #           path: ./asserts/checkReceiverBalances.ts
-          #           args: 
-          #             { 
-          #               balances: { 
-          #                 before: $balance_ap_receiver_before,
-          #                 after: $balance_ap_receiver_after,
-          #               },
-          #               amount: *amount,
-          #               fee: null
-          #             }
+                      }
+          - name: Should increase the balance of the receiver
+            actions:
+              - asserts:
+                  custom:
+                    path: ./asserts/checkReceiverBalances.ts
+                    args: 
+                      { 
+                        balances: { 
+                          before: $balance_ap_receiver_before,
+                          after: $balance_ap_receiver_after,
+                        },
+                        amount: *amount,
+                        fee: null
+                      }
 
       - name: xcmPallet.send | Superuser - Transact(assets.forceCreate)
         its:
@@ -198,18 +198,15 @@ tests:
                     }
                   ]  
                   events:
-                    - name: xcmPallet.Sent
-                    - name: dmpQueue.ExecutedDownward
-                      chain: *assets_parachain
+                    - name: system.ExtrinsicFailed
                       attribute:
-                        type: XcmV2TraitsOutcome
-                        isIncomplete: true
-                        value: ['3,000,000,000', BadOrigin]
+                        type: SpRuntimeDispatchError
+                        value: BadOrigin
 
       - name: xcmPallet.limitedReserveTransferAssets
-        # before: *before_get_balances
+        before: *before_get_balances
         its:
-          - name: Should NOT be able to reserved transfer native assets from the Relay Chain to the Assets Parachain
+          - name: Should be able to reserved transfer native assets from the Relay Chain to the Assets Parachain
             actions:
               - extrinsics: &xcmPallet.limitedTeleportAssets
                 - chain: *relay_chain
@@ -224,65 +221,65 @@ tests:
                     { unlimited: true } # weightLimit
                   ]
                   events:
-                    - name: system.ExtrinsicFailed
+                    # - name: system.ExtrinsicFailed
+                    #   attribute:
+                    #     type: SpRuntimeDispatchError
+                    #     value: {
+                    #       Module: {
+                    #         index: '99',
+                    #         error: '2' # Filtered
+                    #       }
+                    #     }
+                    - name: xcmPallet.Attempted
                       attribute:
-                        type: SpRuntimeDispatchError
-                        value: {
-                          Module: {
-                            index: '99',
-                            error: '2' # Filtered
-                          }
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                        value: 1,000,000,000
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *assets_parachain
+                      attribute:
+                        type: XcmV2TraitsOutcome
+                        isComplete: true
+                        value: 4,000,000,000
+              - queries:
+                  balance_rc_sender_after:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *rc_wallet ]
+                  balance_ap_receiver_after:
+                    chain: *assets_parachain
+                    pallet: system
+                    call: account
+                    args: [ *ap_wallet ]              
+          - name: Should reduce the balance of the sender
+            actions:
+              - asserts:
+                  custom:
+                    path: ./asserts/checkSenderBalances.ts
+                    args: 
+                      { 
+                        balances: { 
+                          before: $balance_rc_sender_before,
+                          after: $balance_rc_sender_after,
+                        },
+                        amount: *amount,
+                        fees: {
+                          from: *xcmPallet.limitedTeleportAssets,
+                          index: 0
                         }
-                    # - name: xcmPallet.Attempted
-                    #   attribute:
-                    #     type: XcmV2TraitsOutcome
-                    #     isComplete: true
-                    #     value: 1,000,000,000
-                    # - name: dmpQueue.ExecutedDownward
-                    #   chain: *assets_parachain
-                    #   attribute:
-                    #     type: XcmV2TraitsOutcome
-                    #     isComplete: true
-                    #     value: 4,000,000,000
-              # - queries:
-              #     balance_rc_sender_after:
-              #       chain: *relay_chain
-              #       pallet: system
-              #       call: account
-              #       args: [ *rc_wallet ]
-              #     balance_ap_receiver_after:
-              #       chain: *assets_parachain
-              #       pallet: system
-              #       call: account
-              #       args: [ *ap_wallet ]              
-          # - name: Should reduce the balance of the sender
-          #   actions:
-          #     - asserts:
-          #         custom:
-          #           path: ./asserts/checkSenderBalances.ts
-          #           args: 
-          #             { 
-          #               balances: { 
-          #                 before: $balance_rc_sender_before,
-          #                 after: $balance_rc_sender_after,
-          #               },
-          #               amount: *amount,
-          #               fees: {
-          #                 from: *xcmPallet.limitedTeleportAssets,
-          #                 index: 0
-          #               }
-          #             }
-          # - name: Should increase the balance of the receiver
-          #   actions:
-          #     - asserts:
-          #         custom:
-          #           path: ./asserts/checkReceiverBalances.ts
-          #           args: 
-          #             { 
-          #               balances: { 
-          #                 before: $balance_ap_receiver_before,
-          #                 after: $balance_ap_receiver_after,
-          #               },
-          #               amount: *amount,
-          #               fee: null
-          #             }                                   
+                      }
+          - name: Should increase the balance of the receiver
+            actions:
+              - asserts:
+                  custom:
+                    path: ./asserts/checkReceiverBalances.ts
+                    args: 
+                      { 
+                        balances: { 
+                          before: $balance_ap_receiver_before,
+                          after: $balance_ap_receiver_after,
+                        },
+                        amount: *amount,
+                        fee: null
+                      }
