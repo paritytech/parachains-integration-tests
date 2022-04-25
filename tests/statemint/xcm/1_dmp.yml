@@ -54,7 +54,7 @@ tests:
                     call: account
                     args: [ *ap_wallet ]
         its:
-          - name: Should be able to teleport native assets from the Relay Chain to the Assets Parachain
+          - name: Should teleport native assets from the Relay Chain to the Assets Parachain
             actions:
               - extrinsics: &xcmPallet.limitedTeleportAssets
                 - chain: *relay_chain
@@ -69,15 +69,6 @@ tests:
                     { unlimited: true } # weightLimit
                   ]
                   events:
-                    # - name: system.ExtrinsicFailed
-                    #   attribute:
-                    #     type: SpRuntimeDispatchError
-                    #     value: {
-                    #       Module: {
-                    #         index: '99',
-                    #         error: '2' # Filtered
-                    #       }
-                    #     }
                     - name: xcmPallet.Attempted
                       attribute:
                         type: XcmV2TraitsOutcome
@@ -206,7 +197,7 @@ tests:
       - name: xcmPallet.limitedReserveTransferAssets
         before: *before_get_balances
         its:
-          - name: Should be able to reserved transfer native assets from the Relay Chain to the Assets Parachain
+          - name: Should reserved transfer native assets from the Relay Chain to the Assets Parachain
             actions:
               - extrinsics: &xcmPallet.limitedTeleportAssets
                 - chain: *relay_chain
@@ -221,15 +212,6 @@ tests:
                     { unlimited: true } # weightLimit
                   ]
                   events:
-                    # - name: system.ExtrinsicFailed
-                    #   attribute:
-                    #     type: SpRuntimeDispatchError
-                    #     value: {
-                    #       Module: {
-                    #         index: '99',
-                    #         error: '2' # Filtered
-                    #       }
-                    #     }
                     - name: xcmPallet.Attempted
                       attribute:
                         type: XcmV2TraitsOutcome
