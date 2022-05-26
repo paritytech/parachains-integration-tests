@@ -39,7 +39,7 @@
 	},
 	"parachains": [
 		{
-			"bin": "../../bin/polkadot-collator",
+			"bin": "../../bin/polkadot-parachain",
       "chain": "statemine-local",
 			"nodes": [
 				{
