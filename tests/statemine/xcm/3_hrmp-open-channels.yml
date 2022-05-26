@@ -278,7 +278,7 @@ tests:
                       attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
-                        value: 4,000,000,000
+                        value: 1,160,892,000
                     - name: hrmp.OpenChannelAccepted
                       remote: true
                       timeout: 40000
@@ -344,7 +344,7 @@ tests:
                       attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
-                        value: 4,000,000,000
+                        value: 1,160,892,000
                     - name: hrmp.OpenChannelRequested
                       remote: true
                       timeout: 40000

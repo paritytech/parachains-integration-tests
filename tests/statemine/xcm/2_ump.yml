@@ -106,7 +106,7 @@ tests:
                       attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
-                        value: 4,000,000,000
+                        value: 297,578,000
               - queries:
                   balance_ap_sender_after:
                     chain: *assets_parachain
