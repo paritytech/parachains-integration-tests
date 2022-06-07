@@ -228,6 +228,14 @@ export const eventsHandler =
       let finalEventsResults: EventResult[] = [];
       let remoteEventsPromises: Promise<EventResult>[] = [];
 
+      initialEventsResults.forEach((eventResult) => {
+        const { remote } = eventResult;
+        if (remote && !context.extrinsicIsActive) {
+          context.extrinsicIsActive = true;
+          remoteEventsPromises.push(remoteEventLister(context, eventResult));
+        }
+      })
+
       if (status.isInBlock) {
         events.forEach((record: any) => {
           const {
@@ -250,8 +258,6 @@ export const eventsHandler =
             finalEventsResults.push(
               updateEventResult(received, undefined, eventResult)
             );
-          } else if (remote) {
-            remoteEventsPromises.push(remoteEventLister(context, eventResult));
           }
         });
 

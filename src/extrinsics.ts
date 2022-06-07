@@ -91,7 +91,7 @@ export const sendExtrinsic = async (
       let wallet = await getWallet(signer);
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
 
-      await sleep(delay ? delay : context.actionDelay);
+      context.extrinsicIsActive = false;
 
       await dispatchable.signAndSend(
         wallet,
