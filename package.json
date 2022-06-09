@@ -1,6 +1,6 @@
 {
   "name": "parachains-integration-tests",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "author": "Ignacio Palacios Santos <ignacio.palacios.santos@gmail.com>",
   "license": "MIT",
@@ -9,17 +9,13 @@
     "prepare": "tsc",
     "start": "yarn build && node dist/cli.js",
     "test": "yarn build && ts-node dist/cli.js -m test",
-    "polkadot-launch": "yarn build && node dist/cli.js -m polkadot-launch",
-    "polkadot-launch:test": "yarn build && node dist/cli.js -m polkadot-launch-test",
     "dev": "ts-node src/cli.ts",
     "dev:test": "ts-node src/cli.ts -m test",
-    "dev:polkadot-launch": "ts-node src/cli.ts -m polkadot-launch",
-    "dev:polkadot-launch:test": "ts-node src/cli.ts -m polkadot-launch-test",
     "lint": "prettier -v && prettier --check .",
     "lint:write": "prettier --write ."
   },
   "dependencies": {
-    "@polkadot/api": "^7.9.1",
+    "@polkadot/api": "^8.7.1",
     "@types/node": "^16.7.10",
     "bn.js": "^5.2.0",
     "command-line-args": "^5.2.0",
@@ -27,7 +23,6 @@
     "dotenv": "^10.0.0",
     "glob": "^7.2.0",
     "lodash": "^4.17.21",
-    "polkadot-launch": "^1.9.0",
     "traverse": "^0.6.6",
     "typescript": "^4.4.2",
     "yaml": "^1.10.2"
