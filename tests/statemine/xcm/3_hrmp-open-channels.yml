@@ -278,7 +278,7 @@ tests:
                       attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
-                        value: 4,000,000,000
+                        value: 1,160,892,000
                     - name: hrmp.OpenChannelAccepted
                       remote: true
                       timeout: 40000
@@ -287,6 +287,7 @@ tests:
                     chain: *relay_chain
                     pallet: hrmp
                     call: hrmpChannels
+                    delay: 80000
                     args: [
                       {
                         sender: *cp_id,
@@ -344,7 +345,7 @@ tests:
                       attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
-                        value: 4,000,000,000
+                        value: 1,160,892,000
                     - name: hrmp.OpenChannelRequested
                       remote: true
                       timeout: 40000

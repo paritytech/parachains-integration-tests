@@ -214,50 +214,39 @@ const updateEventResult = (
 export const eventsHandler =
   (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) =>
   async ({ events = [], status }) => {
-    try {
-      let providers = context.providers;
+    if (context.extrinsicIsActive === false) {
+      try {
+        context.extrinsicIsActive === false
+  
+        for (let expectedEvent of expectedEvents) {
+          checkEvent(expectedEvent);
+        }
+  
+        let initialEventsResults: EventResult[] = eventsResultsBuilder(
+          extrinsicChain,
+          expectedEvents
+        );
+        let finalEventsResults: EventResult[] = [];
+        let remoteEventsPromises: Promise<EventResult>[] = [];
+  
+        initialEventsResults.forEach((eventResult) => {
+            remoteEventsPromises.push(remoteEventLister(context, eventResult));
+        })
 
-      for (let expectedEvent of expectedEvents) {
-        checkEvent(expectedEvent);
-      }
+        let remoteEvents = await Promise.all(remoteEventsPromises)
 
-      let initialEventsResults: EventResult[] = eventsResultsBuilder(
-        extrinsicChain,
-        expectedEvents
-      );
-      let finalEventsResults: EventResult[] = [];
-      let remoteEventsPromises: Promise<EventResult>[] = [];
-
-      if (status.isInBlock) {
-        events.forEach((record: any) => {
-          const {
-            event: { method, section },
-          } = record;
-          initialEventsResults.forEach((eventResult) => {
-            const { name, remote } = eventResult;
-
-            if (!remote && name === `${section}.${method}`) {
-              finalEventsResults.push(
-                updateEventResult(true, record, eventResult)
-              );
-            }
-          });
-        });
+        for (let remoteEvent of remoteEvents) {
+          finalEventsResults.push(remoteEvent);
+        }
 
         initialEventsResults.forEach((eventResult) => {
-          const { remote, received } = eventResult;
-          if (!remote && !received) {
+          const { received } = eventResult;
+          if (!received) {
             finalEventsResults.push(
               updateEventResult(received, undefined, eventResult)
             );
-          } else if (remote) {
-            remoteEventsPromises.push(remoteEventLister(context, eventResult));
           }
         });
-
-        for (let remoteEventsPromise of remoteEventsPromises) {
-          finalEventsResults.push(await remoteEventsPromise);
-        }
 
         finalEventsResults = finalEventsResults.map((result) => {
           let message = messageBuilder(context, result);
@@ -266,9 +255,9 @@ export const eventsHandler =
 
         resolve(finalEventsResults);
         return;
+      } catch (e) {
+        addConsoleGroupEnd(2);
+        reject(e);
       }
-    } catch (e) {
-      addConsoleGroupEnd(2);
-      reject(e);
     }
   };
