@@ -197,7 +197,7 @@ tests:
       - name: xcmPallet.limitedReserveTransferAssets
         before: *before_get_balances
         its:
-          - name: Should reserved transfer native assets from the Relay Chain to the Assets Parachain
+          - name: SHOULD NOT reserved transfer native assets from the Relay Chain to the Assets Parachain
             actions:
               - extrinsics: &xcmPallet.limitedTeleportAssets
                 - chain: *relay_chain
@@ -221,8 +221,8 @@ tests:
                       chain: *assets_parachain
                       attribute:
                         type: XcmV2TraitsOutcome
-                        isComplete: true
-                        value: 4,000,000,000
+                        isIncomplete: true
+                        value: ['1,000,000,000' , UntrustedReserveLocation]
               - queries:
                   balance_rc_sender_after:
                     chain: *relay_chain
@@ -251,17 +251,12 @@ tests:
                           index: 0
                         }
                       }
-          - name: Should increase the balance of the receiver
+          - name: Should keep the balance of the receiver
             actions:
               - asserts:
-                  custom:
-                    path: ./asserts/checkReceiverBalances.ts
-                    args: 
-                      { 
-                        balances: { 
-                          before: $balance_ap_receiver_before,
-                          after: $balance_ap_receiver_after,
-                        },
-                        amount: *amount,
-                        fee: null
-                      }
+                  equal:
+                    args:
+                      [
+                        $balance_ap_receiver_before,
+                        $balance_ap_receiver_after
+                      ]       
