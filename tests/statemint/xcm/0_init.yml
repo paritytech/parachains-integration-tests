@@ -11,7 +11,7 @@ settings:
       paraId: &cp_id 2000
   variables:
     common:
-      xcm_verison: &xcm_version 2
+      xcm_verison: &xcm_version '2'
       require_weight_at_most: &weight_at_most 1000000000
     chains:
       relay_chain:
@@ -60,9 +60,9 @@ tests:
                     type: Result<Null, SpRuntimeDispatchError>
                     value: Ok
                 - name: xcmPallet.SupportedVersionChanged
-                  atributes:
+                  attribute:
                     type: u32
-                    value: xcm_version
+                    value: *xcm_version
           - extrinsics: # Relay Chain sets supported version for Community Parachain
             - chain: *relay_chain
               sudo: true
@@ -86,9 +86,9 @@ tests:
                     type: Result<Null, SpRuntimeDispatchError>
                     value: Ok
                 - name: xcmPallet.SupportedVersionChanged
-                  atributes:
+                  attribute:
                     type: u32
-                    value: xcm_version          
+                    value: *xcm_version          
           - extrinsics: # Assset Parachain sets supported version for Relay Chain through it
             - chain: *relay_chain
               signer: *rc_signer
@@ -117,9 +117,9 @@ tests:
                 - name: xcmPallet.Sent
                 - name: polkadotXcm.SupportedVersionChanged
                   chain: *assets_parachain
-                  atributes:
+                  attribute:
                     type: u32
-                    value: xcm_version
+                    value: *xcm_version
           - extrinsics: # Community Parachain sets supported version for Relay Chain
             - chain: *community_parachain
               signer: *cp_signer
@@ -139,6 +139,6 @@ tests:
                     type: Result<Null, SpRuntimeDispatchError>
                     value: Ok
                 - name: polkadotXcm.SupportedVersionChanged
-                  atributes:
+                  attribute:
                     type: u32
-                    value: xcm_version          
+                    value: *xcm_version          

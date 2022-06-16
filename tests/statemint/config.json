@@ -1,6 +1,5 @@
 {
 	"relaychain": {
-    "name": "kusama",
 		"bin": "../../bin/polkadot",
 		"chain": "polkadot-local",
 		"nodes": [
@@ -40,7 +39,6 @@
 	},
 	"parachains": [
 		{
-      "name": "statemine",
 			"bin": "../../bin/polkadot-collator",
       "chain": "statemint-local",
 			"nodes": [
@@ -60,7 +58,7 @@
 		},
     {
 			"bin": "../../bin/parachain-collator",
-      "chain": "kusama-community-parachain-2000",
+      "chain": "polkadot-community-parachain-2000",
 			"nodes": [
         {
 					"wsPort": 9920,

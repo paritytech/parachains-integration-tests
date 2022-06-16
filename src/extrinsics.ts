@@ -28,7 +28,7 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
 
   if (signer === undefined) {
     console.log(
-      `\n⛔ ERROR:'signe' should be present for the following extrinsic:`,
+      `\n⛔ ERROR:'signer' should be present for the following extrinsic:`,
       JSON.stringify(extrinsic, null, 2)
     );
     process.exit(1);
@@ -36,7 +36,7 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
 
   if (chain === undefined) {
     console.log(
-      `\n⛔ ERROR:'chai' should be present for the following extrinsic:`,
+      `\n⛔ ERROR:'chain' should be present for the following extrinsic:`,
       JSON.stringify(extrinsic, null, 2)
     );
     process.exit(1);
@@ -47,7 +47,7 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
 
   if (pallet === undefined || call === undefined) {
     console.log(
-      `\n⛔ ERROR:'palle' &'cal' should be present for the following extrinsic:`,
+      `\n⛔ ERROR:'pallet' &'call' should be present for the following extrinsic:`,
       JSON.stringify(extrinsic, null, 2)
     );
     process.exit(1);
@@ -55,7 +55,7 @@ export const checkExtrinsic = (extrinsic: Extrinsic, providers) => {
 
   if (!Array.isArray(args)) {
     console.log(
-      `\n⛔ ERROR:'arg' should be present for the following extrinsic:`,
+      `\n⛔ ERROR:'args' should be present for the following extrinsic:`,
       JSON.stringify(extrinsic, null, 2)
     );
     process.exit(1);
@@ -91,7 +91,7 @@ export const sendExtrinsic = async (
       let wallet = await getWallet(signer);
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
 
-      await sleep(delay ? delay : context.actionDelay);
+      context.extrinsicIsActive = false;
 
       await dispatchable.signAndSend(
         wallet,

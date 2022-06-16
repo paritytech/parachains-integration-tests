@@ -9,12 +9,12 @@ import {
 } from './constants';
 const program = new Command();
 
-const spawnPolkadotLaunch = (options) => {
-  spawn('polkadot-launch', [options.config], {
-    stdio: 'inherit',
-    detached: false,
-  });
-};
+// const spawnPolkadotLaunch = (options) => {
+//   spawn('polkadot-launch', [options.config], {
+//     stdio: 'inherit',
+//     detached: false,
+//   });
+// };
 
 const spawnTests = (options) => {
   spawn(
@@ -43,13 +43,14 @@ const main = async () => {
 
   program
     .addOption(
-      new Option('-m, --mode <mode>', 'polkadot-launch, test or both')
-        .choices(['polkadot-launch', 'test', 'polkadot-launch-test'])
+      new Option('-m, --mode <mode>', 'test')
+        // .choices(['polkadot-launch', 'test', 'polkadot-launch-test'])
+        .choices(['test'])
         .makeOptionMandatory()
     )
-    .addOption(
-      new Option('-c, --config <path>', 'path to polkadot-launch config file')
-    )
+    // .addOption(
+    //   new Option('-c, --config <path>', 'path to polkadot-launch config file')
+    // )
     .addOption(new Option('-t, --tests <path>', 'path to tests'))
     .addOption(
       new Option('-to, --timeout <millisecons>', 'tests timeout')
@@ -73,32 +74,32 @@ const main = async () => {
   program.parse(process.argv);
   let options = program.opts();
 
-  if (options.mode === 'polkadot-launch-test') {
-    program
-      .addOption(
-        new Option(
-          '-c, --config <path>',
-          'path to polkadot-launch config file'
-        ).makeOptionMandatory()
-      )
-      .addOption(
-        new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
-      );
+  // if (options.mode === 'polkadot-launch-test') {
+  //   program
+  //     .addOption(
+  //       new Option(
+  //         '-c, --config <path>',
+  //         'path to polkadot-launch config file'
+  //       ).makeOptionMandatory()
+  //     )
+  //     .addOption(
+  //       new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
+  //     );
 
-    program.parse(process.argv);
-    spawnPolkadotLaunch(options);
-    spawnTests(options);
-  } else if (options.mode === 'polkadot-launch') {
-    program.addOption(
-      new Option(
-        '-c, --config <path>',
-        'path to polkadot-launch config file'
-      ).makeOptionMandatory()
-    );
+  //   program.parse(process.argv);
+  //   spawnPolkadotLaunch(options);
+  //   spawnTests(options);
+  // } else if (options.mode === 'polkadot-launch') {
+  //   program.addOption(
+  //     new Option(
+  //       '-c, --config <path>',
+  //       'path to polkadot-launch config file'
+  //     ).makeOptionMandatory()
+  //   );
 
-    program.parse(process.argv);
-    spawnPolkadotLaunch(options);
-  } else if (options.mode === 'test') {
+  //   program.parse(process.argv);
+  //   spawnPolkadotLaunch(options);
+  if (options.mode === 'test') {
     program.addOption(
       new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
     );

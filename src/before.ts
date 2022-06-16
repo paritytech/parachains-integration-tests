@@ -40,6 +40,7 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
     let actionDelay = process.env.QUERY_DELAY;
     this.actionDelay = actionDelay ? actionDelay : DEFAULT_ACTION_DELAY;
     this.providers = {};
+    this.extrinsicIsActive = false;
     this.testPath = testFile.dir;
     this.testName = testFile.name;
 
