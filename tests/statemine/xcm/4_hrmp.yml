@@ -22,6 +22,7 @@ settings:
         signer: &rc_signer //Alice
         wallet: &rc_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         assets_parachain_destination: &ap_dest { v1: { 0, interior: { x1: { parachain: *ap_id }}}}
+        assets_parachain_dest_routed: &ap_dest_routed { v1: { parents: 1, interior: { x1: { parachain: *ap_id } }}}
         assets_parachain_account: &ap_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
         assets_parachain_beneficiary: &ap_benf {v1: { parents: 0, interior: { x1: { accountId32: { network: { any: true }, id: *ap_acc }}}}}
         ksm: &rc_ksm { concrete: { 1, interior: { here: true }}}
@@ -30,6 +31,7 @@ settings:
         signer: &ap_signer //Alice
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         asset_id: &asset_id 2
+        assets_pallet_id: &assets_pallet_id 50
         asset_min_balance: &asset_ed 1000 
         relay_chain_destination: &rc_dest { v1: { parents: 1, interior: { here: true }}}
         community_parachain_destination: &cp_dest { v1: { parents: 1, interior: { x1: { parachain: *cp_id } }}}
@@ -38,6 +40,8 @@ settings:
         relay_chain_beneficiary: &rc_benf {v1: { parents: 0, interior: { x1: { accountId32: { network: { any: true }, id: *rc_acc }}}}}
         ksm: &ap_ksm { concrete: { parents: 1, interior: { here: true }}}
         ksm_fungible: &ap_ksm_fungible { id: *ap_ksm, fun: { fungible: *amount }}
+        suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
+        suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *weight_at_most }}
       community_parachain:
         signer: &cp_signer //Alice
         community_parachain_account: &cp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
@@ -52,7 +56,11 @@ settings:
         true, # isSufficient
         *asset_ed # minBalance
       ]
-
+    system_remark_with_event:
+      chain: *assets_parachain
+      pallet: system
+      call: remarkWithEvent
+      args: [ 0x0011 ]
 
 tests:
   - name: HRMP
@@ -226,6 +234,63 @@ tests:
                         type: u128
                         value: *amount
 
-
-            
-                                
+      - name: polkadotXcm.send( system.remarkWithEvent() ) | Community Parachain -> Assets Parachain
+        its:
+          - name: Community Parachain should be able to send XCM message paying its fee with sufficient asset[2] in Assets Parachain
+            actions:
+              - extrinsics:
+                - chain: *community_parachain
+                  signer: *cp_signer
+                  sudo: true
+                  pallet: polkadotXcm
+                  call: send
+                  args: [
+                    *ap_dest_routed, # destination
+                    {
+                      v2: [ #message
+                        {
+                          WithdrawAsset: [*ap_suff_asset_fungible]
+                        },
+                        {
+                          BuyExecution: {
+                              fees: *ap_suff_asset_fungible,
+                              weightLimit: Unlimited
+                          }
+                        },
+                        {
+                          Transact: {
+                            originType: SovereignAccount,
+                            requireWeightAtMost: *weight_at_most,
+                            call: $system_remark_with_event
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                  events:
+                    - name: sudo.Sudid
+                      attribute:
+                        type: Result<Null, SpRuntimeDispatchError>
+                        value: Ok
+                    - name: polkadotXcm.Sent
+              - queries:
+                  asset_after_amount:
+                    chain: *assets_parachain
+                    pallet: assets
+                    call: account
+                    args: [
+                      *asset_id,
+                      *cp_sovereign_acc
+                    ]
+          - name: Should reduce the asset[2] balance of the Community Parachain's SovereignAccount in the Assets Parachain
+            actions:
+              - asserts:
+                  custom:
+                    path: ./asserts/checkAssetWasBurned.ts
+                    args:
+                      {
+                        balances: {
+                          before: *amount_to_send,
+                          after: $asset_after_amount,
+                        },
+                      }
