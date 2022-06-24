@@ -41,7 +41,9 @@ settings:
         ksm: &ap_ksm { concrete: { parents: 1, interior: { here: true }}}
         ksm_fungible: &ap_ksm_fungible { id: *ap_ksm, fun: { fungible: *amount }}
         suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
+        suff_asset_fail: &suff_asset_fail { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: 3 } ] }}}
         suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *weight_at_most }}
+        suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: *weight_at_most }}
       community_parachain:
         signer: &cp_signer //Alice
         community_parachain_account: &cp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
@@ -273,6 +275,21 @@ tests:
                         type: Result<Null, SpRuntimeDispatchError>
                         value: Ok
                     - name: polkadotXcm.Sent
+                    - name: assets.Burned
+                      chain: *assets_parachain
+                      attributes:
+                        type: AccountId32
+                        value: *cp_sovereign
+                    - name: assets.Issued
+                      chain: *assets_parachain
+                      attributes:
+                        type: u32
+                        value: *asset_id
+                    - name: system.Remarked
+                      chain: *assets_parachain
+                      attributes:
+                        type: AccountId32
+                        value: *cp_sovereign
               - queries:
                   asset_after_amount:
                     chain: *assets_parachain
@@ -294,3 +311,40 @@ tests:
                           after: $asset_after_amount,
                         },
                       }
+          - name: Community Parachain SHOULD NOT be able to send XCM message paying its fee with sufficient asset[3] if not balance
+            actions:
+              - extrinsics:
+                - chain: *community_parachain
+                  signer: *cp_signer
+                  sudo: true
+                  pallet: polkadotXcm
+                  call: send
+                  args: [
+                    *ap_dest_routed, # destination
+                    {
+                      v2: [ #message
+                        {
+                          WithdrawAsset: [*ap_suff_asset_fungible_fail]
+                        },
+                        {
+                          BuyExecution: {
+                              fees: *ap_suff_asset_fungible_fail,
+                              weightLimit: Unlimited
+                          }
+                        },
+                        {
+                          Transact: {
+                            originType: SovereignAccount,
+                            requireWeightAtMost: *weight_at_most,
+                            call: $system_remark_with_event
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                  events:
+                    - name: xcmpQueue.Fail
+                      chain: *assets_parachain
+                      attributes:
+                        type: XcmV2TraitsError
+                        value: FailedToTransactAsset
