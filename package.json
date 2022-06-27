@@ -1,6 +1,6 @@
 {
   "name": "parachains-integration-tests",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "main": "index.js",
   "author": "Ignacio Palacios Santos <ignacio.palacios.santos@gmail.com>",
   "license": "MIT",
@@ -15,7 +15,8 @@
     "lint:write": "prettier --write ."
   },
   "dependencies": {
-    "@polkadot/api": "^8.7.1",
+    "@parity/zombienet": "^1.2.41",
+    "@polkadot/api": "^8.9.1",
     "@types/node": "^16.7.10",
     "bn.js": "^5.2.0",
     "command-line-args": "^5.2.0",
@@ -28,11 +29,13 @@
     "yaml": "^1.10.2"
   },
   "files": [
-		"dist"
-	],
+    "dist"
+  ],
   "bin": {
-		"parachains-integration-tests": "dist/cli.js"
-	},
+    "parachains-integration-tests": "dist/cli.js",
+    "zombienet": "./node_modules/.bin/zombienet",
+    "mocha": "./node_modules/.bin/mocha"
+  },
   "devDependencies": {
     "@types/chai": "^4.2.22",
     "@types/mocha": "^9.0.0",
