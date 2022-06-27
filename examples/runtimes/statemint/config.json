@@ -30,7 +30,7 @@
 					"configuration": {
 						"config": {
 							"validation_upgrade_frequency": 1,
-							"validation_upgrade_delay": 1
+							"validation_upgrade_delay": 30
 						}
 					}
 				}
@@ -39,14 +39,31 @@
 	},
 	"parachains": [
 		{
-			"bin": "../../bin/polkadot-collator",
+			"bin": "../../bin/polkadot-parachain",
       "chain": "statemint-local",
 			"nodes": [
 				{
 					"wsPort": 9910,
 					"port": 31200,
 					"name": "alice",
-					"flags": ["--force-authoring", "--", "--execution=wasm"]
+					"flags": [
+            "-lxcm-executor=trace", 
+            "-lxcm=trace", 
+            "-lxcm::execute_xcm_in_credit=trace", 
+            "-lxcm::execute_xcm=trace", 
+            "-lxcm::execute=trace", 
+            "-lxcm::send_xcm=trace", 
+            "-lxcm::origin_conversion=trace", 
+            "-lruntime=debug", 
+            "-laura=debug", 
+            "-lcumulus=debug", 
+            "-lcumulus-collator=debug", 
+            "-lnacho=debug", 
+            "--force-authoring", 
+            "--execution=wasm", 
+            "--", 
+            "--execution=wasm"
+          ]
 				},
         {
 					"wsPort": 9911,

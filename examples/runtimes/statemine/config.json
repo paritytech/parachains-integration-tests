@@ -1,6 +1,6 @@
 {
 	"relaychain": {
-		"bin": "../../bin/polkadot",
+		"bin": "../../../bin/master/polkadot",
 		"chain": "kusama-local",
 		"nodes": [
 			{
@@ -30,7 +30,7 @@
 					"configuration": {
 						"config": {
 							"validation_upgrade_frequency": 1,
-							"validation_upgrade_delay": 1
+							"validation_upgrade_delay": 30
 						}
 					}
 				}
@@ -39,14 +39,31 @@
 	},
 	"parachains": [
 		{
-			"bin": "../../bin/polkadot-parachain",
+			"bin": "../../../bin/polkadot-parachain",
       "chain": "statemine-local",
 			"nodes": [
 				{
 					"wsPort": 9910,
 					"port": 31200,
 					"name": "alice",
-					"flags": ["-lxcm-executor=trace", "-lxcm=trace", "-lxcm::execute_xcm_in_credit=trace", "-lxcm::execute_xcm=trace", "-lxcm::execute=trace", "-lxcm::send_xcm=trace", "-lxcm::origin_conversion=trace", "-lruntime=debug", "-laura=debug", "-lcumulus=debug", "-lcumulus-collator=debug", "-lnacho=debug", "--force-authoring", "--execution=wasm", "--", "--execution=wasm"]
+          "flags": [
+            "-lxcm-executor=trace", 
+            "-lxcm=trace", 
+            "-lxcm::execute_xcm_in_credit=trace", 
+            "-lxcm::execute_xcm=trace", 
+            "-lxcm::execute=trace", 
+            "-lxcm::send_xcm=trace", 
+            "-lxcm::origin_conversion=trace", 
+            "-lruntime=debug", 
+            "-laura=debug", 
+            "-lcumulus=debug", 
+            "-lcumulus-collator=debug", 
+            "-lnacho=debug", 
+            "--force-authoring", 
+            "--execution=wasm", 
+            "--", 
+            "--execution=wasm"
+          ]
 				},
         {
 					"wsPort": 9911,
@@ -57,7 +74,7 @@
 			]
 		},
     {
-			"bin": "../../bin/parachain-collator",
+			"bin": "../../../bin/parachain-collator",
       "chain": "kusama-community-parachain-2000",
 			"nodes": [
         {

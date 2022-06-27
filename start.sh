@@ -26,9 +26,9 @@ do
   mkdir logs &> /dev/null
   mkdir logs/$t
   
-  yarn polkadot-launch -c ./tests/$t/config.json &> ./logs/$t/polkadot-launch.log&
-  # yarn test -t ./tests/$t/
-  yarn test -t ./tests/$t/ &> ./logs/$t/tests.log & tests=$!
+  yarn zombienet -c ./examples/runtimes/$t/config.json &> ./logs/$t/zombienet.log&
+  
+  yarn test -t ./examples/runtimes/$t/ &> ./logs/$t/tests.log & tests=$!
 
   cat ./logs/$t/tests.log
 
@@ -38,5 +38,3 @@ do
 
   find . -name "*.log" -maxdepth 1 -exec cp {} logs/$t &> /dev/null \; -exec rm '{}' \;
 done
-
-
