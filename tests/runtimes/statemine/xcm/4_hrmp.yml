@@ -107,7 +107,7 @@ tests:
                     args: [ *asset_id ]
               - asserts:
                   custom:
-                    path: ./asserts/checkAssetWasCreated.ts
+                    path: ../../asserts/checkAssetWasCreated.ts
                     args: $forced_created_asset
 
           - name: DEPENDANCY | Some Assets should be minted for the sender
@@ -303,7 +303,7 @@ tests:
             actions:
               - asserts:
                   custom:
-                    path: ./asserts/checkAssetWasBurned.ts
+                    path: ../../asserts/checkAssetWasBurned.ts
                     args:
                       {
                         balances: {
