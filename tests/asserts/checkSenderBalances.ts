@@ -3,8 +3,8 @@ var should = require('chai').should();
 const BN = require('bn.js');
 chai.use(require('chai-bn')(BN));
 import { expect } from 'chai';
-import { PaymentInfo } from '../../../../src/interfaces';
-import { getPaymentInfoForExtrinsic } from '../../../../src/utils';
+import { PaymentInfo } from '../../src/interfaces';
+import { getPaymentInfoForExtrinsic } from '../../src/utils';
 
 const checkSenderBalances = async (context, ...args) => {
   const {

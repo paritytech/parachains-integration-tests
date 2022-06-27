@@ -7,7 +7,6 @@ import {
   buildEncodedCallHex,
   getWallet,
   buildDispatchable,
-  sleep,
 } from './utils';
 import { eventsHandler } from './events';
 

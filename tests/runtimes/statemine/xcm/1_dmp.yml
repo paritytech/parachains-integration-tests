@@ -94,7 +94,7 @@ tests:
             actions:
               - asserts:
                   custom:
-                    path: ./asserts/checkSenderBalances.ts
+                    path: ../../asserts/checkSenderBalances.ts
                     args: 
                       { 
                         balances: { 
@@ -111,7 +111,7 @@ tests:
             actions:
               - asserts:
                   custom:
-                    path: ./asserts/checkReceiverBalances.ts
+                    path: ../../asserts/checkReceiverBalances.ts
                     args: 
                       { 
                         balances: { 
@@ -162,7 +162,7 @@ tests:
                     args: [ *asset_id ]    
               - asserts:
                   custom:
-                    path: ./asserts/checkAssetWasCreated.ts
+                    path: ../../asserts/checkAssetWasCreated.ts
                     args: $forced_created_asset
 
       - name: xcmPallet.send | Native - Transact(assets.forceCreate)
@@ -216,7 +216,7 @@ tests:
                       attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
-                        value: 1,000,000,000
+                        value: 750,645,000
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       attribute:
@@ -238,7 +238,7 @@ tests:
             actions:
               - asserts:
                   custom:
-                    path: ./asserts/checkSenderBalances.ts
+                    path: ../../asserts/checkSenderBalances.ts
                     args: 
                       { 
                         balances: { 
@@ -259,4 +259,4 @@ tests:
                       [
                         $balance_ap_receiver_before,
                         $balance_ap_receiver_after
-                      ]       
+                      ]                              
