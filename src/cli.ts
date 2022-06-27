@@ -19,6 +19,21 @@ export function killAll() {
 	}
 }
 
+const spawnPolkadotLaunch = (options) => {
+  let stdio =  'inherit';
+  let stdioLogs;
+
+  if (options.chainLogs) {
+    const polkadotLaunchLogs = fs.openSync(`${options.chainLogs}`, 'a');
+    stdioLogs = ['inherit', polkadotLaunchLogs, polkadotLaunchLogs];
+  }
+
+  p["polkadot-launch"] = spawn('polkadot-launch', [options.config], {
+    stdio: options.chainLogs ? stdioLogs : stdio,
+    detached: false,
+  });
+};
+
 const spawnZombienet = (options) => {
   let stdio =  'inherit';
   let stdioLogs;
@@ -77,7 +92,7 @@ program
   )
   .addOption(
     new Option('-m, --mode <mode>', 'mode to run')
-      .choices(['zombienet', 'test', 'zombienet-test'])
+      .choices(['test', 'zombienet', 'zombienet-test', 'polkadot-launch', 'polkadot-launch-test'])
       .makeOptionMandatory()
   )
   .addOption(
@@ -123,10 +138,10 @@ if (options.mode === 'zombienet-test') {
     .addOption(
       new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
     );
-
   program.parse(process.argv);
   spawnZombienet(options);
   spawnTests(options);
+
 } else if (options.mode === 'zombienet') {
   program.addOption(
     new Option(
@@ -134,14 +149,38 @@ if (options.mode === 'zombienet-test') {
       'path to zombienet config file'
     ).makeOptionMandatory()
   );
-
   program.parse(process.argv);
   spawnZombienet(options);
+
+} else if (options.mode === 'polkadot-launch-test') {
+    program
+      .addOption(
+        new Option(
+          '-c, --config <path>',
+          'path to polkadot-launch config file'
+        ).makeOptionMandatory()
+      )
+      .addOption(
+        new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
+      );
+    program.parse(process.argv);
+    spawnPolkadotLaunch(options);
+    spawnTests(options);
+
+  } else if (options.mode === 'polkadot-launch') {
+    program.addOption(
+      new Option(
+        '-c, --config <path>',
+        'path to zombienet config file'
+      ).makeOptionMandatory()
+    );
+    program.parse(process.argv);
+    spawnPolkadotLaunch(options);
+    
 } else if (options.mode === 'test') {
   program.addOption(
     new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
   );
-
   program.parse(process.argv);
   spawnTests(options);
 }
