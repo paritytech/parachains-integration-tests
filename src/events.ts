@@ -82,7 +82,7 @@ const eventsResultsBuilder = (
   });
 };
 
-const remoteEventLister = (
+const eventLister = (
   context,
   event: EventResult
 ): Promise<EventResult> => {
@@ -227,16 +227,16 @@ export const eventsHandler =
           expectedEvents
         );
         let finalEventsResults: EventResult[] = [];
-        let remoteEventsPromises: Promise<EventResult>[] = [];
+        let eventsPromises: Promise<EventResult>[] = [];
   
         initialEventsResults.forEach((eventResult) => {
-            remoteEventsPromises.push(remoteEventLister(context, eventResult));
+            eventsPromises.push(eventLister(context, eventResult));
         })
 
-        let remoteEvents = await Promise.all(remoteEventsPromises)
+        let events = await Promise.all(eventsPromises)
 
-        for (let remoteEvent of remoteEvents) {
-          finalEventsResults.push(remoteEvent);
+        for (let event of events) {
+          finalEventsResults.push(event);
         }
 
         initialEventsResults.forEach((eventResult) => {

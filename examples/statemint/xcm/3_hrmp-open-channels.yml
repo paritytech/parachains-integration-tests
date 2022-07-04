@@ -261,14 +261,12 @@ tests:
                     - name: polkadotXcm.Sent
                       chain: *assets_parachain
                     - name: ump.ExecutedUpward
-                      remote: true
                       timeout: 40000
                       attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
                         value: 4,000,000,000
                     - name: hrmp.OpenChannelAccepted
-                      remote: true
                       timeout: 40000
               - queries:
                   open_channels:
@@ -328,14 +326,12 @@ tests:
                     - name: polkadotXcm.Sent
                       chain: *assets_parachain
                     - name: ump.ExecutedUpward
-                      remote: true
                       timeout: 40000
                       attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
                         value: 4,000,000,000
                     - name: hrmp.OpenChannelRequested
-                      remote: true
                       timeout: 40000
               - queries:
                   requested_channels:
