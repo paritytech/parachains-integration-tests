@@ -549,12 +549,12 @@ Unlike _Query_ and _Rpc_ where their keys can be arbitrarily chosen to generate 
   - `./src/asserts/isSome.ts`
 -  `balanceDecreased`: compares balances queried with `system.account`. If `amount` and `fees` are not inclueded as arguments, it will just check that `after` is lower than `before`
     - `./src/asserts/balanceDecreased.ts`
-- `balanceEncreased`: compares balances queried with `system.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
-  - `./src/asserts/balanceDecreased.ts`
+- `balanceIncreased`: compares balances queried with `system.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
+  - `./src/asserts/balanceIncreased.ts`
 -  `assetsDecreased`: compares balances queried with `assets.account`. If `amount` and `fees` are not inclueded as arguments, it will just check that `after` is lower than `before`
     - `./src/asserts/assetsDecreased.ts`
-- `balanceEncreased`: compares balances queried with `assets.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
-  - `./src/asserts/assetsDecreased.ts`
+- `assetsIncreased`: compares balances queried with `assets.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
+  - `./src/asserts/assetsIncreased.ts`
 - `custom`: assertion cases can be endless, therefore they are diffucult to standarize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom](#custom). Notice that you will have to include a `tsconfig.json` file with `typeRoots` and `types` attributes pointing to your types in case of adding paths to a typescript file.
 
 These methods are extensible opening a PR to include them:
