@@ -74,6 +74,7 @@ const spawnTests = (options) => {
         TIMEOUT: options.timeout,
         EVENT_LISTENER_TIMEOUT: options.eventListenerTimeout,
         QUERY_DELAY: options.actionDelay,
+        ENV: options.env,
       },
     }
   );

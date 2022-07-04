@@ -1,6 +1,6 @@
 {
 	"relaychain": {
-		"bin": "../../bin/polkadot",
+		"bin": "../../../bin/polkadot",
 		"chain": "polkadot-local",
 		"nodes": [
 			{
@@ -39,7 +39,7 @@
 	},
 	"parachains": [
 		{
-			"bin": "../../bin/polkadot-parachain",
+			"bin": "../../../bin/polkadot-parachain",
       "chain": "statemint-local",
 			"nodes": [
 				{
@@ -74,7 +74,7 @@
 			]
 		},
     {
-			"bin": "../../bin/parachain-collator",
+			"bin": "../../../bin/parachain-collator",
       "chain": "polkadot-community-parachain-2000",
 			"nodes": [
         {
