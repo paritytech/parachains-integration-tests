@@ -11,7 +11,7 @@ Under the `./examples` folder, this repository contains integration tests for th
 It can be installed to be run in two different ways:
 - Installing the npm package `parachains-integration-tests` globally
   ```
-  yarn global add polkadot-launch
+  yarn global add parachains-integration-tests
   ```
 - From the repository
   ```
@@ -33,7 +33,7 @@ parachains-integration-tests -m <mode> -c <path> -t <path> -to <millisecons> -el
   - `polkadot-launch`: only deploy a Polkadot Launch network
   - `polkadot-launch-test`: deploy a Polkadot Launch testnet and run your tests against it
 - `-c`, `--config`: path to the Zombienet or Polkadot Launch config file.
-- `-t`, `--test`: path to the tests folder or to a single test yaml file. All files under the _path_ with a `yml` extension  will be run. To choose the order, is necessary to add an index in front of the file name. E.g: `0_my_test.yml`, `1_my_other_test`
+- `-t`, `--test`: path to the tests folder or to a single test yaml file. All files under the _path_ with a `yml` extension  will be run. To choose the order, is necessary to add an index in front of the file name. E.g: `0_my_test.yml`, `1_my_other_test.yml`
 - `-to`, `--timeout`: overrides the default Mocha tests timeout set to `300000`
 - `-el`, `--event-listener-timeout`: overrides the default event listener timeout set to `40000`
 - `-ad`, `--action-delay`: delay before state queries, rpc calls and extrinsics. Overrides the default delay set to `40000`. Some delay is necessary to make sure the state is already updated. In the case of extrisics, it is also necessary until ID hashes are available in [XCM v3](https://github.com/paritytech/polkadot/pull/4756). Without an indentifier, it is not posible to distinguish what XCM message event was triggered as a result of a specific extrinsic from another chain/context. For this reason, it is necessary to add a big delay between XCM messages, to avoid interferences from other unrelated events.
@@ -49,12 +49,12 @@ Examples:
 
   - Only deploy a testnet with Zombienet
       ```
-      parachains-integration-tests -m zombienet -c <polkadot_launch_config_path>
+      parachains-integration-tests -m zombienet -c <zombienet_config_path>
       ```
 
   - Run tests using Zombinet as testnet
       ```
-      parachains-integration-tests -m zombienet-test -t <tests_path> -c <polkadot_launch_config_path>
+      parachains-integration-tests -m zombienet-test -t <tests_path> -c <zombienet_config_path>
       ```
 
 - **From the repository**
@@ -65,12 +65,12 @@ Examples:
 
   - Only deploy a testnet with Zombienet
       ```
-      yarn zombienet -c <polkadot_launch_config_path>
+      yarn zombienet -c <zombienet_config_path>
       ```
 
   - Run tests using  as testnet
       ```
-      yarn zombienet-test -t <tests_path> -c <polkadot_launch_config_path>
+      yarn zombienet-test -t <tests_path> -c <zombienet_config_path>
       ```
 
 ## YAML Schema
