@@ -1,10 +1,11 @@
 {
   "name": "parachains-integration-tests",
-  "version": "1.0.12",
+  "version": "1.0.18",
   "main": "index.js",
   "author": "Ignacio Palacios Santos <ignacio.palacios.santos@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "clean": "rm -rf ./dist/*",
     "build": "tsc",
     "prepare": "tsc",
     "start": "yarn build && node dist/cli.js",
@@ -23,8 +24,7 @@
     "lint:write": "prettier --write ."
   },
   "dependencies": {
-    "@parity/zombienet": "^1.2.41",
-    "@polkadot/api": "^8.9.1",
+    "@parity/zombienet": "^1.2.48",
     "@types/chai": "^4.2.22",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.7.10",
@@ -39,8 +39,12 @@
     "mocha": "^9.1.3",
     "polkadot-launch": "^2.3.0",
     "traverse": "^0.6.6",
+    "ts-node": "^10.4.0",
     "typescript": "^4.4.2",
     "yaml": "^1.10.2"
+  },
+  "devDependencies": {
+    "prettier": "^2.5.1"
   },
   "files": [
     "dist"
@@ -49,10 +53,8 @@
     "parachains-integration-tests": "dist/cli.js",
     "zombienet": "./node_modules/.bin/zombienet",
     "polkadot-launch": "./node_modules/.bin/polkadot-launch",
-    "mocha": "./node_modules/.bin/mocha"
+    "mocha": "./node_modules/.bin/mocha",
+    "ts-node": "./node_modules/.bin/ts-node"
   },
-  "devDependencies": {
-    "prettier": "^2.5.1",
-    "ts-node": "^10.4.0"
-  }
+  "types": "./node_modules/@types/**/index.d.ts"
 }

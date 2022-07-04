@@ -3,8 +3,10 @@ var should = require('chai').should();
 import { Assert, Custom, AssertOrCustom } from './interfaces';
 import { customBuilder } from './custom';
 import { addConsoleGroupEnd, parseArgs } from './utils';
+import { REGISTERED_ASSERTIONS } from './constants';
 
-const customAssert = async (context, assert: Custom) => {
+const customAssert = async (context, assert: Custom, path: string) => {
+  assert.path = path;
   try {
     await customBuilder(context, assert);
   } catch (e) {
@@ -23,7 +25,7 @@ const equalAssert = async (context, assert: Assert) => {
 };
 
 const isRegisteredAssert = (key) => {
-  return ['custom', 'equal', 'deepEqual'].includes(key);
+  return REGISTERED_ASSERTIONS.includes(key);
 };
 
 const checkAssert = (key: string, assert: AssertOrCustom) => {
@@ -31,7 +33,7 @@ const checkAssert = (key: string, assert: AssertOrCustom) => {
 
   if (key === 'custom') {
     const { path } = assert as Custom;
-
+    
     if (!path) {
       console.log(
         `\n⛔ ERROR: 'path' should be present for the following assert: 'custom': ${JSON.stringify(
@@ -40,31 +42,31 @@ const checkAssert = (key: string, assert: AssertOrCustom) => {
       );
       process.exit(1);
     }
-  } else {
-    if (!Array.isArray(args)) {
-      console.log(
-        `\n⛔ ERROR: 'args' should be present and should be an array for the following assert: '${key}': ${JSON.stringify(
-          assert
-        )}`
-      );
-      process.exit(1);
-    }
+  }
+
+  if (!args) {
+    console.log(
+      `\n⛔ ERROR: 'args' should be present for the following assert: '${key}': ${JSON.stringify(
+        assert
+      )}`
+    );
+    process.exit(1);
   }
 };
 
 const runAssert = async (context, key: string, assert: AssertOrCustom) => {
   checkAssert(key, assert);
 
-  switch (key) {
-    case 'custom':
-      await customAssert(context, assert as Custom);
-      break;
-    case 'equal':
-      await equalAssert(context, assert);
-      break;
-    case 'deepEqual':
-      // await deepEqualAssert(context, assert)
-      break;
+  let custom = assert as Custom;
+
+  if (key === 'equal') {
+    await equalAssert(context, assert);
+  } else if (key === 'custom') {
+    await customAssert(context, custom, custom.path);
+  } else {
+    let extension = process.env.ENV === 'prod' ? 'js' : 'ts';
+    let path: string = `${__dirname}/asserts/${key}.${extension}`;
+    await customAssert(context, custom, path);
   }
 };
 

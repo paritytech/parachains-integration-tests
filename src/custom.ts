@@ -1,3 +1,4 @@
+require('dotenv').config();
 import { resolve } from 'path';
 import { Custom } from './interfaces';
 import { parseArgs } from './utils';
@@ -32,7 +33,7 @@ export const customBuilder = async (context, custom: Custom) => {
   try {
     customFunction = await import(absolutePath);
   } catch (e) {
-    console.log(`\n⛔ ERROR: no file can be found in ${path}`);
+    console.log(`\n⛔ ERROR: no file can be found in ${path}`, e);
     process.exit(1);
   }
 

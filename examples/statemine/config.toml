@@ -1,7 +1,7 @@
 [relaychain]
-default_command = "./bin/master/polkadot"
+default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug" ]
-chain = "polkadot-local"
+chain = "kusama-local"
 
   [[relaychain.nodes]]
   name = "alice"
@@ -22,17 +22,17 @@ chain = "polkadot-local"
 
 [[parachains]]
 id = 1000
-chain = "statemint-local"
+chain = "statemine-local"
 cumulus_based = true
 
   [[parachains.collators]]
   name = "collator1"
   ws_port = 9910
-  command = "./bin/master/polkadot-parachain"
+  command = "./bin/polkadot-parachain"
 
   [[parachains.collators]]
   name = "collator2"
-  command = "../parachains-integration-tests/bin/master/polkadot-parachain"
+  command = "./bin/polkadot-parachain"
 
 [[parachains]]
 id = 2000
@@ -42,8 +42,8 @@ cumulus_based = true
   [[parachains.collators]]
   name = "collator3"
   ws_port = 9920
-  command = "./bin/master/parachain-collator"
+  command = "./bin/parachain-collator"
 
   [[parachains.collators]]
   name = "collator4"
-  command = "./bin/master/parachain-collator"
+  command = "./bin/parachain-collator"

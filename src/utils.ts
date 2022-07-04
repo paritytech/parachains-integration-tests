@@ -113,17 +113,18 @@ export const parseArgs = (context, args): any[] => {
     }
   }
 
-  traverse(JSON.parse(strigifiedArg)).map(function (this, value) {
+  let parsedStrigifiedArg = traverse(JSON.parse(strigifiedArg)).map(function (this, value) {
     let pattern = /\$/;
     let regex = new RegExp(pattern, 'g');
 
     if (typeof value === 'string' && value.match(regex)) {
       console.log(
-        `\n⚠️  WARNING: no value was found for the variable "${value}". Check that the action where it is declared was not skipped after a failing assert`
+        `\n⛔ ERROR: no value was found for the variable "${value}". Check that the action where it is declared was not skipped after a failing assert`
       );
+      process.exit(1);
     }
   });
-  return JSON.parse(strigifiedArg);
+  return parsedStrigifiedArg;
 };
 
 export const waitForChainToProduceBlocks = async (provider): Promise<void> => {

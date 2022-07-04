@@ -3,9 +3,9 @@ Since the arrival of XCMP-Lite, communication between different consensus system
 
 This tool allows you to develop tests radipdly describing them in a YAML file. Behind the scenes, the YAML files are converted to [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
 
-It can work alongside with [Zombienet](https://github.com/paritytech/zombienet), [Polkadot Launch](https://github.com/paritytech/polkadot-launch), or you can run your tests against the testnet of your preference.
+It can work alongside with [Zombienet](https://github.com/paritytech/zombienet) and [Polkadot Launch](https://github.com/paritytech/polkadot-launch), or you can run your tests against the testnet of your choice.
 
-Under the `./examples/runtimes` folder, this repository contains integration tests for the _Common Good Assets Parachains_ (Statemine & Statemint). You can take them as examples of how to write tests with this tool.
+Under the `./examples` folder, this repository contains integration tests for the _Common Good Assets Parachains_ (Statemine & Statemint). You can take them as examples of how to write tests with this tool.
 
 ## Set Up
 It can be installed to be run in two different ways:
@@ -29,9 +29,9 @@ parachains-integration-tests -m <mode> -c <path> -t <path> -to <millisecons> -el
 - `-m`, `--mode`:
   - `test`: for running your tests
   - `zombienet`: only deploy a Zombienet network
-  - `zombienet-test: deploy a Zombienet testnet and run your tests against it
+  - `zombienet-test`: deploy a Zombienet testnet and run your tests against it
   - `polkadot-launch`: only deploy a Polkadot Launch network
-  - `zombienet-test: deploy a Polkadot Launch testnet and run your tests against it
+  - `polkadot-launch-test`: deploy a Polkadot Launch testnet and run your tests against it
 - `-c`, `--config`: path to the Zombienet or Polkadot Launch config file.
 - `-t`, `--test`: path to the tests folder or to a single test yaml file. All files under the _path_ with a `yml` extension  will be run. To choose the order, is necessary to add an index in front of the file name. E.g: `0_my_test.yml`, `1_my_other_test`
 - `-to`, `--timeout`: overrides the default Mocha tests timeout set to `300000`
@@ -52,7 +52,7 @@ Examples:
       parachains-integration-tests -m zombienet -c <polkadot_launch_config_path>
       ```
 
-  - Run tests using  as testnet
+  - Run tests using Zombinet as testnet
       ```
       parachains-integration-tests -m zombienet-test -t <tests_path> -c <polkadot_launch_config_path>
       ```
@@ -544,9 +544,25 @@ interface Rpc {
 ```
 
 ### Assert
-Unlike _Query_ and _Rpc_ where their keys can be arbitrarily chosen to generate a new variable, _AssertOrCustom_ keys can only be set to two different values: `equal` and `custom`.
+Unlike _Query_ and _Rpc_ where their keys can be arbitrarily chosen to generate a new variable, _AssertOrCustom_ keys can only be chosen from a list of built-in asserts.
 - `equal`: it has a single attribute `args` which is expecting an array of two values to be `deepEqual()` compared.
+- `isNone`: the argument is null.
+  - `./src/asserts/isNone.ts`
+- `isSome`: the argument is not null.
+  - `./src/asserts/isSome.ts`
+-  `balanceDecreased`: compares balances queried with `system.account`. If `amount` and `fees` are not inclueded as arguments, it will just check that `after` is lower than `before`
+    - `./src/asserts/balanceDecreased.ts`
+- `balanceEncreased`: compares balances queried with `system.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
+  - `./src/asserts/balanceDecreased.ts`
+-  `assetsDecreased`: compares balances queried with `assets.account`. If `amount` and `fees` are not inclueded as arguments, it will just check that `after` is lower than `before`
+    - `./src/asserts/assetsDecreased.ts`
+- `balanceEncreased`: compares balances queried with `assets.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
+  - `./src/asserts/assetsDecreased.ts`
 - `custom`: assertion cases can be endless, therefore they are diffucult to standarize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom](#custom).
+
+These methods are extensible opening a PR to include them:
+1. Add a new assertion key to `REGISTERED_ASSERTIONS` in `./src/constants.ts`
+2. Add a new assertion file under `./src/asserts`. The filename needs to match with the previously registered assertion key .
 
 Example:
 
@@ -679,6 +695,6 @@ interface Custom {
 
 ## Get Help
 Open an [issue](https://github.com/NachoPal/parachains-integration-tests/issues) if you have problems.
-å
+
 ## Contributions
 PRs and contributions are welcome :)
