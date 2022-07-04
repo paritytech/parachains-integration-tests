@@ -7,6 +7,8 @@ export const REGISTERED_ASSERTIONS = [
   'deepEqual',
   'balanceDecreased',
   'balanceIncreased',
+  'assetsDecreased',
+  'assetsIncreased',
   'isNone',
   'isSome',
 ];
