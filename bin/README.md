@@ -1,1 +1,1 @@
-Add here the chain binaries in case of using `polkadot-launch`
+Add here the chains binaries in case of using `zombientet` or `polkadot-launch`
