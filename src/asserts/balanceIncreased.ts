@@ -14,14 +14,14 @@ const checkBalanceIncreased = async (context, ...args) => {
       },
     },
     amount,
-    fees
+    fees,
   } = args[0][0];
 
   let previousBalance = BigInt(before);
   let currentBalance = BigInt(after);
 
-  let feesAmount = fees ?  BigInt(fees) : BigInt(0);
-  let amountSent = amount ?  BigInt(amount) : BigInt(0);
+  let feesAmount = fees ? BigInt(fees) : BigInt(0);
+  let amountSent = amount ? BigInt(amount) : BigInt(0);
 
   if (!fees && !amount) {
     new BN(currentBalance).should.be.a.bignumber.that.is.greaterThan(
