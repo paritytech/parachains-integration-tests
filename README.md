@@ -369,8 +369,6 @@ interface Extrinsic extends Call {
 ### Event
 If the `chain` attribute is not defined, it means the event is expected to happpen in the same chain context where the extrinsic was dispatched and as a result of it. Otherwise, the `chain` attribute referring to another context must be defined.
 
-If the event is expected to happen in the same chain context, but as a result of another extrinsic in a remote context, `remote` attribute must be set to `true`.
-
 Default event listener timeout can be overriden by the `timeout` attribute.
 
 Example:
@@ -428,7 +426,6 @@ tests: # Describe[]
                 - name: polkadotXcm.Sent
                   chain: *parachain
                 - name: ump.ExecutedUpward
-                  remote: true
                   timeout: 40000
                   attribute:
                     type: XcmV2TraitsOutcome
