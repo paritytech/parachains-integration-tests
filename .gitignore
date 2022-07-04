@@ -1,11 +1,8 @@
 node_modules
 /dist
 .vscode
-/bin/polkadot*
-/bin/parachain*
-/bin/v*
-/bin/lemon*
-/bin/old
+/bin
+!/bin/README.md
 /logs
 /*.json
 *.log

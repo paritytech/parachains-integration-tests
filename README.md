@@ -1,32 +1,78 @@
 # Parachains Integration Tests  ✅ 
-Since the arrival of XCMP-Lite, communication between different consensus systems became a reality in the Polkadot's ecosystem.  _Parachains Integration Tests_ is a tool that was created with the ambtion of easing testing interactions between Substrate based blockchains that implement XCMP-Lite.
+Since the arrival of XCMP-Lite, communication between different consensus systems became a reality in the Polkadot's ecosystem.  _Parachains Integration Tests_ is a tool that was created with the ambtion of easing testing interactions between Substrate based blockchains.
 
 This tool allows you to develop tests radipdly describing them in a YAML file. Behind the scenes, the YAML files are converted to [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
 
-Under the `./test` folder, this repository contains integration tests for the _Common Good Assets Parachains_ (Statemine & Statemint). You can take them as examples of how to write tests with this tool.
+It can work alongside with [Zombienet](https://github.com/paritytech/zombienet) and [Polkadot Launch](https://github.com/paritytech/polkadot-launch), or you can run your tests against the testnet of your choice.
+
+Under the `./examples` folder, this repository contains integration tests for the _Common Good Assets Parachains_ (Statemine & Statemint). You can take them as examples of how to write tests with this tool.
 
 ## Set Up
-```
-yarn
-```
+It can be installed to be run in two different ways:
+- Installing the npm package `parachains-integration-tests` globally
+  ```
+  yarn global add polkadot-launch
+  ```
+- From the repository
+  ```
+  yarn
+  ```
 
 ## How to use
 The tool implements a simple CLI.
 ```
-yarn start -m <mode> -c <path> -t <path> -to <millisecons> -el <milliseconds> -qd <milliseconds>
+parachains-integration-tests -m <mode> -c <path> -t <path> -to <millisecons> -el <milliseconds> -qd <milliseconds>
 ```
+- `-e`, `--env`:
+  - `prod`: for compiled TypeScript to Javascript (default)
+  - `dev`: for development environment in TypeScript
 - `-m`, `--mode`:
   - `test`: for running your tests
+  - `zombienet`: only deploy a Zombienet network
+  - `zombienet-test`: deploy a Zombienet testnet and run your tests against it
+  - `polkadot-launch`: only deploy a Polkadot Launch network
+  - `polkadot-launch-test`: deploy a Polkadot Launch testnet and run your tests against it
+- `-c`, `--config`: path to the Zombienet or Polkadot Launch config file.
 - `-t`, `--test`: path to the tests folder or to a single test yaml file. All files under the _path_ with a `yml` extension  will be run. To choose the order, is necessary to add an index in front of the file name. E.g: `0_my_test.yml`, `1_my_other_test`
 - `-to`, `--timeout`: overrides the default Mocha tests timeout set to `300000`
 - `-el`, `--event-listener-timeout`: overrides the default event listener timeout set to `40000`
 - `-ad`, `--action-delay`: delay before state queries, rpc calls and extrinsics. Overrides the default delay set to `40000`. Some delay is necessary to make sure the state is already updated. In the case of extrisics, it is also necessary until ID hashes are available in [XCM v3](https://github.com/paritytech/polkadot/pull/4756). Without an indentifier, it is not posible to distinguish what XCM message event was triggered as a result of a specific extrinsic from another chain/context. For this reason, it is necessary to add a big delay between XCM messages, to avoid interferences from other unrelated events.
+- `-cl`, `--chain-logs`: path to the log file to redirect stdout and stderr from the testnets deployment tool, either Zombienet or Polkadot Launch.
+- `-tl`, `--test-logs`: path to the log file to redirect stdout and stderr from this testing tool.
 
 Examples:
-- Run tests using other testnet
-    ```
-    yarn start -m test -t <tests_path>
-    ```
+- **NPM package**
+  - Run tests using other testnet
+      ```
+      parachains-integration-tests -m test -t <tests_path>
+      ```
+
+  - Only deploy a testnet with Zombienet
+      ```
+      parachains-integration-tests -m zombienet -c <polkadot_launch_config_path>
+      ```
+
+  - Run tests using Zombinet as testnet
+      ```
+      parachains-integration-tests -m zombienet-test -t <tests_path> -c <polkadot_launch_config_path>
+      ```
+
+- **From the repository**
+  - Run tests using other testnet
+      ```
+      yarn test -t <tests_path>
+      ```
+
+  - Only deploy a testnet with Zombienet
+      ```
+      yarn zombienet -c <polkadot_launch_config_path>
+      ```
+
+  - Run tests using  as testnet
+      ```
+      yarn zombienet-test -t <tests_path> -c <polkadot_launch_config_path>
+      ```
+
 ## YAML Schema
 It is formed by two main sections: `settings` and `tests`.
 
@@ -323,8 +369,6 @@ interface Extrinsic extends Call {
 ### Event
 If the `chain` attribute is not defined, it means the event is expected to happpen in the same chain context where the extrinsic was dispatched and as a result of it. Otherwise, the `chain` attribute referring to another context must be defined.
 
-If the event is expected to happen in the same chain context, but as a result of another extrinsic in a remote context, `remote` attribute must be set to `true`.
-
 Default event listener timeout can be overriden by the `timeout` attribute.
 
 Example:
@@ -382,7 +426,6 @@ tests: # Describe[]
                 - name: polkadotXcm.Sent
                   chain: *parachain
                 - name: ump.ExecutedUpward
-                  remote: true
                   timeout: 40000
                   attribute:
                     type: XcmV2TraitsOutcome
@@ -498,9 +541,25 @@ interface Rpc {
 ```
 
 ### Assert
-Unlike _Query_ and _Rpc_ where their keys can be arbitrarily chosen to generate a new variable, _AssertOrCustom_ keys can only be set to two different values: `equal` and `custom`.
+Unlike _Query_ and _Rpc_ where their keys can be arbitrarily chosen to generate a new variable, _AssertOrCustom_ keys can only be chosen from a list of built-in asserts.
 - `equal`: it has a single attribute `args` which is expecting an array of two values to be `deepEqual()` compared.
+- `isNone`: the argument is null.
+  - `./src/asserts/isNone.ts`
+- `isSome`: the argument is not null.
+  - `./src/asserts/isSome.ts`
+-  `balanceDecreased`: compares balances queried with `system.account`. If `amount` and `fees` are not inclueded as arguments, it will just check that `after` is lower than `before`
+    - `./src/asserts/balanceDecreased.ts`
+- `balanceEncreased`: compares balances queried with `system.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
+  - `./src/asserts/balanceDecreased.ts`
+-  `assetsDecreased`: compares balances queried with `assets.account`. If `amount` and `fees` are not inclueded as arguments, it will just check that `after` is lower than `before`
+    - `./src/asserts/assetsDecreased.ts`
+- `balanceEncreased`: compares balances queried with `assets.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
+  - `./src/asserts/assetsDecreased.ts`
 - `custom`: assertion cases can be endless, therefore they are diffucult to standarize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom](#custom).
+
+These methods are extensible opening a PR to include them:
+1. Add a new assertion key to `REGISTERED_ASSERTIONS` in `./src/constants.ts`
+2. Add a new assertion file under `./src/asserts`. The filename needs to match with the previously registered assertion key .
 
 Example:
 
@@ -633,5 +692,6 @@ interface Custom {
 
 ## Get Help
 Open an [issue](https://github.com/NachoPal/parachains-integration-tests/issues) if you have problems.
+
 ## Contributions
 PRs and contributions are welcome :)
