@@ -33,7 +33,7 @@ const checkAssert = (key: string, assert: AssertOrCustom) => {
 
   if (key === 'custom') {
     const { path } = assert as Custom;
-    
+
     if (!path) {
       console.log(
         `\n⛔ ERROR: 'path' should be present for the following assert: 'custom': ${JSON.stringify(

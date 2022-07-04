@@ -113,7 +113,10 @@ export const parseArgs = (context, args): any[] => {
     }
   }
 
-  let parsedStrigifiedArg = traverse(JSON.parse(strigifiedArg)).map(function (this, value) {
+  let parsedStrigifiedArg = traverse(JSON.parse(strigifiedArg)).map(function (
+    this,
+    value
+  ) {
     let pattern = /\$/;
     let regex = new RegExp(pattern, 'g');
 

@@ -82,10 +82,7 @@ const eventsResultsBuilder = (
   });
 };
 
-const eventLister = (
-  context,
-  event: EventResult
-): Promise<EventResult> => {
+const eventLister = (context, event: EventResult): Promise<EventResult> => {
   return new Promise(async (resolve, reject) => {
     try {
       const { providers } = context;
@@ -216,24 +213,24 @@ export const eventsHandler =
   async ({ events = [], status }) => {
     if (context.extrinsicIsActive === false) {
       try {
-        context.extrinsicIsActive === false
-  
+        context.extrinsicIsActive === false;
+
         for (let expectedEvent of expectedEvents) {
           checkEvent(expectedEvent);
         }
-  
+
         let initialEventsResults: EventResult[] = eventsResultsBuilder(
           extrinsicChain,
           expectedEvents
         );
         let finalEventsResults: EventResult[] = [];
         let eventsPromises: Promise<EventResult>[] = [];
-  
-        initialEventsResults.forEach((eventResult) => {
-            eventsPromises.push(eventLister(context, eventResult));
-        })
 
-        let events = await Promise.all(eventsPromises)
+        initialEventsResults.forEach((eventResult) => {
+          eventsPromises.push(eventLister(context, eventResult));
+        });
+
+        let events = await Promise.all(eventsPromises);
 
         for (let event of events) {
           finalEventsResults.push(event);

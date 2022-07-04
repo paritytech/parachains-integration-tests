@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import fs from "fs";
+import fs from 'fs';
 import { spawn, ChildProcess } from 'child_process';
 import { Command, Option } from 'commander';
 import {
@@ -13,14 +13,14 @@ const program = new Command();
 const p: { [key: string]: ChildProcess } = {};
 
 export function killAll() {
-	console.log("\nKilling all processes...");
-	for (const key of Object.keys(p)) {
-		p[key].kill();
-	}
+  console.log('\nKilling all processes...');
+  for (const key of Object.keys(p)) {
+    p[key].kill();
+  }
 }
 
 const spawnPolkadotLaunch = (options) => {
-  let stdio =  'inherit';
+  let stdio = 'inherit';
   let stdioLogs;
 
   if (options.chainLogs) {
@@ -28,14 +28,14 @@ const spawnPolkadotLaunch = (options) => {
     stdioLogs = ['inherit', polkadotLaunchLogs, polkadotLaunchLogs];
   }
 
-  p["polkadot-launch"] = spawn('polkadot-launch', [options.config], {
+  p['polkadot-launch'] = spawn('polkadot-launch', [options.config], {
     stdio: options.chainLogs ? stdioLogs : stdio,
     detached: false,
   });
 };
 
 const spawnZombienet = (options) => {
-  let stdio =  'inherit';
+  let stdio = 'inherit';
   let stdioLogs;
 
   if (options.chainLogs) {
@@ -43,10 +43,14 @@ const spawnZombienet = (options) => {
     stdioLogs = ['inherit', zombienetLogs, zombienetLogs];
   }
 
-  p["zombienet"] = spawn('zombienet', ['-p', 'native', 'spawn', options.config], {
-    stdio: options.chainLogs ? stdioLogs : stdio,
-    detached: false,
-  });
+  p['zombienet'] = spawn(
+    'zombienet',
+    ['-p', 'native', 'spawn', options.config],
+    {
+      stdio: options.chainLogs ? stdioLogs : stdio,
+      detached: false,
+    }
+  );
 };
 
 const spawnTests = (options) => {
@@ -61,9 +65,15 @@ const spawnTests = (options) => {
     stdioLogs = ['inherit', testLogs, testLogs];
   }
 
-  p["mocha"] = spawn(
+  p['mocha'] = spawn(
     'mocha',
-    ['--timeout 100000', '--exit', '-r', 'ts-node/register', `${__dirname}/run.${runnerExtension}`],
+    [
+      '--timeout 100000',
+      '--exit',
+      '-r',
+      'ts-node/register',
+      `${__dirname}/run.${runnerExtension}`,
+    ],
     {
       stdio: options.testLogs ? stdioLogs : stdio,
       detached: false,
@@ -93,12 +103,16 @@ program
   )
   .addOption(
     new Option('-m, --mode <mode>', 'mode to run')
-      .choices(['test', 'zombienet', 'zombienet-test', 'polkadot-launch', 'polkadot-launch-test'])
+      .choices([
+        'test',
+        'zombienet',
+        'zombienet-test',
+        'polkadot-launch',
+        'polkadot-launch-test',
+      ])
       .makeOptionMandatory()
   )
-  .addOption(
-    new Option('-c, --config <path>', 'path to zombienet config file')
-  )
+  .addOption(new Option('-c, --config <path>', 'path to zombienet config file'))
   .addOption(new Option('-t, --tests <path>', 'path to tests'))
   .addOption(
     new Option('-to, --timeout <millisecons>', 'tests timeout')
@@ -119,7 +133,10 @@ program
       .argParser(parseInt)
   )
   .addOption(
-    new Option('-cl, --chain-logs <log_file_name>', 'log file for chains deployment')
+    new Option(
+      '-cl, --chain-logs <log_file_name>',
+      'log file for chains deployment'
+    )
   )
   .addOption(
     new Option('-tl, --test-logs <log_file_name>', 'log file for tests')
@@ -142,7 +159,6 @@ if (options.mode === 'zombienet-test') {
   program.parse(process.argv);
   spawnZombienet(options);
   spawnTests(options);
-
 } else if (options.mode === 'zombienet') {
   program.addOption(
     new Option(
@@ -152,32 +168,29 @@ if (options.mode === 'zombienet-test') {
   );
   program.parse(process.argv);
   spawnZombienet(options);
-
 } else if (options.mode === 'polkadot-launch-test') {
-    program
-      .addOption(
-        new Option(
-          '-c, --config <path>',
-          'path to polkadot-launch config file'
-        ).makeOptionMandatory()
-      )
-      .addOption(
-        new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
-      );
-    program.parse(process.argv);
-    spawnPolkadotLaunch(options);
-    spawnTests(options);
-
-  } else if (options.mode === 'polkadot-launch') {
-    program.addOption(
+  program
+    .addOption(
       new Option(
         '-c, --config <path>',
-        'path to zombienet config file'
+        'path to polkadot-launch config file'
       ).makeOptionMandatory()
+    )
+    .addOption(
+      new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
     );
-    program.parse(process.argv);
-    spawnPolkadotLaunch(options);
-    
+  program.parse(process.argv);
+  spawnPolkadotLaunch(options);
+  spawnTests(options);
+} else if (options.mode === 'polkadot-launch') {
+  program.addOption(
+    new Option(
+      '-c, --config <path>',
+      'path to zombienet config file'
+    ).makeOptionMandatory()
+  );
+  program.parse(process.argv);
+  spawnPolkadotLaunch(options);
 } else if (options.mode === 'test') {
   program.addOption(
     new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
@@ -186,10 +199,10 @@ if (options.mode === 'zombienet-test') {
   spawnTests(options);
 }
 
-process.on("exit", function () {
-	killAll();
+process.on('exit', function () {
+  killAll();
 });
 
-process.on("SIGINT", function () {
-	process.exit(2);
+process.on('SIGINT', function () {
+  process.exit(2);
 });
