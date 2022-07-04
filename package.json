@@ -1,6 +1,6 @@
 {
   "name": "parachains-integration-tests",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "main": "index.js",
   "author": "Ignacio Palacios Santos <ignacio.palacios.santos@gmail.com>",
   "license": "MIT",
@@ -35,8 +35,10 @@
     "commander": "^9.0.0",
     "dotenv": "^10.0.0",
     "glob": "^7.2.0",
+    "global": "^4.4.0",
     "lodash": "^4.17.21",
     "mocha": "^9.1.3",
+    "parachains-integration-tests": "^1.0.20",
     "polkadot-launch": "^2.3.0",
     "traverse": "^0.6.6",
     "ts-node": "^10.4.0",

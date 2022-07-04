@@ -555,11 +555,11 @@ Unlike _Query_ and _Rpc_ where their keys can be arbitrarily chosen to generate 
     - `./src/asserts/assetsDecreased.ts`
 - `balanceEncreased`: compares balances queried with `assets.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
   - `./src/asserts/assetsDecreased.ts`
-- `custom`: assertion cases can be endless, therefore they are diffucult to standarize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom](#custom).
+- `custom`: assertion cases can be endless, therefore they are diffucult to standarize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom](#custom). Notice that you will have to include a `tsconfig.json` file with `typeRoots` and `types` attributes pointing to your types in case of adding paths to a typescript file.
 
 These methods are extensible opening a PR to include them:
 1. Add a new assertion key to `REGISTERED_ASSERTIONS` in `./src/constants.ts`
-2. Add a new assertion file under `./src/asserts`. The filename needs to match with the previously registered assertion key .
+2. Add a new assertion file under `./src/asserts`. The filename needs to match with the previously registered assertion key.
 
 Example:
 

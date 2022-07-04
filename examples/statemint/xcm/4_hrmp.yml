@@ -302,8 +302,7 @@ tests:
           - name: Should reduce the asset[2] balance of the Penpal Parachain's SovereignAccount in the Assets Parachain
             actions:
               - asserts:
-                  custom:
-                    path: ../../../src/asserts/assetsDecreased.ts
+                  assetsDecreased:
                     args: [
                       {
                         balances: {
