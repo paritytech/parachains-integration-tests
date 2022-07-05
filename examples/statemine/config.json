@@ -47,21 +47,20 @@
 					"port": 31200,
 					"name": "alice",
           "flags": [
-            "-lxcm-executor=trace", 
-            "-lxcm=trace", 
-            "-lxcm::execute_xcm_in_credit=trace", 
-            "-lxcm::execute_xcm=trace", 
-            "-lxcm::execute=trace", 
-            "-lxcm::send_xcm=trace", 
-            "-lxcm::origin_conversion=trace", 
-            "-lruntime=debug", 
-            "-laura=debug", 
-            "-lcumulus=debug", 
-            "-lcumulus-collator=debug", 
-            "-lnacho=debug", 
-            "--force-authoring", 
-            "--execution=wasm", 
-            "--", 
+            "-lxcm-executor=trace",
+            "-lxcm=trace",
+            "-lxcm::execute_xcm_in_credit=trace",
+            "-lxcm::execute_xcm=trace",
+            "-lxcm::execute=trace",
+            "-lxcm::send_xcm=trace",
+            "-lxcm::origin_conversion=trace",
+            "-lruntime=debug",
+            "-laura=debug",
+            "-lcumulus=debug",
+            "-lcumulus-collator=debug",
+            "--force-authoring",
+            "--execution=wasm",
+            "--",
             "--execution=wasm"
           ]
 				},
@@ -88,7 +87,6 @@
 					"port": 31203,
 					"name": "bob",
 					"flags": ["--force-authoring", "--", "--execution=wasm"]
-					
 				}
 			]
 		}
