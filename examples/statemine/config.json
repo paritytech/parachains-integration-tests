@@ -73,8 +73,8 @@
 			]
 		},
     {
-			"bin": "../../../bin/parachain-collator",
-      "chain": "kusama-community-parachain-2000",
+			"bin": "../../../bin/polkadot-parachain",
+      "chain": "penpal-kusama-2000",
 			"nodes": [
         {
 					"wsPort": 9920,
