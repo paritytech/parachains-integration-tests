@@ -12,13 +12,14 @@ settings:
         signer: &rc_signer //Alice
       collectives_parachain:
         signer: &cp_signer //Alice
+        wallet: &cp_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
   decodedCalls:
     alliance_kick_member:
       chain: *collectives_parachain
       pallet: alliance
       call: kickMember
       args: [
-        *rc_signer
+        {Id: *cp_wallet}
       ]
 
 tests:
@@ -28,12 +29,14 @@ tests:
         actions:
           - extrinsics: # Relay Chain sets supported version for Assset Parachain
             - chain: *collectives_parachain
-              signer: *pp_signer
+              signer: *cp_signer
               pallet: alliance
               call: joinAlliance
+              args: []
               events:
                 - name: alliance.NewAllyJoined
       - name: Kick Alice from alliance
+        actions:
           - extrinsics: # Assset Parachain sets supported version for Relay Chain through it
             - chain: *relay_chain
               signer: *rc_signer
