@@ -1,0 +1,64 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+    collectives_parachain: &collectives_parachain
+      wsPort: 9910
+      paraId: &coll_para_id 1002
+  variables:
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+      collectives_parachain:
+        signer: &cp_signer //Alice
+  decodedCalls:
+    alliance_kick_member:
+      chain: *collectives_parachain
+      pallet: alliance
+      call: kickMember
+      args: [
+        *rc_signer
+      ]
+
+tests:
+  - name: Member kicked of, deposited assets slached and teleported to Relay Chain threasury.
+    its:
+      - name: Alice joins alliance
+        actions:
+          - extrinsics: # Relay Chain sets supported version for Assset Parachain
+            - chain: *collectives_parachain
+              signer: *pp_signer
+              pallet: alliance
+              call: joinAlliance
+              events:
+                - name: alliance.NewAllyJoined
+      - name: Kick Alice from alliance
+          - extrinsics: # Assset Parachain sets supported version for Relay Chain through it
+            - chain: *relay_chain
+              signer: *rc_signer
+              sudo: true
+              pallet: xcmPallet
+              call: send
+              args: [
+                { v1: { parents: 0, interior: { x1: { parachain: *coll_para_id }}}}, # destination
+                {
+                  v2: [ #message
+                    {
+                      Transact: {
+                        originType: Superuser,
+                        requireWeightAtMost: 1000000000,
+                        call: $alliance_kick_member
+                      }
+                    }
+                  ]
+                }
+              ]
+              events:
+                - name: sudo.Sudid
+                  attribute:
+                    type: Result<Null, SpRuntimeDispatchError>
+                    value: Ok
+                - name: xcmPallet.Sent
+                - name: alliance.MemberKicked
+                  chain: *collectives_parachain
