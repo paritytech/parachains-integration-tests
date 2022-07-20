@@ -7,39 +7,99 @@ settings:
       wsPort: 9910
       paraId: &coll_para_id 1002
   variables:
+    init_teleport_amount: &init_teleport_amount 20000000000000
     chains:
       relay_chain:
-        signer: &rc_signer //Alice
+        alice_signer: &rc_alice_signer //Alice
+        treasury_account32: &rc_treasury_acc32 '0x6d6f646c70792f74727372790000000000000000000000000000000000000000'
       collectives_parachain:
-        signer: &cp_signer //Alice
-        wallet: &cp_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
+        alice_signer: &cp_alice_signer //Alice
+        alince_ss58: &cp_alince_ss58 HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
+        alince_account32: &cp_alice_acc32 '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
   decodedCalls:
     alliance_kick_member:
       chain: *collectives_parachain
       pallet: alliance
       call: kickMember
       args: [
-        {Id: *cp_wallet}
+        {Id: *cp_alice_acc32}
       ]
 
 tests:
-  - name: Member kicked of, deposited assets slached and teleported to Relay Chain threasury.
+  - name: Member kicked of, deposited assets slached and teleported to Relay Chain treasury.
+    before: &before_get_balances
+      - name: DEPENDANCY | Do a 'limitedTeleportAssets' from the Relay Chain to the Collectives Parachain
+        actions:
+          - extrinsics:
+            - chain: *relay_chain
+              signer: *rc_alice_signer
+              pallet: xcmPallet
+              call: limitedTeleportAssets
+              args: [
+                { v1: { 0, interior: { x1: { parachain: *coll_para_id }}}}, # destination
+                { v1: { parents: 0, interior: { x1: { accountId32: { network: { any: true }, id: *cp_alice_acc32 }}}}}, # beneficiary
+                { v1: [ { id: { concrete: { 0, interior: { here: true }}}, fun: { fungible: *init_teleport_amount }} ] }, # assets
+                0, # feeAssetItem
+                { unlimited: true } # weightLimit
+              ]
+              events:
+                - name: xcmPallet.Attempted
+                  attribute:
+                    type: XcmV2TraitsOutcome
+                    isComplete: true
+                - name: dmpQueue.ExecutedDownward
+                  chain: *collectives_parachain
+                  attribute:
+                    type: XcmV2TraitsOutcome
+                    isComplete: true
+                    value: "1,000,000,000"
+      - name: Get the balances of the Relay Chain's treasury & Collectives parachain's future alliance member
+        actions:
+          - queries:
+              balance_rc_treasury_before:
+                chain: *relay_chain
+                pallet: system
+                call: account
+                args: [ *rc_treasury_acc32 ]
+              balance_cp_allice_before:
+                chain: *collectives_parachain
+                pallet: system
+                call: account
+                args: [ *cp_alice_acc32 ]
     its:
       - name: Alice joins alliance
         actions:
           - extrinsics: # Relay Chain sets supported version for Assset Parachain
             - chain: *collectives_parachain
-              signer: *cp_signer
+              signer: *cp_alice_signer
               pallet: alliance
               call: joinAlliance
               args: []
               events:
                 - name: alliance.NewAllyJoined
+          - queries:
+              balance_cp_alice_after:
+                chain: *collectives_parachain
+                pallet: system
+                call: account
+                args: [ *cp_alice_acc32 ]
+      - name: Allince deposit check, balance decreased
+        actions:
+          - asserts:
+              balanceDecreased:
+                args: [
+                  {
+                    balances: {
+                      before: $balance_cp_allice_before,
+                      after: $balance_cp_alice_after,
+                    }
+                  }
+                ]
       - name: Kick Alice from alliance
         actions:
           - extrinsics: # Assset Parachain sets supported version for Relay Chain through it
             - chain: *relay_chain
-              signer: *rc_signer
+              signer: *rc_alice_signer
               sudo: true
               pallet: xcmPallet
               call: send
@@ -65,3 +125,21 @@ tests:
                 - name: xcmPallet.Sent
                 - name: alliance.MemberKicked
                   chain: *collectives_parachain
+          - queries:
+              balance_rc_treasury_after:
+                chain: *relay_chain
+                pallet: system
+                call: account
+                args: [ *rc_treasury_acc32 ]
+      - name: Slached balance appears on the relay chain treasury account
+        actions:
+          - asserts:
+              balanceIncreased:
+                args: [
+                  {
+                    balances: {
+                      before: $balance_rc_treasury_before,
+                      after: $balance_rc_treasury_after,
+                    }
+                  }
+                ]
