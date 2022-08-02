@@ -5,7 +5,7 @@ settings:
       wsPort: 9900
     collectives_parachain: &collectives_parachain
       wsPort: 9910
-      paraId: &coll_para_id 1002
+      paraId: &cp_id 1002
   variables:
     init_teleport_amount: &init_teleport_amount 20000000000000
     chains:
@@ -14,7 +14,6 @@ settings:
         treasury_account32: &rc_treasury_acc32 '0x6d6f646c70792f74727372790000000000000000000000000000000000000000'
       collectives_parachain:
         alice_signer: &cp_alice_signer //Alice
-        alince_ss58: &cp_alince_ss58 HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         alince_account32: &cp_alice_acc32 '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
   decodedCalls:
     alliance_kick_member:
@@ -26,8 +25,8 @@ settings:
       ]
 
 tests:
-  - name: Member kicked of, deposited assets slached and teleported to Relay Chain treasury.
-    before: &before_get_balances
+  - name: Member kicked out, deposited assets slashed and teleported to Relay Chain treasury.
+    before:
       - name: DEPENDANCY | Do a 'limitedTeleportAssets' from the Relay Chain to the Collectives Parachain
         actions:
           - extrinsics:
@@ -36,7 +35,7 @@ tests:
               pallet: xcmPallet
               call: limitedTeleportAssets
               args: [
-                { v1: { 0, interior: { x1: { parachain: *coll_para_id }}}}, # destination
+                { v1: { 0, interior: { x1: { parachain: *cp_id }}}}, # destination
                 { v1: { parents: 0, interior: { x1: { accountId32: { network: { any: true }, id: *cp_alice_acc32 }}}}}, # beneficiary
                 { v1: [ { id: { concrete: { 0, interior: { here: true }}}, fun: { fungible: *init_teleport_amount }} ] }, # assets
                 0, # feeAssetItem
@@ -61,7 +60,7 @@ tests:
                 pallet: system
                 call: account
                 args: [ *rc_treasury_acc32 ]
-              balance_cp_allice_before:
+              balance_cp_alice_before:
                 chain: *collectives_parachain
                 pallet: system
                 call: account
@@ -83,14 +82,14 @@ tests:
                 pallet: system
                 call: account
                 args: [ *cp_alice_acc32 ]
-      - name: Allince deposit check, balance decreased
+      - name: Alice deposit check, balance decreased
         actions:
           - asserts:
               balanceDecreased:
                 args: [
                   {
                     balances: {
-                      before: $balance_cp_allice_before,
+                      before: $balance_cp_alice_before,
                       after: $balance_cp_alice_after,
                     }
                   }
@@ -104,7 +103,7 @@ tests:
               pallet: xcmPallet
               call: send
               args: [
-                { v1: { parents: 0, interior: { x1: { parachain: *coll_para_id }}}}, # destination
+                { v1: { parents: 0, interior: { x1: { parachain: *cp_id }}}}, # destination
                 {
                   v2: [ #message
                     {
@@ -131,7 +130,7 @@ tests:
                 pallet: system
                 call: account
                 args: [ *rc_treasury_acc32 ]
-      - name: Slached balance appears on the relay chain treasury account
+      - name: Slashed balance appears on the relay chain treasury account
         actions:
           - asserts:
               balanceIncreased:
