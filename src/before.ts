@@ -23,7 +23,7 @@ const checkChains = (chains: {
     }
 
     if (!chains[id].ws) {
-      chains[id].ws = 'ws://localhost';
+      chains[id].ws = 'ws://127.0.0.1';
     }
   }
   return chains;
