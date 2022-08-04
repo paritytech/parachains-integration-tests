@@ -4,16 +4,20 @@ default_args = [ "-lparachain=trace", "-lxcm=trace" ]
 chain = "westend-local"
 
   [[relaychain.nodes]]
-  name = "Alice"
+  name = "alice"
   ws_port = 9900
   validator = true
 
   [[relaychain.nodes]]
-  name = "Bob"
+  name = "bob"
   validator = true
 
   [[relaychain.nodes]]
-  name = "Charlie"
+  name = "charlie"
+  validator = true
+
+  [[relaychain.nodes]]
+  name = "dave"
   validator = true
 
 [[parachains]]
