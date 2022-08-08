@@ -9,9 +9,9 @@ Under the `./examples` folder, this repository contains integration tests for th
 
 ## Set Up
 It can be installed to be run in two different ways:
-- Installing the npm package `parachains-integration-tests` globally
+- Installing the npm package `@parity/parachains-integration-tests` globally
   ```
-  yarn global add parachains-integration-tests
+  yarn global add @parity/parachains-integration-tests
   ```
 - From the repository
   ```

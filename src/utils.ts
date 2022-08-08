@@ -162,3 +162,11 @@ export const addConsoleGroupEnd = (depth: number) => {
 export const sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
+
+export const adaptUnit = (type: string, value: string | number) => {
+  let units = ['u8', 'u16', 'u32', 'u64', 'u128'];
+  if (units.includes(type) && (typeof value === 'number')) {
+    return value.toLocaleString();
+  }
+  return value
+}

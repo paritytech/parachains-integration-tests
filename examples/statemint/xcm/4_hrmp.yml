@@ -33,7 +33,7 @@ settings:
         suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *weight_at_most }}
         suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: *weight_at_most }}
       penpal_parachain:
-        sovereign_account: &pp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
+        sovereign_account: &pp_sovereign_sibl 13cKp89Msu7M2PiaCuuGr1BzAsD5V3vaVbDMs3YtjMZHdGwR
         signer: &pp_signer //Alice
         penpal_parachain_account: &pp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
   decodedCalls:
@@ -164,16 +164,16 @@ tests:
                   ]
                   events:
                     - name: polkadotXcm.Attempted
-                      attributes:
+                      attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
                         value: 1,000,000,000
                     - name: assets.Transferred
-                      attributes:
+                      attribute:
                         type: AccountId32
                         value: *pp_sovereign_sibl
                     - name: assets.Transferred
-                      attributes:
+                      attribute:
                         type: u128
                         value: *amount_to_send
 
@@ -211,16 +211,16 @@ tests:
                   ]
                   events:
                     - name: polkadotXcm.Attempted
-                      attributes:
+                      attribute:
                         type: XcmV2TraitsOutcome
                         isComplete: true
                         value: 1,000,000,000
                     - name: balances.Endowed
-                      attributes:
+                      attribute:
                         type: AccountId32
                         value: *pp_sovereign_sibl
                     - name: balances.Endowed
-                      attributes:
+                      attribute:
                         type: u128
                         value: *amount
 
@@ -277,17 +277,17 @@ tests:
                     - name: polkadotXcm.Sent
                     - name: assets.Burned
                       chain: *assets_parachain
-                      attributes:
+                      attribute:
                         type: AccountId32
                         value: *pp_sovereign_sibl
                     - name: assets.Issued
                       chain: *assets_parachain
-                      attributes:
+                      attribute:
                         type: u32
                         value: *asset_id
                     - name: system.Remarked
                       chain: *assets_parachain
-                      attributes:
+                      attribute:
                         type: AccountId32
                         value: *pp_sovereign_sibl
               - queries:
@@ -347,6 +347,6 @@ tests:
                   events:
                     - name: xcmpQueue.Fail
                       chain: *assets_parachain
-                      attributes:
+                      attribute:
                         type: XcmV2TraitsError
                         value: FailedToTransactAsset
