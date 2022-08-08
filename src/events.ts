@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { EventResult, Chain, Event } from './interfaces';
-import { addConsoleGroupEnd } from './utils';
+import { addConsoleGroupEnd, adaptUnit } from './utils';
 
 export const checkEvent = (event: Event) => {
   const { name, attribute } = event;
@@ -190,7 +190,7 @@ const updateEventResult = (
             isIncomplete === undefined &&
             isError === undefined
           ) {
-            if (_.isEqual(value, data.toHuman())) {
+            if (_.isEqual(adaptUnit(type, value), data.toHuman())) {
               event.ok = true;
             } else {
               event.ok = false;
