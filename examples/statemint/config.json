@@ -74,7 +74,7 @@
 		},
     {
 			"bin": "../../bin/polkadot-parachain",
-      "chain": "penpal-polakdot-2000",
+      "chain": "penpal-polkadot-2000",
 			"nodes": [
         {
 					"wsPort": 9920,

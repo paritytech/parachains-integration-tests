@@ -47,3 +47,15 @@ cumulus_based = true
   [[parachains.collators]]
   name = "collator4"
   command = "./bin/polkadot-parachain"
+
+# [[hrmpChannels]]
+#   sender = 1000
+#   recipient = 2000
+#   maxCapacity = 8
+#   maxMessageSize = 8192
+
+# [[hrmpChannels]]
+#   sender = 2000
+#   recipient = 1000
+#   maxCapacity = 8
+#   maxMessageSize = 8192
