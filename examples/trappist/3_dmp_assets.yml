@@ -11,9 +11,8 @@ settings:
       paraId: &tp_id 2000
   variables:
     common:
-      amount: &amount 1000000000000
+      amount: &amount 100000000000000
       require_weight_at_most: &weight_at_most 1000000000
-      amount_to_send: &amount_to_send 50000000000
     chains:
       relay_chain:
         signer: &rc_signer //Alice
@@ -24,18 +23,15 @@ settings:
       assets_parachain_account:
         signer: &ap_signer //Alice
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
-        asset_id: &asset_id 2
+        bob_wallet: &ap_bob_wallet FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP
+        asset_id: &asset_id 1
         assets_pallet_id: &assets_pallet_id 50
-        asset_min_balance: &asset_ed 1000
-        ksm: &ap_ksm { concrete: { parents: 1, interior: { here: true }}}
-        ksm_fungible: &ap_ksm_fungible { id: *ap_ksm, fun: { fungible: *amount }}
-        suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
-        suff_asset_fail: &suff_asset_fail { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: 3 } ] }}}
-        suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *weight_at_most }}
-        suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: *weight_at_most }}
+        asset_min_balance: &asset_ed 1
+        asset_decimals: &asset_decimals 12
       trappist_parachain:
         signer: &tp_signer //Alice
         wallet: &tp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        bob_wallet: &tp_bob_wallet 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
         sovereign_account: &tp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
         trappist_parachain_account: &tp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
   decodedCalls:
@@ -110,6 +106,22 @@ tests:
                   isSome:
                     args: [ $forced_created_asset ]
 
+          - name: Set Asset metadata should work (Assets Parachain)
+            actions:
+              - extrinsics:
+                - chain: *assets_parachain
+                  signer: *ap_signer
+                  pallet: assets
+                  call: setMetadata
+                  args: [
+                    *asset_id,
+                    "xUSD",
+                    "xUSD",
+                    *asset_decimals
+                  ]
+                  events:
+                    - name: assets.MetadataSet
+
           - name: Some Assets should be minted for the sender
             actions:
               - extrinsics:
@@ -119,7 +131,7 @@ tests:
                   call: mint
                   args: [
                     *asset_id,
-                    *ap_wallet,
+                    *ap_bob_wallet,
                     *amount
                   ]
                   events:
@@ -164,3 +176,19 @@ tests:
               - asserts:
                   isSome:
                     args: [ $force_create_asset_trappist ]
+
+          - name: Set Asset metadata should work (Trappist Parachain)
+            actions:
+              - extrinsics:
+                - chain: *trappist_parachain
+                  signer: *tp_signer
+                  pallet: assets
+                  call: setMetadata
+                  args: [
+                    *asset_id,
+                    "txUSD",
+                    "txUSD",
+                    *asset_decimals
+                  ]
+                  events:
+                    - name: assets.MetadataSet
