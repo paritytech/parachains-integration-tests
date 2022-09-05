@@ -9,6 +9,9 @@ settings:
     trappist_parachain: &trappist_parachain
       wsPort: 9920
       paraId: &tp_id 2000
+    penpal_parachain: &penpal_parachain
+      wsPort: 9930
+      paraId: &tmp_id 3000
   variables:
     common:
       amount: &amount 100000000000000
@@ -20,6 +23,8 @@ settings:
         assets_parachain_dest_routed: &ap_dest_routed { v3: { parents: 1, interior: { x1: { parachain: *ap_id } }}}
         trappist_parachain_destination: &tp_dest { v3: { parents: 0, interior: { x1: { parachain: *tp_id }}}}
         trappist_parachain_dest_routed: &tp_dest_routed { v3: { parents: 1, interior: { x1: { parachain: *tp_id } }}}
+        penpal_parachain_destination: &tmp_dest { v3: { parents: 0, interior: { x1: { parachain: *tmp_id }}}}
+        penpal_parachain_dest_routed: &tmp_dest_routed { v3: { parents: 1, interior: { x1: { parachain: *tmp_id } }}}
       assets_parachain_account:
         signer: &ap_signer //Alice
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
@@ -34,6 +39,11 @@ settings:
         bob_wallet: &tp_bob_wallet 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
         sovereign_account: &tp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
         trappist_parachain_account: &tp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
+      penpal_parachain:
+        signer: &tmp_signer //Alice
+        wallet: &tmp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        bob_wallet: &tmp_bob_wallet 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
+        penpal_parachain_bob_account: &tmp_bob_acc '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
   decodedCalls:
     force_create_asset:
       chain: *assets_parachain
@@ -41,7 +51,7 @@ settings:
       call: forceCreate
       args: [
         *asset_id,
-        { Id: *ap_wallet }, # owner
+        { id: *ap_wallet }, # owner
         true, # isSufficient
         *asset_ed # minBalance
       ]
@@ -51,20 +61,25 @@ settings:
       call: forceCreate
       args: [
         *asset_id,
-        { Id: *tp_wallet }, # owner
+        { id: *tp_wallet }, # owner
         true, # isSufficient
         *asset_ed # minBalance
       ]
-    system_remark_with_event:
-      chain: *assets_parachain
-      pallet: system
-      call: remarkWithEvent
-      args: [ 0x0011 ]
+    force_create_asset_penpal:
+      chain: *penpal_parachain
+      pallet: assets
+      call: forceCreate
+      args: [
+        *asset_id,
+        { id: *tmp_wallet }, # owner
+        true, # isSufficient
+        *asset_ed # minBalance
+      ]
 
 tests:
   - name: HRMP
     describes:
-      - name: polkadotXcm.limitedReserveTransferAssets (Asset) | Assets Parachain -> Trappist Parachain
+      - name: xcmPallet.send (Relay) | Creating an asset in Assets Parachain, Trappist Parachain and Penpal Parachain.
         its:
           - name: A sufficient Asset should exist in the Assets Parachain
             actions:
@@ -188,6 +203,48 @@ tests:
                     *asset_id,
                     "txUSD",
                     "txUSD",
+                    *asset_decimals
+                  ]
+                  events:
+                    - name: assets.MetadataSet
+
+          - name: A sufficient Asset should exist in the Penpal Parachain (Using SUDO, no minting)
+            actions:
+              - extrinsics:
+                - chain: *penpal_parachain
+                  signer: *tmp_signer
+                  sudo: true
+                  pallet: assets
+                  call: forceCreate
+                  args: [
+                    *asset_id,
+                    { id: *tmp_wallet }, # owner
+                    true, # isSufficient
+                    *asset_ed # minBalance
+                  ]
+                  events:
+                    - name: assets.ForceCreated
+              - queries:
+                  force_create_asset_penpal:
+                    chain: *penpal_parachain
+                    pallet: assets
+                    call: asset
+                    args: [ *asset_id ]
+              - asserts:
+                  isSome:
+                    args: [ $force_create_asset_penpal ]
+
+          - name: Set Asset metadata should work (Penpal Parachain)
+            actions:
+              - extrinsics:
+                - chain: *penpal_parachain
+                  signer: *tmp_signer
+                  pallet: assets
+                  call: setMetadata
+                  args: [
+                    *asset_id,
+                    "pUSD",
+                    "pUSD",
                     *asset_decimals
                   ]
                   events:

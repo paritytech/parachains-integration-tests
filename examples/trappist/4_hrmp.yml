@@ -45,7 +45,7 @@ tests:
     describes:
       - name: polkadotXcm.limitedReserveTransferAssets (Asset) | Assets Parachain -> Trappist Parachain
         its:
-          - name: Assets Parachain should be able to reserve transfer an Asset to Trappist Parachain
+          - name: Assets Parachain should be able to reserve transfer an asset to Trappist Parachain
             actions:
               - extrinsics:
                 - chain: *assets_parachain

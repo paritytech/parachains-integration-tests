@@ -50,6 +50,18 @@ cumulus_based = true
   ws_port = 9920
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
+[[parachains]]
+id = 3000
+addToGenesis = true
+cumulus_based = true
+chain = "penpal-kusama-3000"
+
+  [parachains.collator]
+  name = "collator01"
+  command = "./bin/polkadot-parachain-xcm-v3"
+  ws_port = 9930
+  args = ["--log=xcm=trace,pallet-assets=trace"]
+
 [types.Header]
 number = "u64"
 parent_hash = "Hash"
@@ -64,5 +76,29 @@ maxMessageSize = 512
 [[hrmpChannels]]
 sender = 2000
 recipient = 1000
+maxCapacity = 8
+maxMessageSize = 512
+
+[[hrmpChannels]]
+sender = 1000
+recipient = 3000
+maxCapacity = 8
+maxMessageSize = 512
+
+[[hrmpChannels]]
+sender = 3000
+recipient = 1000
+maxCapacity = 8
+maxMessageSize = 512
+
+[[hrmpChannels]]
+sender = 2000
+recipient = 3000
+maxCapacity = 8
+maxMessageSize = 512
+
+[[hrmpChannels]]
+sender = 3000
+recipient = 2000
 maxCapacity = 8
 maxMessageSize = 512
