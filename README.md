@@ -174,7 +174,7 @@ tests: # Describe[]
     describes: # Describe[]
       - name: My nested Describe
 
-  - name: My other Describe          
+  - name: My other Describe
     its: [...] # It[]
 ```
 
@@ -261,23 +261,23 @@ tests: # Describe[]
 Interfaces:
 
 ```typescript
-export type ExtrinsicAction = { 
+export type ExtrinsicAction = {
   extrinsics: Extrinsic[];
 }
 
-export type QueryAction = { 
+export type QueryAction = {
   queries: { [key: string]: Query };
 }
 
-export type RpcAction = { 
-  rpcs: { [key: string]: Rpc }; 
+export type RpcAction = {
+  rpcs: { [key: string]: Rpc };
 }
 
-export type AsserAction = { 
+export type AsserAction = {
   asserts: { [key: string]: AssertOrCustom };
 }
 
-export type CustomAction = { 
+export type CustomAction = {
   customs: Custom[];
 }
 
@@ -300,10 +300,10 @@ settings:
 
   variables:
     common:
-      require_weight_at_most: &weight_at_most 1000000000    
+      require_weight_at_most: &weight_at_most 1000000000
     relay_chain:
       signer: &signer //Alice
-      parachain_destination: &dest { v1: { 0, interior: { x1: { parachain: *id }}}} 
+      parachain_destination: &dest { v1: { 0, interior: { x1: { parachain: *id }}}}
 
   decodedCalls:
     force_create_asset:
@@ -313,8 +313,8 @@ settings:
       args: [
         1, # assetId
         { # owner
-          Id: HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F 
-        }, 
+          Id: HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
+        },
         true, # isSufficient
         1000 # minBalance
       ]
@@ -330,21 +330,21 @@ tests: # Describe[]
               sudo: true
               pallet: xcmPallet
               call: send
-              args: [ 
-                *ap_dest, # destination 
-                { 
+              args: [
+                *ap_dest, # destination
+                {
                   v2: [ # message
-                    { 
-                      Transact: { 
-                        originType: Superuser, 
-                        requireWeightAtMost: *weight_at_most, 
+                    {
+                      Transact: {
+                        originType: Superuser,
+                        requireWeightAtMost: *weight_at_most,
                         call: $force_create_asset # enconded call hex
                       }
                     }
-                  ]  
+                  ]
                 }
-              ] 
-              events: [...] 
+              ]
+              events: [...]
     ...
 ```
 
@@ -370,6 +370,8 @@ interface Extrinsic extends Call {
 If the `chain` attribute is not defined, it means the event is expected to happpen in the same chain context where the extrinsic was dispatched and as a result of it. Otherwise, the `chain` attribute referring to another context must be defined.
 
 Default event listener timeout can be overriden by the `timeout` attribute.
+
+By setting `isRange: true` you are letting know to the tool that the expected value should be within the range defined in the `value` attribute. This is especially useful when checking `Weights`.
 
 Example:
 
@@ -397,20 +399,20 @@ tests: # Describe[]
               sudo: true
               pallet: xcmPallet
               call: send
-              args: [ 
-                *dest, # destination 
-                { 
+              args: [
+                *dest, # destination
+                {
                   v2: [ #message
-                    { 
-                      Transact: { 
-                        originType: Superuser, 
-                        requireWeightAtMost: *weight_at_most, 
+                    {
+                      Transact: {
+                        originType: Superuser,
+                        requireWeightAtMost: *weight_at_most,
                         call: $my_encoded_call
-                      }  
+                      }
                     }
-                  ] 
+                  ]
                 }
-              ]  
+              ]
               events: # Event[]
                 - name: sudo.Sudid
                   attribute:
@@ -430,7 +432,8 @@ tests: # Describe[]
                   attribute:
                     type: XcmV2TraitsOutcome
                     isComplete: true
-                    value: 4,000,000,000
+                    isRange: true
+                    value: 4,000,000...5,000,000 # value should be within 4,000,000..5,000,000
     ...
 ```
 
@@ -449,6 +452,7 @@ interface Event {
 ```typescript
 interface Attribute {
   type: string;
+  isRange?: boolean; // indicates the value is a range
   value?: any;
   isComplete?: boolean; // only for 'XcmV2TraitsOutcome' type
   isIncomplete?: boolean; // only for 'XcmV2TraitsOutcome' type
@@ -472,7 +476,7 @@ settings:
   encodedCalls:
     ...
 tests: # Describe[]
-  - name: My Describe      
+  - name: My Describe
     before: # Before[]
       - name: Get the balance of an account
         actions: # Action[]
@@ -481,10 +485,10 @@ tests: # Describe[]
                 chain: *relay_chain
                 pallet: system
                 call: account
-                args: [ 
-                  HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F 
+                args: [
+                  HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
                 ]
-    its: [...]           
+    its: [...]
 ```
 
 Interfaces:
@@ -515,7 +519,7 @@ settings:
   encodedCalls:
     ...
 tests: # Describe[]
-  - name: My Describe      
+  - name: My Describe
     before: # Before[]
       - name: Get the last block
         actions: # Action[]
@@ -525,7 +529,7 @@ tests: # Describe[]
                 method: chain
                 call: getBlock
                 args: []
-    its: [...]           
+    its: [...]
 ```
 
 Interfaces:
@@ -576,7 +580,7 @@ settings:
   encodedCalls:
     ...
 tests: # Describe[]
-  - name: My Describe      
+  - name: My Describe
     before: # Before[]
       - name: Get the balance of an account before an event
         actions:
@@ -585,8 +589,8 @@ tests: # Describe[]
                 chain: *relay_chain
                 pallet: system
                 call: account
-                args: [ 
-                  *sender 
+                args: [
+                  *sender
                 ]
     after: # After[]
       - name: Get the balance of an account after an event
@@ -596,9 +600,9 @@ tests: # Describe[]
                 chain: *relay_chain
                 pallet: system
                 call: account
-                args: [ 
-                  *sender 
-                ]            
+                args: [
+                  *sender
+                ]
     its: # It[]
       - name: Something happens here than modifies the balance
         actions: [...]
@@ -609,14 +613,14 @@ tests: # Describe[]
                 path: ./asserts/checkSenderBalances.ts
                 args: 
                   { 
-                    balances: { 
+                    balances: {
                       before: $balance_rc_sender_before,
                       after: $balance_rc_sender_after,
                     },
                     amount: *amount,
                   }
               equal:
-                args: [true, true]      
+                args: [true, true]
 ```
 
 Interfaces:
@@ -670,7 +674,7 @@ const myCustomFunction = async (context, ...args) => {
   const { url } = args[0]
 
   let coinSymbol = context.variables.$coin_symbol
-  
+
   let price = myApi.get(url + coinSymbol)
 
   // Save the result in context (this) variables
