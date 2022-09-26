@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { EventResult, Chain, Event } from './interfaces';
-import { addConsoleGroupEnd, adaptUnit } from './utils';
+import { addConsoleGroupEnd, adaptUnit, withinRange, parseRange } from './utils';
 
 export const checkEvent = (event: Event) => {
   const { name, attribute } = event;
@@ -36,7 +36,7 @@ const messageBuilder = (context, event: EventResult): string => {
   let hasValues = '';
   let xcmOutcome = '';
   if (received && attribute) {
-    const { type, value } = attribute;
+    const { type, value, isRange } = attribute;
 
     if (type === 'XcmV2TraitsOutcome') {
       const { expected, real } = xcmOutput;
@@ -44,7 +44,7 @@ const messageBuilder = (context, event: EventResult): string => {
       if (real === expected) {
         xcmOutcome = `, '${expected}'`;
       } else {
-        xcmOutcome = `, with different status ( Expected: '${expected}', Received: '${real}' )`;
+        xcmOutcome = `, with different status:\n\n   Expected: '${expected}', Received: '${real}' `;
       }
     }
 
@@ -52,9 +52,9 @@ const messageBuilder = (context, event: EventResult): string => {
       if (ok) {
         hasValues = `, with: '${type}': ${JSON.stringify(data)}\n`;
       } else {
-        hasValues = `, with different value ( Expected: '${type}': ${JSON.stringify(
+        hasValues = `, with different value:\n\n   Expected: '${type}': ${JSON.stringify(
           value
-        )}, Received: '${type}': ${JSON.stringify(data)} )`;
+        )}, Received: '${type}': ${JSON.stringify(data)}${isRange ? ' -> OUT OF RANGE' : ''}`;
       }
     }
   }
@@ -122,7 +122,7 @@ const buildXcmOutput = (data, event: EventResult) => {
   const { attribute } = event;
 
   if (attribute) {
-    const { value, isComplete, isIncomplete, isError } = attribute;
+    const { value, isComplete, isIncomplete, isError, isRange } = attribute;
 
     const xcmOutputTypes = [
       {
@@ -158,13 +158,28 @@ const buildXcmOutput = (data, event: EventResult) => {
     if (
       !value ||
       (value &&
-        _.isEqual(value, typeData) &&
+        assessEventResult(isRange, value, typeData) &&
         event.xcmOutput.expected === event.xcmOutput.real)
     ) {
       event.ok = true;
     }
   }
 };
+
+const assessEventResult = (
+  isRange: boolean,
+  value: string | number,
+  data: string
+): boolean => {
+  if (isRange && typeof value === 'string') {
+    return withinRange(value, data)
+  } else {
+    if (parseRange(value as string).valid) {
+      console.log(`⚠️  WARNING: Range format identified for '${value}' | Did you forget to set 'isRange: true' ?\n`);
+    }
+    return _.isEqual(adaptUnit(value), data)
+  }
+}
 
 const updateEventResult = (
   received: boolean,
@@ -181,7 +196,7 @@ const updateEventResult = (
     const { attribute } = event;
 
     if (attribute) {
-      const { type, value, isComplete, isIncomplete, isError } = attribute;
+      const { type, value, isRange, isComplete, isIncomplete, isError } = attribute;
 
       data.forEach((data, j) => {
         if (type === typeDef[j].type || type === typeDef[j].lookupName) {
@@ -190,12 +205,9 @@ const updateEventResult = (
             isIncomplete === undefined &&
             isError === undefined
           ) {
-            if (_.isEqual(adaptUnit(type, value), data.toHuman())) {
-              event.ok = true;
-            } else {
-              event.ok = false;
-            }
-            event.data = data.toHuman();
+            let dataHuman = data.toHuman();
+            event.ok = assessEventResult(isRange, value, dataHuman)
+            event.data = dataHuman;
           } else {
             buildXcmOutput(data, event);
           }
@@ -213,7 +225,7 @@ export const eventsHandler =
   async ({ events = [], status }) => {
     if (context.extrinsicIsActive === false) {
       try {
-        context.extrinsicIsActive === false;
+        context.extrinsicIsActive = true;
 
         for (let expectedEvent of expectedEvents) {
           checkEvent(expectedEvent);

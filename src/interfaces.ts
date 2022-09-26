@@ -89,6 +89,7 @@ export interface XcmOutput {
 
 export interface Attribute {
   type: string;
+  isRange: boolean;
   value?: any;
   isComplete?: boolean; // only for 'XcmV2TraitsOutcome' type
   isIncomplete?: boolean; // only for 'XcmV2TraitsOutcome' type
@@ -132,4 +133,10 @@ export interface Settings {
 export interface PaymentInfo {
   partialFee: any;
   weight: any;
+}
+
+export interface Range {
+  valid: boolean,
+  lowerLimit: BigInt;
+  upperLimit: BigInt;
 }
