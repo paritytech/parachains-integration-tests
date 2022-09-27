@@ -200,3 +200,31 @@ export const withinRange = (value: string, data: string): boolean => {
     process.exit(1);
   }
 }
+
+export const buildRangeFromThreshold = (value: string, threshold: [number, number]): string => {
+  let valueInt = Number(BigInt(value));
+
+  let lowerLimit = Number(valueInt) * (Number(BigInt(threshold[0]))/Number(BigInt(100)));
+  let upperLimit = Number(valueInt) * (Number(BigInt(threshold[0]))/Number(BigInt(100)));
+
+  lowerLimit = Math.round(valueInt - lowerLimit);
+  upperLimit = Math.round(valueInt + upperLimit);
+
+  return lowerLimit + '..' + upperLimit
+}
+
+export const parseThreshold = (value: string, threshold: [number, number]): string => {
+  if (threshold[0] >= 0 && threshold[1] >= 0) {
+    return buildRangeFromThreshold(value, threshold);
+  } else {
+    console.log(
+      `\n⛔ ERROR: invalid Threshold value format '${threshold}'`,
+    );
+    process.exit(1);
+  }
+}
+
+export const withinThreshold = (value: string | number, data: string, threshold: [number, number]): boolean => {
+  let range = parseThreshold(adaptUnit(value).replace(/,/g, ''), threshold);
+  return withinRange(range, data)
+}
