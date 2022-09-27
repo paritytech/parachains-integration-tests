@@ -1,6 +1,12 @@
 import _ from 'lodash';
 import { EventResult, Chain, Event } from './interfaces';
-import { addConsoleGroupEnd, adaptUnit, withinRange, withinThreshold, parseRange } from './utils';
+import {
+  addConsoleGroupEnd,
+  adaptUnit,
+  withinRange,
+  withinThreshold,
+  parseRange,
+} from './utils';
 
 export const checkEvent = (event: Event) => {
   const { name, attribute } = event;
@@ -52,10 +58,12 @@ const messageBuilder = (context, event: EventResult): string => {
       if (ok) {
         hasValues = `, with: '${type}': ${JSON.stringify(data)}\n`;
       } else {
-        let expected = `Expected: '${type}': ${JSON.stringify(value)}`
-        let received = `Received: '${type}': ${JSON.stringify(data)}`
-        let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`
-        let thresholdMsg = `${threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''}`;
+        let expected = `Expected: '${type}': ${JSON.stringify(value)}`;
+        let received = `Received: '${type}': ${JSON.stringify(data)}`;
+        let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`;
+        let thresholdMsg = `${
+          threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''
+        }`;
         hasValues = `, with different value:\n\n   ${expected}, ${received} ${rangeMsg}${thresholdMsg}`;
       }
     }
@@ -124,7 +132,8 @@ const buildXcmOutput = (data, event: EventResult) => {
   const { attribute } = event;
 
   if (attribute) {
-    const { value, isComplete, isIncomplete, isError, isRange, threshold } = attribute;
+    const { value, isComplete, isIncomplete, isError, isRange, threshold } =
+      attribute;
 
     const xcmOutputTypes = [
       {
@@ -175,16 +184,18 @@ const assessEventResult = (
   threshold: [number, number]
 ): boolean => {
   if (isRange && typeof value === 'string') {
-    return withinRange(value, data)
+    return withinRange(value, data);
   } else if (threshold) {
-    return withinThreshold(value, data, threshold)
+    return withinThreshold(value, data, threshold);
   } else {
     if (parseRange(value.toString()).valid) {
-      console.log(`⚠️  WARNING: Range format identified for '${value}' | Did you forget to set 'isRange: true' ?\n`);
+      console.log(
+        `⚠️  WARNING: Range format identified for '${value}' | Did you forget to set 'isRange: true' ?\n`
+      );
     }
-    return _.isEqual(adaptUnit(value), data)
+    return _.isEqual(adaptUnit(value), data);
   }
-}
+};
 
 const updateEventResult = (
   received: boolean,
@@ -201,7 +212,15 @@ const updateEventResult = (
     const { attribute } = event;
 
     if (attribute) {
-      const { type, value, isRange, isComplete, isIncomplete, isError , threshold } = attribute;
+      const {
+        type,
+        value,
+        isRange,
+        isComplete,
+        isIncomplete,
+        isError,
+        threshold,
+      } = attribute;
 
       data.forEach((data, j) => {
         if (type === typeDef[j].type || type === typeDef[j].lookupName) {
@@ -211,7 +230,7 @@ const updateEventResult = (
             isError === undefined
           ) {
             let dataHuman = data.toHuman();
-            event.ok = assessEventResult(value, dataHuman, isRange, threshold)
+            event.ok = assessEventResult(value, dataHuman, isRange, threshold);
             event.data = dataHuman;
           } else {
             buildXcmOutput(data, event);

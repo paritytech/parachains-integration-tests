@@ -137,7 +137,7 @@ export interface PaymentInfo {
 }
 
 export interface Range {
-  valid: boolean,
+  valid: boolean;
   lowerLimit: BigInt;
   upperLimit: BigInt;
 }
