@@ -70,7 +70,7 @@ export interface Event {
   name: string;
   remote: boolean; // indicates if its considered as a remote event (different chain context)
   timeout?: number; // overrides de default event listener timeout
-  attribute?: Attribute;
+  attributes?: Attribute[];
 }
 
 export interface EventResult extends Event {

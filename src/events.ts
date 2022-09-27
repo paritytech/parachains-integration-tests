@@ -9,26 +9,30 @@ import {
 } from './utils';
 
 export const checkEvent = (event: Event) => {
-  const { name, attribute } = event;
+  const { name, attributes } = event;
 
-  if (name == undefined) {
-    console.log(
-      `\n⛔ ERROR: 'name' should be present for the following event:`,
-      JSON.stringify(event, null, 2)
-    );
-    process.exit(1);
-  }
+  if (attributes) {
+    attributes.forEach(attribute => {
+      if (name == undefined) {
+        console.log(
+          `\n⛔ ERROR: 'name' should be present for the following event:`,
+          JSON.stringify(event, null, 2)
+        );
+        process.exit(1);
+      }
 
-  if (attribute) {
-    const { type } = attribute;
+      if (attribute) {
+        const { type } = attribute;
 
-    if (type == undefined) {
-      console.log(
-        `\n⛔ ERROR: 'type' should be present for the 'attribute' of the following event:`,
-        JSON.stringify(event, null, 2)
-      );
-      process.exit(1);
-    }
+        if (type == undefined) {
+          console.log(
+            `\n⛔ ERROR: 'type' should be present for the 'attribute' of the following event:`,
+            JSON.stringify(event, null, 2)
+          );
+          process.exit(1);
+        }
+      }
+    });
   }
 };
 
