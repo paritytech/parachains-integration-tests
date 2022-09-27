@@ -6,7 +6,13 @@ import { resolve, dirname } from 'path';
 import { u8aToHex, compactAddLength } from '@polkadot/util';
 import { Keyring } from '@polkadot/api';
 import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
-import { Extrinsic, TestFile, TestsConfig, PaymentInfo, Range } from './interfaces';
+import {
+  Extrinsic,
+  TestFile,
+  TestsConfig,
+  PaymentInfo,
+  Range,
+} from './interfaces';
 
 export const getTestFiles = (path): TestFile[] => {
   console.log(resolve(process.cwd(), path));
@@ -167,11 +173,11 @@ export const adaptUnit = (value: string | number): string => {
   if (typeof value === 'number') {
     value = value.toLocaleString();
   }
-  return value
-}
+  return value;
+};
 
 export const parseRange = (value: string): Range => {
-  let range = value.split("..");
+  let range = value.split('..');
 
   try {
     let rightLen = range.length === 2;
@@ -179,24 +185,60 @@ export const parseRange = (value: string): Range => {
     let upperLimit = BigInt(range[1].replace(/,/g, ''));
 
     if (rightLen) {
-      return { valid: true, lowerLimit, upperLimit }
+      return { valid: true, lowerLimit, upperLimit };
     } else {
-      throw ""
+      throw '';
     }
   } catch (e) {
-    return { valid: false, lowerLimit: BigInt(0), upperLimit: BigInt(0) }
+    return { valid: false, lowerLimit: BigInt(0), upperLimit: BigInt(0) };
   }
-}
+};
 
 export const withinRange = (value: string, data: string): boolean => {
-  const { valid, upperLimit, lowerLimit}: Range = parseRange(value);
+  const { valid, upperLimit, lowerLimit }: Range = parseRange(value);
   if (valid) {
     let dataNumber = BigInt(data.replace(/,/g, ''));
-    return dataNumber >= lowerLimit && dataNumber <= upperLimit
+    return dataNumber >= lowerLimit && dataNumber <= upperLimit;
   } else {
-    console.log(
-      `\n⛔ ERROR: invalid Range value format '${value}'`,
-    );
+    console.log(`\n⛔ ERROR: invalid Range value format '${value}'`);
     process.exit(1);
   }
-}
+};
+
+export const buildRangeFromThreshold = (
+  value: string,
+  threshold: [number, number]
+): string => {
+  let valueInt = Number(BigInt(value));
+
+  let lowerLimit =
+    Number(valueInt) * (Number(BigInt(threshold[0])) / Number(BigInt(100)));
+  let upperLimit =
+    Number(valueInt) * (Number(BigInt(threshold[0])) / Number(BigInt(100)));
+
+  lowerLimit = Math.round(valueInt - lowerLimit);
+  upperLimit = Math.round(valueInt + upperLimit);
+
+  return lowerLimit + '..' + upperLimit;
+};
+
+export const parseThreshold = (
+  value: string,
+  threshold: [number, number]
+): string => {
+  if (threshold[0] >= 0 && threshold[1] >= 0) {
+    return buildRangeFromThreshold(value, threshold);
+  } else {
+    console.log(`\n⛔ ERROR: invalid Threshold value format '${threshold}'`);
+    process.exit(1);
+  }
+};
+
+export const withinThreshold = (
+  value: string | number,
+  data: string,
+  threshold: [number, number]
+): boolean => {
+  let range = parseThreshold(adaptUnit(value).replace(/,/g, ''), threshold);
+  return withinRange(range, data);
+};

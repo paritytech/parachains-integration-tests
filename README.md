@@ -72,6 +72,18 @@ Examples:
       ```
       yarn zombienet-test -t <tests_path> -c <zombienet_config_path>
       ```
+## Table of Contents
+- [YAML Schema](#yaml-schema)
+  * [Settings](#settings)
+  * [Tests](#tests)
+  * [Hook & It](#hook--it)
+  * [Action](#action)
+  * [Extrinsic](#extrinsic)
+  * [Event](#event)
+  * [Query](#query)
+  * [Rpc](#rpc)
+  * [Assert](#assert)
+  * [Custom](#custom)
 
 ## YAML Schema
 It is formed by two main sections: `settings` and `tests`.
@@ -371,7 +383,11 @@ If the `chain` attribute is not defined, it means the event is expected to happp
 
 Default event listener timeout can be overriden by the `timeout` attribute.
 
-By setting `isRange: true` you are letting know to the tool that the expected value should be within the range defined in the `value` attribute. This is especially useful when checking `Weights`.
+By setting `isRange: true` you are letting know to the tool that the expected value should be within the range defined in the `value` attribute. The expected `value`'s format is: `<lower_limit>..<upper_limit>`.
+
+In addition, a `threhold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expenting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher
+
+For obvious reason, `isRange` and `threshold` can not be used at the same time. These features are especially useful when checking variables that often changes such as `weights`.
 
 Example:
 
@@ -424,6 +440,7 @@ tests: # Describe[]
                   attribute:
                     type: XcmV2TraitsOutcome
                     isComplete: true
+                    threshold: [10, 20] # value can be 10% lower and 20% higher
                     value: 2,000,000,000
                 - name: polkadotXcm.Sent
                   chain: *parachain
@@ -433,7 +450,7 @@ tests: # Describe[]
                     type: XcmV2TraitsOutcome
                     isComplete: true
                     isRange: true
-                    value: 4,000,000...5,000,000 # value should be within 4,000,000..5,000,000
+                    value: 4,000,000..5,000,000 # value should be within 4,000,000..5,000,000
     ...
 ```
 
@@ -453,6 +470,7 @@ interface Event {
 interface Attribute {
   type: string;
   isRange?: boolean; // indicates the value is a range
+  threshold: [number, number]; // defines the percentages a value can vary
   value?: any;
   isComplete?: boolean; // only for 'XcmV2TraitsOutcome' type
   isIncomplete?: boolean; // only for 'XcmV2TraitsOutcome' type
