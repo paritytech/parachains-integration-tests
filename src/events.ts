@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { EventResult, Chain, Event } from './interfaces';
-import { addConsoleGroupEnd, adaptUnit, withinRange, parseRange } from './utils';
+import { addConsoleGroupEnd, adaptUnit, withinRange, withinThreshold, parseRange } from './utils';
 
 export const checkEvent = (event: Event) => {
   const { name, attribute } = event;
@@ -36,7 +36,7 @@ const messageBuilder = (context, event: EventResult): string => {
   let hasValues = '';
   let xcmOutcome = '';
   if (received && attribute) {
-    const { type, value, isRange } = attribute;
+    const { type, value, isRange, threshold } = attribute;
 
     if (type === 'XcmV2TraitsOutcome') {
       const { expected, real } = xcmOutput;
@@ -52,9 +52,11 @@ const messageBuilder = (context, event: EventResult): string => {
       if (ok) {
         hasValues = `, with: '${type}': ${JSON.stringify(data)}\n`;
       } else {
-        hasValues = `, with different value:\n\n   Expected: '${type}': ${JSON.stringify(
-          value
-        )}, Received: '${type}': ${JSON.stringify(data)}${isRange ? ' -> OUT OF RANGE' : ''}`;
+        let expected = `Expected: '${type}': ${JSON.stringify(value)}`
+        let received = `Received: '${type}': ${JSON.stringify(data)}`
+        let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`
+        let thresholdMsg = `${threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''}`;
+        hasValues = `, with different value:\n\n   ${expected}, ${received} ${rangeMsg}${thresholdMsg}`;
       }
     }
   }
@@ -122,7 +124,7 @@ const buildXcmOutput = (data, event: EventResult) => {
   const { attribute } = event;
 
   if (attribute) {
-    const { value, isComplete, isIncomplete, isError, isRange } = attribute;
+    const { value, isComplete, isIncomplete, isError, isRange, threshold } = attribute;
 
     const xcmOutputTypes = [
       {
@@ -158,7 +160,7 @@ const buildXcmOutput = (data, event: EventResult) => {
     if (
       !value ||
       (value &&
-        assessEventResult(isRange, value, typeData) &&
+        assessEventResult(value, typeData, isRange, threshold) &&
         event.xcmOutput.expected === event.xcmOutput.real)
     ) {
       event.ok = true;
@@ -167,14 +169,17 @@ const buildXcmOutput = (data, event: EventResult) => {
 };
 
 const assessEventResult = (
-  isRange: boolean,
   value: string | number,
-  data: string
+  data: string,
+  isRange: boolean,
+  threshold: [number, number]
 ): boolean => {
   if (isRange && typeof value === 'string') {
     return withinRange(value, data)
+  } else if (threshold) {
+    return withinThreshold(value, data, threshold)
   } else {
-    if (parseRange(value as string).valid) {
+    if (parseRange(value.toString()).valid) {
       console.log(`⚠️  WARNING: Range format identified for '${value}' | Did you forget to set 'isRange: true' ?\n`);
     }
     return _.isEqual(adaptUnit(value), data)
@@ -196,7 +201,7 @@ const updateEventResult = (
     const { attribute } = event;
 
     if (attribute) {
-      const { type, value, isRange, isComplete, isIncomplete, isError } = attribute;
+      const { type, value, isRange, isComplete, isIncomplete, isError , threshold } = attribute;
 
       data.forEach((data, j) => {
         if (type === typeDef[j].type || type === typeDef[j].lookupName) {
@@ -206,7 +211,7 @@ const updateEventResult = (
             isError === undefined
           ) {
             let dataHuman = data.toHuman();
-            event.ok = assessEventResult(isRange, value, dataHuman)
+            event.ok = assessEventResult(value, dataHuman, isRange, threshold)
             event.data = dataHuman;
           } else {
             buildXcmOutput(data, event);
@@ -261,7 +266,7 @@ export const eventsHandler =
           let message = messageBuilder(context, result);
           return { ...result, message };
         });
-
+        context.extrinsicIsActive = false;
         resolve(finalEventsResults);
         return;
       } catch (e) {

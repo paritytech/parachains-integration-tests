@@ -90,6 +90,7 @@ export interface XcmOutput {
 export interface Attribute {
   type: string;
   isRange: boolean;
+  threshold: [number, number];
   value?: any;
   isComplete?: boolean; // only for 'XcmV2TraitsOutcome' type
   isIncomplete?: boolean; // only for 'XcmV2TraitsOutcome' type
