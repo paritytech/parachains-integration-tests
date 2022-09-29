@@ -216,10 +216,10 @@ const updateEventResult = (
         type,
         value,
         isRange,
+        threshold,
         isComplete,
         isIncomplete,
         isError,
-        threshold,
       } = attribute;
 
       data.forEach((data, j) => {
@@ -247,10 +247,8 @@ const updateEventResult = (
 export const eventsHandler =
   (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) =>
   async ({ events = [], status }) => {
-    if (context.extrinsicIsActive === false) {
+    if (status.isReady) {
       try {
-        context.extrinsicIsActive = true;
-
         for (let expectedEvent of expectedEvents) {
           checkEvent(expectedEvent);
         }
@@ -285,7 +283,6 @@ export const eventsHandler =
           let message = messageBuilder(context, result);
           return { ...result, message };
         });
-        context.extrinsicIsActive = false;
         resolve(finalEventsResults);
         return;
       } catch (e) {

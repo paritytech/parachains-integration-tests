@@ -209,7 +209,16 @@ export const buildRangeFromThreshold = (
   value: string,
   threshold: [number, number]
 ): string => {
-  let valueInt = Number(BigInt(value));
+  let valueInt: number;
+
+  try {
+    valueInt = Number(BigInt(value));
+  } catch (e) {
+    console.log(
+      `\n⛔ ERROR: invalid 'value': ${value}, it should be a number -> ${e}`
+    );
+    process.exit(1);
+  }
 
   let lowerLimit =
     Number(valueInt) * (Number(BigInt(threshold[0])) / Number(BigInt(100)));
@@ -229,7 +238,9 @@ export const parseThreshold = (
   if (threshold[0] >= 0 && threshold[1] >= 0) {
     return buildRangeFromThreshold(value, threshold);
   } else {
-    console.log(`\n⛔ ERROR: invalid Threshold value format '${threshold}'`);
+    console.log(
+      `\n⛔ ERROR: invalid Threshold value format '${threshold}', upper and lower limit should be numbers bigger than 0`
+    );
     process.exit(1);
   }
 };
