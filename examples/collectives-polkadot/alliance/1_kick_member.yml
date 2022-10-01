@@ -43,15 +43,15 @@ tests:
               ]
               events:
                 - name: xcmPallet.Attempted
-                  attribute:
-                    type: XcmV2TraitsOutcome
-                    isComplete: true
+                  attributes:
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
                 - name: dmpQueue.ExecutedDownward
                   chain: *collectives_parachain
-                  attribute:
-                    type: XcmV2TraitsOutcome
-                    isComplete: true
-                    value: "1,000,000,000"
+                  attributes:
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
+                      value: 1,000,000,000
       - name: Get the balances of the Relay Chain's treasury & Collectives parachain's future alliance member
         actions:
           - queries:
@@ -118,9 +118,9 @@ tests:
               ]
               events:
                 - name: sudo.Sudid
-                  attribute:
-                    type: Result<Null, SpRuntimeDispatchError>
-                    value: Ok
+                  attributes:
+                    - type: Result<Null, SpRuntimeDispatchError>
+                      value: Ok
                 - name: xcmPallet.Sent
                 - name: alliance.MemberKicked
                   chain: *collectives_parachain
