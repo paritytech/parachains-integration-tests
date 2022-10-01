@@ -431,26 +431,26 @@ tests: # Describe[]
               ]
               events: # Event[]
                 - name: sudo.Sudid
-                  attribute:
-                    type: Result<Null, SpRuntimeDispatchError>
-                    value: Ok
+                  attributes:
+                    - type: Result<Null, SpRuntimeDispatchError>
+                      value: Ok
                 - name: xcmPallet.Sent
                 - name: dmpQueue.ExecutedDownward
                   chain: *parachain
-                  attribute:
-                    type: XcmV2TraitsOutcome
-                    isComplete: true
-                    threshold: [10, 20] # value can be 10% lower and 20% higher
-                    value: 2,000,000,000
+                  attributes:
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
+                      threshold: [10, 20] # value can be 10% lower and 20% higher
+                      value: 2,000,000,000
                 - name: polkadotXcm.Sent
                   chain: *parachain
                 - name: ump.ExecutedUpward
                   timeout: 40000
-                  attribute:
-                    type: XcmV2TraitsOutcome
-                    isComplete: true
-                    isRange: true
-                    value: 4,000,000..5,000,000 # value should be within 4,000,000..5,000,000
+                  attributes:
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
+                      isRange: true
+                      value: 4,000,000..5,000,000 # value should be within 4,000,000..5,000,000
     ...
 ```
 
@@ -462,7 +462,7 @@ interface Event {
   name: string;
   remote: boolean; // indicates the event is considered as a remote (different chain context)
   timeout?: number; // overrides de default event listener timeout
-  attribute?: Attribute;
+  attributes?: Attribute[];
 }
 ```
 
@@ -472,9 +472,15 @@ interface Attribute {
   isRange?: boolean; // indicates the value is a range
   threshold: [number, number]; // defines the percentages a value can vary
   value?: any;
-  isComplete?: boolean; // only for 'XcmV2TraitsOutcome' type
-  isIncomplete?: boolean; // only for 'XcmV2TraitsOutcome' type
-  isError?: boolean; // only for 'XcmV2TraitsOutcome' type
+  xcmOutcome?: XcmOutcome; // only for 'XcmV2TraitsOutcome' type
+}
+```
+
+```typescript
+export enum XcmOutcome {
+  Complete = 'Complete',
+  Incomplete = 'Incomplete',
+  Error = 'Error'
 }
 ```
 

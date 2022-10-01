@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { EventResult, Chain, Event } from './interfaces';
+import { EventResult, Chain, Event, Attribute, EventData, XcmOutcome } from './interfaces';
 import {
   addConsoleGroupEnd,
   adaptUnit,
@@ -37,42 +37,75 @@ export const checkEvent = (event: Event) => {
 };
 
 const messageBuilder = (context, event: EventResult): string => {
+  console.log("AttributeS ========", event.attributes)
+  console.log("Data ========", event.data)
   const { providers } = context;
-  const { name, chain, attribute, data, ok, received, xcmOutput } = event;
+  const { name, chain, attributes, data, received } = event;
 
   let chainContext = providers[chain.wsPort].name;
-  let isOk = ok ? '✅' : '❌';
   let isReceived = received ? 'was received' : 'was never received';
   let hasValues = '';
-  let xcmOutcome = '';
-  if (received && attribute) {
-    const { type, value, isRange, threshold } = attribute;
+  let xcmOutcomeMessage = '';
 
-    if (type === 'XcmV2TraitsOutcome') {
-      const { expected, real } = xcmOutput;
+  if (received && attributes) {
+    attributes.forEach((attribute, i) => {
+      try {
+      console.log('Attribute ======', attribute)
+      console.log('DATA[i] ======', data[i])
+      const { type, key, value, isRange, threshold, xcmOutcome } = attribute;
 
-      if (real === expected) {
-        xcmOutcome = `, '${expected}'`;
-      } else {
-        xcmOutcome = `, with different status:\n\n   Expected: '${expected}', Received: '${real}' `;
+      if (xcmOutcome) {
+        let symbol = {
+          [XcmOutcome.Complete]: '🟢',
+          [XcmOutcome.Incomplete]: '🟠',
+          [XcmOutcome.Error]: '🔴',
+          'undefined': ''
+        }
+
+        if (xcmOutcome === data[i].xcmOutcome) {
+          xcmOutcomeMessage = `\n\n   ✔️  Expected: 'XcmOutcome': ${symbol[xcmOutcome]} ${xcmOutcome}`
+        } else {
+          let dataXcmOutcome = data[i].xcmOutcome ? data[i].xcmOutcome : 'undefined';
+
+          if (dataXcmOutcome) {
+            xcmOutcomeMessage = `\n\n   ✖️  Expected: 'XcmOutcome': ${symbol[xcmOutcome]} ${xcmOutcome} | Received: 'XcmOutcome': ${symbol[dataXcmOutcome]} ${data[i].xcmOutcome}`;
+          }
+          event.ok &&= false;
+        }
       }
-    }
 
-    if (value) {
-      if (ok) {
-        hasValues = `, with: '${type}': ${JSON.stringify(data)}\n`;
-      } else {
-        let expected = `Expected: '${type}': ${JSON.stringify(value)}`;
-        let received = `Received: '${type}': ${JSON.stringify(data)}`;
-        let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`;
-        let thresholdMsg = `${
-          threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''
-        }`;
-        hasValues = `, with different value:\n\n   ${expected}, ${received} ${rangeMsg}${thresholdMsg}`;
+
+        if (value) {
+          let valueJson = JSON.stringify(value);
+          if (!data[i]) {
+            hasValues += `\n\n   ✖️  Expected: '${type}': ${valueJson} -> WAS NEVER RECEIVED\n`;
+            event.ok &&= false;
+          } else {
+            let dataJson = JSON.stringify(data[i].value);
+            let attributeOk = isExpectedEventResult(value, data[i].value, isRange, threshold);
+            event.ok &&= attributeOk;
+
+            if (attributeOk) {
+              hasValues += `\n\n   ✔️  Expected: '${type}': ${dataJson}\n`;
+            } else {
+              let expected = `Expected: '${type}': ${valueJson}`;
+              let received = `Received: '${type}': ${dataJson}`;
+              let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`;
+              let thresholdMsg = `${
+                threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''
+              }`;
+              hasValues += `\n\n   ✖️  ${expected} | ${received} ${rangeMsg}${thresholdMsg}`;
+            }
+          }
+        }
+      } catch(e) {
+        console.log(e)
       }
-    }
+    });
   }
-  return `${isOk} EVENT: (${chainContext}) '${name}' ${isReceived}${xcmOutcome}${hasValues}\n`;
+  let isOk = event.ok ? '✅' : '❌';
+
+  return `${isOk} EVENT: (${chainContext}) '${name}' ${isReceived}${xcmOutcomeMessage}${hasValues}\n`;
 };
 
 const eventsResultsBuilder = (
@@ -87,9 +120,9 @@ const eventsResultsBuilder = (
         chain,
         remote: event.remote ? event.remote : !_.isEqual(chain, extrinsicChain),
         received: false,
-        ok: false,
-        message: '',
-        xcmOutput: { expected: undefined, real: undefined },
+        ok: true,
+        data: [],
+        message: ''
       },
     };
     return extendedEvent;
@@ -132,60 +165,11 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
   });
 };
 
-const buildXcmOutput = (data, event: EventResult) => {
-  const { attribute } = event;
-
-  if (attribute) {
-    const { value, isComplete, isIncomplete, isError, isRange, threshold } =
-      attribute;
-
-    const xcmOutputTypes = [
-      {
-        type: isComplete,
-        is: 'isComplete',
-        as: 'asComplete',
-        status: '🟢 Complete',
-      },
-      {
-        type: isIncomplete,
-        is: 'isIncomplete',
-        as: 'asIncomplete',
-        status: '🟠 Incomplete',
-      },
-      { type: isError, is: 'isError', as: 'asError', status: '🔴 Error' },
-    ];
-
-    let typeData;
-
-    for (let xcmOutput of xcmOutputTypes) {
-      const { type, is, as, status } = xcmOutput;
-      if (type) {
-        event.xcmOutput.expected = status;
-      }
-
-      if (data[is]) {
-        typeData = data[as].toHuman();
-        event.data = typeData;
-        event.xcmOutput.real = status;
-      }
-    }
-
-    if (
-      !value ||
-      (value &&
-        assessEventResult(value, typeData, isRange, threshold) &&
-        event.xcmOutput.expected === event.xcmOutput.real)
-    ) {
-      event.ok = true;
-    }
-  }
-};
-
-const assessEventResult = (
+const isExpectedEventResult = (
   value: string | number,
   data: string,
-  isRange: boolean,
-  threshold: [number, number]
+  isRange: boolean | undefined,
+  threshold: [number, number] | undefined
 ): boolean => {
   if (isRange && typeof value === 'string') {
     return withinRange(value, data);
@@ -201,48 +185,85 @@ const assessEventResult = (
   }
 };
 
+const eventDataBuilder = (
+  data: any,
+  typeDef: any,
+  key: string
+): EventData => {
+
+  let eventData: EventData = {
+    type: typeDef.type,
+    lookupName: typeDef.lookupName,
+    key: key,
+    value: data
+  }
+
+  if (typeDef.lookupName === 'XcmV2TraitsOutcome') {
+    if (data['Complete']) {
+      eventData.xcmOutcome = XcmOutcome.Complete;
+      eventData.value = data['Complete']
+    } else if (data['Incomplete']) {
+      eventData.xcmOutcome = XcmOutcome.Incomplete;
+      eventData.value = data['Incomplete']
+    } else if (data['Error']) {
+      eventData.xcmOutcome = XcmOutcome.Error;
+      eventData.value = data['Error']
+    }
+  }
+
+  return eventData
+}
+
 const updateEventResult = (
   received: boolean,
   record,
   event: EventResult
 ): EventResult => {
   event.received = received;
-  event.data = '';
 
   if (received && record) {
     const {
       event: { data, typeDef },
     } = record;
-    const { attribute } = event;
+    const { attributes } = event;
 
-    if (attribute) {
-      const {
-        type,
-        value,
-        isRange,
-        threshold,
-        isComplete,
-        isIncomplete,
-        isError,
-      } = attribute;
+    if (attributes) {
+      let keys: string[] = []
 
-      data.forEach((data, j) => {
-        if (type === typeDef[j].type || type === typeDef[j].lookupName) {
+      if (
+        typeof data === 'object' &&
+        !Array.isArray(data) &&
+        data !== null
+      ) {
+        keys = Object.keys(data);
+      }
+
+      data.forEach((dataItem, i) => {
+        let dataEvent = eventDataBuilder(dataItem.toHuman(), typeDef[i], keys[i])
+
+        for (let j = 0; j < attributes.length; j++) {
+          const {
+            type,
+            key,
+          } = attributes[j];
+
+          let sameType =
+          type ===  dataEvent.type ||
+          type === dataEvent.lookupName;
+
+          let sameKey = key === dataEvent.key;
+
           if (
-            isComplete === undefined &&
-            isIncomplete === undefined &&
-            isError === undefined
+            (!key && sameType) ||
+            (key && sameKey && sameType)
           ) {
-            let dataHuman = data.toHuman();
-            event.ok = assessEventResult(value, dataHuman, isRange, threshold);
-            event.data = dataHuman;
-          } else {
-            buildXcmOutput(data, event);
+            event.data[j] = dataEvent;
+            break;
           }
         }
       });
     } else {
-      event.ok = true;
+      event.ok = true;;
     }
   }
   return event;

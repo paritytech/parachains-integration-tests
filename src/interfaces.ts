@@ -73,28 +73,35 @@ export interface Event {
   attributes?: Attribute[];
 }
 
+export interface EventData {
+  type: string;
+  lookupName: string;
+  key?: string;
+  value: any;
+  xcmOutcome?: XcmOutcome; // only for 'XcmV2TraitsOutcome' type
+}
+
 export interface EventResult extends Event {
-  remote: boolean;
+  // remote: boolean;
   received: boolean;
   ok: boolean;
   message: string;
-  data?: any;
-  xcmOutput: XcmOutput;
-}
-
-export interface XcmOutput {
-  expected: string | undefined;
-  real: string | undefined;
+  data: EventData[];
 }
 
 export interface Attribute {
   type: string;
-  isRange: boolean;
-  threshold: [number, number];
+  key?: string;
+  isRange?: boolean;
+  threshold?: [number, number];
   value?: any;
-  isComplete?: boolean; // only for 'XcmV2TraitsOutcome' type
-  isIncomplete?: boolean; // only for 'XcmV2TraitsOutcome' type
-  isError?: boolean; // only for 'XcmV2TraitsOutcome' type
+  xcmOutcome?: XcmOutcome; // only for 'XcmV2TraitsOutcome' type
+}
+
+export enum XcmOutcome {
+  Complete = 'Complete',
+  Incomplete = 'Incomplete',
+  Error = 'Error'
 }
 
 export interface It {
