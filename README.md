@@ -9,7 +9,9 @@ Under the `./examples` folder, this repository contains integration tests for th
 
 ## Set Up
 ### Requirements
-`node v17.6.0` or higher.
+- `node v17.6.0` or higher.
+### Versioning
+- `v2.0.0` contains breaking changes. Tests based on `^1.0.0` will stop working properly from `v2.0.0` onwards. Check the Github release for more info and how to migrate the tests.
 
 ### Installation
 It can be installed to be run in two different ways:
