@@ -8,6 +8,8 @@ import {
   DEFAULT_ACTION_DELAY,
   DEFAULT_TIMEOUT,
 } from './constants';
+var pjson = require('../package.json');
+
 const program = new Command();
 
 const p: { [key: string]: ChildProcess } = {};
@@ -93,7 +95,7 @@ const spawnTests = (options) => {
 program
   .name('parachains-integrations-tests')
   .description('Tool for testing integration between Parachains')
-  .version('1.0.0');
+  .version(pjson);
 
 program
   .addOption(

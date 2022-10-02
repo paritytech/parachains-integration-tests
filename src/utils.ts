@@ -196,9 +196,15 @@ export const parseRange = (value: string): Range => {
 
 export const withinRange = (value: string, data: string): boolean => {
   const { valid, upperLimit, lowerLimit }: Range = parseRange(value);
+
   if (valid) {
+    try {
     let dataNumber = BigInt(data.replace(/,/g, ''));
     return dataNumber >= lowerLimit && dataNumber <= upperLimit;
+    } catch(e) {
+      console.log(`\n⛔ ERROR: expected event value result to be a number, got '${data}'`);
+      return false
+    }
   } else {
     console.log(`\n⛔ ERROR: invalid Range value format '${value}'`);
     process.exit(1);
