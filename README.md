@@ -383,11 +383,13 @@ If the `chain` attribute is not defined, it means the event is expected to happp
 
 Default event listener timeout can be overriden by the `timeout` attribute.
 
+Event's attributes must be identified either by `type`, `key` or both. When the event is defined in the _runtime_ as a _Tuple_, the only way to identify the attributes is by their `type`. Be aware that in that case the order you declare the `attributes` in the test matters. That is because there could be multiple attributes with the same `type` in the _Tuple_. However, if the event is defined as a _Struct_, its attributes can be also identified by their `key`.
+
 By setting `isRange: true` you are letting know to the tool that the expected value should be within the range defined in the `value` attribute. The expected `value`'s format is: `<lower_limit>..<upper_limit>`.
 
-In addition, a `threhold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expenting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher
+In addition, a `threhold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expenting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher.
 
-For obvious reason, `isRange` and `threshold` can not be used at the same time. These features are especially useful when checking variables that often changes such as `weights`.
+For obvious reason, `isRange` and `threshold` can not be used at the same time. These features are especially useful when checking variables that often change such as _Weights_.
 
 Example:
 
@@ -433,11 +435,12 @@ tests: # Describe[]
                 - name: sudo.Sudid
                   attributes:
                     - type: Result<Null, SpRuntimeDispatchError>
+                      key: sudoResult
                       value: Ok
                 - name: xcmPallet.Sent
                 - name: dmpQueue.ExecutedDownward
                   chain: *parachain
-                  attributes:
+                  attributes: # Attribute[]
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
                       threshold: [10, 20] # value can be 10% lower and 20% higher
@@ -446,7 +449,7 @@ tests: # Describe[]
                   chain: *parachain
                 - name: ump.ExecutedUpward
                   timeout: 40000
-                  attributes:
+                  attributes: # Attribute[]
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
                       isRange: true
