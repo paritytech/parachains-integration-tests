@@ -468,7 +468,8 @@ interface Event {
 
 ```typescript
 interface Attribute {
-  type: string;
+  type?: string;
+  key?: string;
   isRange?: boolean; // indicates the value is a range
   threshold: [number, number]; // defines the percentages a value can vary
   value?: any;

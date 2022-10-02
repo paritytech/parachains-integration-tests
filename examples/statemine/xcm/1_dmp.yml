@@ -38,20 +38,20 @@ tests:
     its: []
     describes:
       - name: xcmPallet.limitedTeleportAssets
-        # before: &before_get_balances
-        #   - name: Get the balances of the Relay Chain's sender & Assets Parachain's receiver
-        #     actions:
-        #       - queries:
-        #           balance_rc_sender_before:
-        #             chain: *relay_chain
-        #             pallet: system
-        #             call: account
-        #             args: [ *rc_wallet ]
-        #           balance_ap_receiver_before:
-        #             chain: *assets_parachain
-        #             pallet: system
-        #             call: account
-        #             args: [ *ap_wallet ]
+        before: &before_get_balances
+          - name: Get the balances of the Relay Chain's sender & Assets Parachain's receiver
+            actions:
+              - queries:
+                  balance_rc_sender_before:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *rc_wallet ]
+                  balance_ap_receiver_before:
+                    chain: *assets_parachain
+                    pallet: system
+                    call: account
+                    args: [ *ap_wallet ]
         its:
           - name: Should teleport native assets from the Relay Chain to the Assets Parachain
             actions:
@@ -76,7 +76,7 @@ tests:
                       chain: *assets_parachain
                       attributes:
                         - type: XcmV2TraitsOutcome
-                          xcmOutcome: Error
+                          xcmOutcome: Complete
                           threshold: [10, 10]
                           value: 1,021,973,000
               - queries:
@@ -191,7 +191,7 @@ tests:
                           value: BadOrigin
 
       - name: xcmPallet.limitedReserveTransferAssets
-        # before: *before_get_balances
+        before: *before_get_balances
         its:
           - name: SHOULD NOT reserved transfer native assets from the Relay Chain to the Assets Parachain
             actions:
