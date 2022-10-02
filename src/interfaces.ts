@@ -90,7 +90,7 @@ export interface EventResult extends Event {
 }
 
 export interface Attribute {
-  type: string;
+  type?: string;
   key?: string;
   isRange?: boolean;
   threshold?: [number, number];

@@ -22,11 +22,11 @@ export const checkEvent = (event: Event) => {
       }
 
       if (attribute) {
-        const { type } = attribute;
+        const { type, key } = attribute;
 
-        if (type == undefined) {
+        if (type == undefined && key == undefined) {
           console.log(
-            `\n⛔ ERROR: 'type' should be present for the 'attribute' of the following event:`,
+            `\n⛔ ERROR: 'type' or 'key' should be present for the 'attribute' of the following event:`,
             JSON.stringify(event, null, 2)
           );
           process.exit(1);
@@ -37,8 +37,6 @@ export const checkEvent = (event: Event) => {
 };
 
 const messageBuilder = (context, event: EventResult): string => {
-  console.log("AttributeS ========", event.attributes)
-  console.log("Data ========", event.data)
   const { providers } = context;
   const { name, chain, attributes, data, received } = event;
 
@@ -50,35 +48,36 @@ const messageBuilder = (context, event: EventResult): string => {
   if (received && attributes) {
     attributes.forEach((attribute, i) => {
       try {
-      console.log('Attribute ======', attribute)
-      console.log('DATA[i] ======', data[i])
-      const { type, key, value, isRange, threshold, xcmOutcome } = attribute;
+        const { type, key, value, isRange, threshold, xcmOutcome } = attribute;
 
-      if (xcmOutcome) {
-        let symbol = {
-          [XcmOutcome.Complete]: '🟢',
-          [XcmOutcome.Incomplete]: '🟠',
-          [XcmOutcome.Error]: '🔴',
-          'undefined': ''
-        }
-
-        if (xcmOutcome === data[i].xcmOutcome) {
-          xcmOutcomeMessage = `\n\n   ✔️  Expected: 'XcmOutcome': ${symbol[xcmOutcome]} ${xcmOutcome}`
-        } else {
-          let dataXcmOutcome = data[i].xcmOutcome ? data[i].xcmOutcome : 'undefined';
-
-          if (dataXcmOutcome) {
-            xcmOutcomeMessage = `\n\n   ✖️  Expected: 'XcmOutcome': ${symbol[xcmOutcome]} ${xcmOutcome} | Received: 'XcmOutcome': ${symbol[dataXcmOutcome]} ${data[i].xcmOutcome}`;
+        if (xcmOutcome) {
+          let symbol = {
+            [XcmOutcome.Complete]: '🟢',
+            [XcmOutcome.Incomplete]: '🟠',
+            [XcmOutcome.Error]: '🔴',
+            'undefined': ''
           }
-          event.ok &&= false;
-        }
-      }
 
+          if (xcmOutcome === data[i].xcmOutcome) {
+            xcmOutcomeMessage = `\n\n   ✔️  Expected: 'outcome:' : ${symbol[xcmOutcome]} ${xcmOutcome}`
+          } else {
+            let dataXcmOutcome = data[i].xcmOutcome ? data[i].xcmOutcome : 'undefined';
+
+            if (dataXcmOutcome) {
+              xcmOutcomeMessage = `\n\n   ✖️  Expected: 'outcome:' : ${symbol[xcmOutcome]} ${xcmOutcome} | Received: 'outcome:' : ${symbol[dataXcmOutcome]} ${data[i].xcmOutcome}`;
+            }
+            event.ok &&= false;
+          }
+        }
 
         if (value) {
+          let keyValue = key ? `${key}:` : '';
+          let typeValue = type ? `${type}` : ''
+          let gap = key && type ? ' ' : ''
           let valueJson = JSON.stringify(value);
+
           if (!data[i]) {
-            hasValues += `\n\n   ✖️  Expected: '${type}': ${valueJson} -> WAS NEVER RECEIVED\n`;
+            hasValues += `\n\n   ✖️  Expected: '${keyValue}${gap}${typeValue}' : ${valueJson} -> WAS NEVER RECEIVED\n`;
             event.ok &&= false;
           } else {
             let dataJson = JSON.stringify(data[i].value);
@@ -86,10 +85,10 @@ const messageBuilder = (context, event: EventResult): string => {
             event.ok &&= attributeOk;
 
             if (attributeOk) {
-              hasValues += `\n\n   ✔️  Expected: '${type}': ${dataJson}\n`;
+              hasValues += `\n\n   ✔️  Expected: '${keyValue}${gap}${typeValue}' : ${dataJson}\n`;
             } else {
-              let expected = `Expected: '${type}': ${valueJson}`;
-              let received = `Received: '${type}': ${dataJson}`;
+              let expected = `Expected: '${keyValue}${gap}${typeValue}' : ${valueJson}`;
+              let received = `Received: '${keyValue}${gap}${typeValue}' : ${dataJson}`;
               let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`;
               let thresholdMsg = `${
                 threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''
@@ -229,13 +228,14 @@ const updateEventResult = (
 
     if (attributes) {
       let keys: string[] = []
+      let dataHuman = data.toHuman()
 
       if (
-        typeof data === 'object' &&
-        !Array.isArray(data) &&
-        data !== null
+        typeof dataHuman === 'object' &&
+        !Array.isArray(dataHuman) &&
+        dataHuman !== null
       ) {
-        keys = Object.keys(data);
+        keys = Object.keys(dataHuman);
       }
 
       data.forEach((dataItem, i) => {
