@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { EventResult, Chain, Event, Attribute, EventData, XcmOutcome } from './interfaces';
+import { EventResult, Chain, Event, EventData, XcmOutcome } from './interfaces';
 import {
   addConsoleGroupEnd,
   adaptUnit,
@@ -38,73 +38,90 @@ export const checkEvent = (event: Event) => {
 
 const messageBuilder = (context, event: EventResult): string => {
   const { providers } = context;
-  const { name, chain, attributes, data, received } = event;
+  const { name, chain, attributes, data, received, result, record } = event;
 
   let chainContext = providers[chain.wsPort].name;
   let isReceived = received ? 'was received' : 'was never received';
+  let resultMessage = '';
   let hasValues = '';
   let xcmOutcomeMessage = '';
 
-  if (received && attributes) {
-    attributes.forEach((attribute, i) => {
-      try {
-        const { type, key, value, isRange, threshold, xcmOutcome } = attribute;
+  if (received) {
+    if (result) {
+      let resultJson = JSON.stringify(result);
+      let recordJson = JSON.stringify(record);
+      let isExpectedResult = isExpectedEventResult(event);
 
-        if (xcmOutcome) {
-          let symbol = {
-            [XcmOutcome.Complete]: '🟢',
-            [XcmOutcome.Incomplete]: '🟠',
-            [XcmOutcome.Error]: '🔴',
-            'undefined': ''
-          }
-
-          if (xcmOutcome === data[i].xcmOutcome) {
-            xcmOutcomeMessage = `\n\n   ✔️  Expected: 'outcome:' : ${symbol[xcmOutcome]} ${xcmOutcome}`
-          } else {
-            let dataXcmOutcome = data[i].xcmOutcome ? data[i].xcmOutcome : 'undefined';
-
-            if (dataXcmOutcome) {
-              xcmOutcomeMessage = `\n\n   ✖️  Expected: 'outcome:' : ${symbol[xcmOutcome]} ${xcmOutcome} | Received: 'outcome:' : ${symbol[dataXcmOutcome]} ${data[i].xcmOutcome}`;
-            }
-            event.ok &&= false;
-          }
-        }
-
-        if (value) {
-          let keyValue = key ? `${key}:` : '';
-          let typeValue = type ? `${type}` : ''
-          let gap = key && type ? ' ' : ''
-          let valueJson = JSON.stringify(value);
-
-          if (!data[i]) {
-            hasValues += `\n\n   ✖️  Expected: '${keyValue}${gap}${typeValue}' : ${valueJson} -> WAS NEVER RECEIVED\n`;
-            event.ok &&= false;
-          } else {
-            let dataJson = JSON.stringify(data[i].value);
-            let attributeOk = isExpectedEventResult(value, data[i].value, isRange, threshold);
-            event.ok &&= attributeOk;
-
-            if (attributeOk) {
-              hasValues += `\n\n   ✔️  Expected: '${keyValue}${gap}${typeValue}' : ${dataJson}\n`;
-            } else {
-              let expected = `Expected: '${keyValue}${gap}${typeValue}' : ${valueJson}`;
-              let received = `Received: '${keyValue}${gap}${typeValue}' : ${dataJson}`;
-              let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`;
-              let thresholdMsg = `${
-                threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''
-              }`;
-              hasValues += `\n\n   ✖️  ${expected} | ${received} ${rangeMsg}${thresholdMsg}`;
-            }
-          }
-        }
-      } catch(e) {
-        console.log(e)
+      if (isExpectedResult) {
+        resultMessage = `\n\n   ✔️  Expected Result: ${resultJson}`;
+      } else {
+        resultMessage = `\n\n   ✖️  Expected Result: ${resultJson} | Received Result: ${recordJson}`;
       }
-    });
+      event.ok &&= isExpectedResult;
+    }
+
+    if (attributes) {
+      attributes.forEach((attribute, i) => {
+        try {
+          const { type, key, value, isRange, threshold, xcmOutcome } = attribute;
+
+          if (xcmOutcome) {
+            let symbol = {
+              [XcmOutcome.Complete]: '🟢',
+              [XcmOutcome.Incomplete]: '🟠',
+              [XcmOutcome.Error]: '🔴',
+              'undefined': ''
+            }
+
+            if (xcmOutcome === data[i].xcmOutcome) {
+              xcmOutcomeMessage = `\n\n   ✔️  Expected XCM outcome: ${symbol[xcmOutcome]} ${xcmOutcome}`
+            } else {
+              let dataXcmOutcome = data[i].xcmOutcome ? data[i].xcmOutcome : 'undefined';
+
+              if (dataXcmOutcome) {
+                xcmOutcomeMessage = `\n\n   ✖️  Expected XCM outcome: ${symbol[xcmOutcome]} ${xcmOutcome} | Received XCM outcome: ${symbol[dataXcmOutcome]} ${data[i].xcmOutcome}`;
+              }
+              event.ok &&= false;
+            }
+          }
+
+          if (value) {
+            let keyValue = key ? `${key}:` : '';
+            let typeValue = type ? `${type}` : ''
+            let gap = key && type ? ' ' : ''
+            let valueJson = JSON.stringify(value);
+
+            if (!data[i]) {
+              hasValues += `\n\n   ✖️  Expected Attribute: '${keyValue}${gap}${typeValue}' : ${valueJson} was never received\n`;
+              event.ok &&= false;
+            } else {
+              let dataJson = JSON.stringify(data[i].value);
+              let attributeOk = isExpectedEventAttribute(value, data[i].value, isRange, threshold);
+              event.ok &&= attributeOk;
+
+              if (attributeOk) {
+                hasValues += `\n\n   ✔️  Expected Attribute: '${keyValue}${gap}${typeValue}' : ${dataJson}\n`;
+              } else {
+                let expected = `Expected Attribute: '${keyValue}${gap}${typeValue}' : ${valueJson}`;
+                let received = `Received Attribute: '${keyValue}${gap}${typeValue}' : ${dataJson}`;
+                let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`;
+                let thresholdMsg = `${
+                  threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''
+                }`;
+                hasValues += `\n\n   ✖️  ${expected} | ${received} ${rangeMsg}${thresholdMsg}`;
+              }
+            }
+          }
+        } catch(e) {
+          console.log(e)
+        }
+      });
+    }
   }
+
   let isOk = event.ok ? '✅' : '❌';
 
-  return `${isOk} EVENT: (${chainContext}) '${name}' ${isReceived}${xcmOutcomeMessage}${hasValues}\n`;
+  return `${isOk} EVENT: (${chainContext}) '${name}' ${isReceived}${resultMessage}${xcmOutcomeMessage}${hasValues}\n`;
 };
 
 const eventsResultsBuilder = (
@@ -121,7 +138,8 @@ const eventsResultsBuilder = (
         received: false,
         ok: true,
         data: [],
-        message: ''
+        message: '',
+        strict: event.strict == undefined ? true : event.strict
       },
     };
     return extendedEvent;
@@ -164,7 +182,17 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
   });
 };
 
-const isExpectedEventResult = (
+const isExpectedEventResult = (event: EventResult): boolean => {
+  const { result, record, strict } = event;
+
+  if (strict) {
+    return _.isEqual(record, result)
+  } else {
+    return _.isMatch(record, result)
+  }
+}
+
+const isExpectedEventAttribute = (
   value: string | number,
   data: string,
   isRange: boolean | undefined,
@@ -224,7 +252,7 @@ const updateEventResult = (
     const {
       event: { data, typeDef },
     } = record;
-    const { attributes } = event;
+    const { attributes, result } = event;
 
     if (attributes) {
       let keys: string[] = []
@@ -262,8 +290,10 @@ const updateEventResult = (
           }
         }
       });
-    } else {
-      event.ok = true;;
+    }
+
+    if (result) {
+      event.record = data.toHuman();
     }
   }
   return event;

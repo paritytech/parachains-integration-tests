@@ -71,6 +71,8 @@ export interface Event {
   remote: boolean; // indicates if its considered as a remote event (different chain context)
   timeout?: number; // overrides de default event listener timeout
   attributes?: Attribute[];
+  result?: object;
+  strict: boolean;
 }
 
 export interface EventData {
@@ -82,11 +84,11 @@ export interface EventData {
 }
 
 export interface EventResult extends Event {
-  // remote: boolean;
   received: boolean;
   ok: boolean;
   message: string;
   data: EventData[];
+  record?: any
 }
 
 export interface Attribute {
