@@ -108,15 +108,21 @@ export const extrinsicsBuilder = async (context, extrinsics: Extrinsic[]) => {
 
     addConsoleGroup(2);
 
+    let fail;
+
     eventsResult.forEach((event) => {
       console.log(event.message);
       try {
         chai.assert.equal(event.ok, true, event.message);
       } catch (e) {
-        addConsoleGroupEnd(4);
-        throw e;
+        fail = e;
       }
     });
+
+    if (fail) {
+      addConsoleGroupEnd(4);
+      throw fail
+    }
 
     addConsoleGroupEnd(2);
   }

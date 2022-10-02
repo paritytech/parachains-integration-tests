@@ -8,8 +8,12 @@ It can work alongside with [Zombienet](https://github.com/paritytech/zombienet) 
 Under the `./examples` folder, this repository contains integration tests for the _Common Good Parachains_. You can take them as examples of how to write tests with this tool.
 
 ## Set Up
+### Requirements
+`node v17.6.0` or higher.
+
+### Installation
 It can be installed to be run in two different ways:
-- Installing the npm package `@parity/parachains-integration-tests` globally
+- Installing the npm package globally
   ```
   yarn global add @parity/parachains-integration-tests
   ```
@@ -383,11 +387,36 @@ If the `chain` attribute is not defined, it means the event is expected to happp
 
 Default event listener timeout can be overriden by the `timeout` attribute.
 
-By setting `isRange: true` you are letting know to the tool that the expected value should be within the range defined in the `value` attribute. The expected `value`'s format is: `<lower_limit>..<upper_limit>`.
+There are two different and compatible ways (you can apply both at the same time) of checking if an event returns the expected values: comparing the "whole" `result`, or comparing by `atrributes`.
 
-In addition, a `threhold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expenting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher
+- `result`: When the event is defined in the _runtime_ as a _Tuple_, the event result is returned as an ordered _array_ of its elements. In case it is defined as a _Struct_, the event result is returned as an _object_.
 
-For obvious reason, `isRange` and `threshold` can not be used at the same time. These features are especially useful when checking variables that often changes such as `weights`.
+  E.g:
+  - Tuple
+    ```rust
+    Sent(MultiLocation, MultiLocation, Xcm<()>) // Event from 'pallet_xcm'
+    ```
+    ```yaml
+    result: [..., ..., ...] # order and indexes matters
+    ```
+  - Struct
+    ```rust
+    Transfer { from: T::AccountId, to: T::AccountId, amount: T::Balance } // Event from 'pallet_balances'
+    ```
+    ```yaml
+    result: { from: ..., to: ..., amount: ... }
+    ```
+
+  Setting `strict: false` allows to check if `result` is just contained in the event result instead of expecting a perfect match. For a _Tuple_ it means that the provided array is a subset (array items exist & order and index matter) of the event result array. For a _Struct_ it means that the provided object is also a subset (keys/values exist) of the event result object.
+- `attributes`: Event's attributes must be identified either by `type`, `key` or both. When the event is defined in the _runtime_ as a _Tuple_, the only way to identify the attributes is by their `type`. Be aware that in that case the order you declare the `attributes` in the test matters. That is because there could be multiple attributes with the same `type` in the _Tuple_. However, if the event is defined as a _Struct_, its attributes can be also identified by their `key`.
+
+  By setting `isRange: true` you are letting know to the tool that the expected value should be within the range defined in the `value` attribute. The expected `value`'s format is: `<lower_limit>..<upper_limit>`.
+
+  In addition, a `threhold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expenting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher.
+
+  For obvious reason, `isRange` and `threshold` can not be used at the same time. These features are especially useful when checking variables that often change such as _Weights_.
+
+  There is a especial treatment for the attribute type `XcmV2TraitsOutcome`. Only in that case, `xcmOutput` and `value` can be set to replace a event `result` with the format `{ outcome: { <xcmOutput>: <value> }}`. Valid `xcmOutput` are `Complete`, `Incomplete` and `Error`.
 
 Example:
 
@@ -431,26 +460,29 @@ tests: # Describe[]
               ]
               events: # Event[]
                 - name: sudo.Sudid
-                  attribute:
-                    type: Result<Null, SpRuntimeDispatchError>
-                    value: Ok
+                  attributes:
+                    - type: Result<Null, SpRuntimeDispatchError>
+                      key: sudoResult
+                      value: Ok
                 - name: xcmPallet.Sent
                 - name: dmpQueue.ExecutedDownward
                   chain: *parachain
-                  attribute:
-                    type: XcmV2TraitsOutcome
-                    isComplete: true
-                    threshold: [10, 20] # value can be 10% lower and 20% higher
-                    value: 2,000,000,000
+                  result: { outcome: { Complete: '2,000,000,000' }}
+                  strict: false
+                  attributes: # Attribute[]
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
+                      threshold: [10, 20] # value can be 10% lower and 20% higher
+                      value: 2,000,000,000
                 - name: polkadotXcm.Sent
                   chain: *parachain
                 - name: ump.ExecutedUpward
                   timeout: 40000
-                  attribute:
-                    type: XcmV2TraitsOutcome
-                    isComplete: true
-                    isRange: true
-                    value: 4,000,000..5,000,000 # value should be within 4,000,000..5,000,000
+                  attributes: # Attribute[]
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
+                      isRange: true
+                      value: 4,000,000..5,000,000 # value should be within 4,000,000..5,000,000
     ...
 ```
 
@@ -462,19 +494,28 @@ interface Event {
   name: string;
   remote: boolean; // indicates the event is considered as a remote (different chain context)
   timeout?: number; // overrides de default event listener timeout
-  attribute?: Attribute;
+  result?: object; // Either {..} or [..]
+  strict: boolean;
+  attributes?: Attribute[];
 }
 ```
 
 ```typescript
 interface Attribute {
-  type: string;
+  type?: string;
+  key?: string;
   isRange?: boolean; // indicates the value is a range
   threshold: [number, number]; // defines the percentages a value can vary
   value?: any;
-  isComplete?: boolean; // only for 'XcmV2TraitsOutcome' type
-  isIncomplete?: boolean; // only for 'XcmV2TraitsOutcome' type
-  isError?: boolean; // only for 'XcmV2TraitsOutcome' type
+  xcmOutcome?: XcmOutcome; // only for 'XcmV2TraitsOutcome' type
+}
+```
+
+```typescript
+export enum XcmOutcome {
+  Complete = 'Complete',
+  Incomplete = 'Incomplete',
+  Error = 'Error'
 }
 ```
 
