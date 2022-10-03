@@ -95,7 +95,7 @@ const spawnTests = (options) => {
 program
   .name('parachains-integrations-tests')
   .description('Tool for testing integration between Parachains')
-  .version(pjson);
+  .version(pjson.version);
 
 program
   .addOption(
