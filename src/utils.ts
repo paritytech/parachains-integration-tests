@@ -3,7 +3,7 @@ import glob from 'glob';
 import fs from 'fs';
 import traverse from 'traverse';
 import { resolve, dirname } from 'path';
-import { u8aToHex, compactAddLength } from '@polkadot/util';
+import { u8aToHex, compactAddLength, compactStripLength } from '@polkadot/util';
 import { Keyring } from '@polkadot/api';
 import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
 import {
@@ -44,14 +44,35 @@ export const getTestFiles = (path): TestFile[] => {
   }
 };
 
+/**
+ * @name stripUpperByte
+ * @summary Strips upper byte
+ */
+export const stripUpperByte = (value: Uint8Array): Uint8Array  => {
+  return value.slice(1);
+}
+
+/**
+ * @name stripEncodingDetails
+ * @summary Strips encoded details 
+ * @description
+ * Strips encoded details which contains the compact length of the following bytes and 1 byte with
+ * a signed or non-signed flag (1 bit) and a protocol version number (7 bits).
+ * @param extrinsic encoded extrinsic with an encoding details
+ * @returns encoded extrinsic without an encoding details
+ */
+export const stripEncodingDetails = (extrinsic: Uint8Array): Uint8Array  => {
+  return stripUpperByte(compactStripLength(extrinsic)[1]);
+}
+
 export const buildEncodedCall = (context, decodedCall: Extrinsic) => {
   let dispatchable = buildDispatchable(context, decodedCall);
-  return u8aToHex(compactAddLength(dispatchable.toU8a().slice(2)));
+  return u8aToHex(compactAddLength(stripEncodingDetails(dispatchable.toU8a())));
 };
 
 export const buildEncodedCallHex = (context, decodedCall: Extrinsic) => {
   let dispatchable = buildDispatchable(context, decodedCall);
-  return u8aToHex(dispatchable.toU8a().slice(2));
+  return u8aToHex(stripEncodingDetails(dispatchable.toU8a()));
 };
 
 export const buildDispatchable = (context, extrinsic: Extrinsic) => {
