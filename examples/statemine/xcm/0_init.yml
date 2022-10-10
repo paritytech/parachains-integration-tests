@@ -63,6 +63,7 @@ tests:
                   attributes:
                     - type: u32
                       value: *xcm_version
+                      
           - extrinsics: # Relay Chain sets supported version for Penpal Parachain
             - chain: *relay_chain
               sudo: true
