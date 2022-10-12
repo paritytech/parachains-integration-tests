@@ -27,7 +27,7 @@ settings:
       ]
 
 tests:
-  - name: Teleport assets successful 
+  - name: Teleport assets from Relay Chain to Collectives Parachain successful
     its:
       - name: Teleport assets from Relay Chain to Collectives Parachain
         actions:
@@ -64,16 +64,18 @@ tests:
                   chain: *collectives_parachain
                   attributes:
                     - type: u128
-                      # TODO Flaky assert since sent assets used to pay a fee
+                      # TODO (P2)
+                      # Flaky assert since sent assets used to pay a fee
+                      # query and assert Alice balance before and after teleport (see example in kick_member test)
+                      # drop this event assert
                       value: 19999996480626 # amount received
                 - name: dmpQueue.ExecutedDownward
                   chain: *collectives_parachain
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
-                      value: 4,000,000,000 # weight
-              # TODO (P2) assert Alice balance before and after teleport (see example in kick_member test)
-
+  - name: Teleport assets from Collectives Parachain to Relay Chain successful
+    its:
       - name: Teleport assets from Collectives Parachain to Relay Chain
         actions:
           - extrinsics:
@@ -114,7 +116,7 @@ tests:
                   attributes:
                     - type: u128
                       key: amount
-                      value: 10000000000000 # amount received
+                      value: 10000000000000 # amount received and withdrawn from registry account
                 - name: ump.ExecutedUpward
                   chain: *relay_chain
                   attributes:
