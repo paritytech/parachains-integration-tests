@@ -106,6 +106,11 @@ tests:
                 - name: xcmPallet.Sent
                 - name: alliance.MembersInitialized
                   chain: *collectives_parachain
+                - name: dmpQueue.ExecutedDownward
+                  chain: *collectives_parachain
+                  attributes:
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
       
       - name: Alliance init call fails.
         actions:
@@ -132,7 +137,8 @@ tests:
               events:
                 # TODO can not currently assert variant AllianceAlreadyInitialized, XCM Transact fails silently
                 # issue - https://github.com/paritytech/polkadot/issues/4623
-                # Next disband call will fail, if this extrinsic will succeed because of the wrong witness data
+                # Next test with a disband call will fail, if this call does not fail,
+                # since a witness data from a disband call will be invalid.
                 - name: sudo.Sudid
                   attributes:
                     - type: Result<Null, SpRuntimeDispatchError>
@@ -186,6 +192,11 @@ tests:
                     - type: u32
                       key: unreserved
                       value: 0
+                - name: dmpQueue.ExecutedDownward
+                  chain: *collectives_parachain
+                  attributes:
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
       - name: Alliance initiated, founders and fellows are set.
         actions:
           - extrinsics:
@@ -216,4 +227,9 @@ tests:
                 - name: xcmPallet.Sent
                 - name: alliance.MembersInitialized
                   chain: *collectives_parachain
+                - name: dmpQueue.ExecutedDownward
+                  chain: *collectives_parachain
+                  attributes:
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
 
