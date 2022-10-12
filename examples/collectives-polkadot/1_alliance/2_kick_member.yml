@@ -44,6 +44,15 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                - name: balances.Deposit
+                  chain: *collectives_parachain
+                  attributes:
+                    - type: AccountId32
+                      key: who
+                      value: *acc_alice_ss58
+                    - type: u128
+                      key: amount
+                      value: 20,000,000,000,000
                 - name: dmpQueue.ExecutedDownward
                   chain: *collectives_parachain
                   attributes:
@@ -72,6 +81,15 @@ tests:
               call: joinAlliance
               args: []
               events:
+                - name: balances.Reserved
+                  chain: *collectives_parachain
+                  attributes:
+                    - type: AccountId32
+                      key: who
+                      value: *acc_alice_ss58
+                    - type: u128
+                      key: amount
+                      value: 10,000,000,000,000
                 - name: alliance.NewAllyJoined
                   attributes:
                     - type: AccountId32
@@ -93,6 +111,7 @@ tests:
                       before: $balance_cp_alice_before,
                       after: $balance_cp_alice_after,
                     }
+                    # TODO (P3) set `amount` and `fee` for more strict assert
                   }
                 ]
       - name: Kick Alice from alliance
@@ -129,6 +148,12 @@ tests:
                     - type: AccountId32
                       key: member
                       value: *acc_alice_ss58
+                - name: dmpQueue.ExecutedDownward
+                  chain: *collectives_parachain
+                  attributes:
+                    - type: XcmV2TraitsOutcome
+                      xcmOutcome: Complete
+
           - queries:
               balance_rc_treasury_after:
                 chain: *relay_chain
@@ -145,5 +170,6 @@ tests:
                       before: $balance_rc_treasury_before,
                       after: $balance_rc_treasury_after,
                     }
+                    # TODO (P3) set `amount` and `fee` for more strict assert
                   }
                 ]

@@ -12,7 +12,7 @@ settings:
       accounts:
         alice_signer: &alice_signer //Alice
         alice_account32: &alice_acc32 '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
-        alice_ss58: &alice_ss58 '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
+        alice_ss58: &acc_alice_ss58 '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5'
   decodedCalls:
     ap_force_xcm_version:
       chain: *collectives_parachain
@@ -42,8 +42,8 @@ tests:
                 { 
                   v1: [ 
                     # { 
-                    #   # TODO use a separate Assets to pay a fee, to receive the exact amount of assets.
-                    #   # TODO call with two assets fails with an error right now.
+                    #   # TODO use a separate Assets to pay a fee, to receive an exact amount of assets on beneficiary account.
+                    #   # a call with two assets fails with an error right now.
                     #   id: { concrete: { 0, interior: { here: true }}}, 
                     #   fun: { fungible: 1000000000000 } # 1_000_000_000_000 
                     # },
@@ -60,10 +60,11 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
-                - name: balances.Deposit # TODO Flaky test since sent assets used to pay a fee
+                - name: balances.Deposit
                   chain: *collectives_parachain
                   attributes:
                     - type: u128
+                      # TODO Flaky assert since sent assets used to pay a fee
                       value: 19999996480626 # amount received
                 - name: dmpQueue.ExecutedDownward
                   chain: *collectives_parachain
@@ -71,7 +72,7 @@ tests:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
                       value: 4,000,000,000 # weight
-              # TODO assert Alice balance before and after
+              # TODO (P2) assert Alice balance before and after teleport (see example in kick_member test)
 
       - name: Teleport assets from Collectives Parachain to Relay Chain
         actions:
@@ -94,9 +95,16 @@ tests:
                 0, # feeAssetItem
               ]
               events: 
-                # TODO assert balance.Deposit event
+                # TODO assert balance.Deposit event on relay chain
                 # not possible now / issue - https://github.com/paritytech/parachains-integration-tests/issues/58
-
+                - name: balances.Withdraw
+                  attributes:
+                    - type: AccountId32
+                      key: who
+                      value: *acc_alice_ss58
+                    - type: u128
+                      key: amount
+                      value: 10000000000000
                 - name: polkadotXcm.Attempted
                   attributes:
                     - type: XcmV2TraitsOutcome
@@ -112,4 +120,6 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
-              # TODO assert Alice balance before and after
+              # TODO (P2) assert Alice balance before and after teleport (see example in kick_member test)
+
+  #TODO (P1) test: teleport of non relay chain assets fails
