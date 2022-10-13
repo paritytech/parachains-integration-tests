@@ -91,3 +91,5 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      # the weight must be static
+                      value: 2,000,000,000

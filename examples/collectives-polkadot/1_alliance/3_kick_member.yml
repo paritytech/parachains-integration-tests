@@ -8,6 +8,8 @@ settings:
       paraId: &cp_id 1001
   variables:
     init_teleport_amount: &init_teleport_amount 20000000000000 # 20_000_000_000_000
+    weight_to_send_teleport: &weight_to_send_teleport 2,000,000,000 # must be same for both chains
+    weight_to_receive_teleport: &weight_to_receive_teleport 4,000,000,000 # must be same for both chains
     accounts:
       alice_signer: &acc_alice_signer //Alice
       treasury_account32: &acc_treasury_acc32 '0x6d6f646c70792f74727372790000000000000000000000000000000000000000'
@@ -44,6 +46,7 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      value: *weight_to_send_teleport
                 - name: balances.Deposit
                   chain: *collectives_parachain
                   attributes:
@@ -58,6 +61,8 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      # must be static
+                      value: *weight_to_receive_teleport
       - name: Get the balances of the Relay Chain's treasury & Collectives parachain's future alliance member
         actions:
           - queries:
@@ -153,6 +158,8 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      # must be static
+                      value: *weight_to_send_teleport
 
           - queries:
               balance_rc_treasury_after:

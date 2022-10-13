@@ -7,7 +7,6 @@ settings:
       wsPort: 9710
       paraId: &coll_para_id 1001
   variables:
-    init_teleport_amount: &init_teleport_amount 20000000000000 # 20_000_000_000_000
     accounts:
       alice_signer: &acc_alice_signer //Alice
       alice_account32: &acc_alice_acc32 "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"
@@ -74,7 +73,7 @@ settings:
       ]
 
 tests:
-  - name: Alliance initiated with the root call, second init call fails.
+  - name: Alliance initiated with the root call, second init call fails. Alliance disband and set again.
     its:
       - name: Alliance initiated, founders and fellows are set.
         actions:
@@ -111,6 +110,8 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      # we don't know how much weight will be spent for custom call within Transact operation
+                      # value: skipping the assertion 
       
       - name: Alliance init call fails.
         actions:
@@ -149,10 +150,10 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
-                  
-  - name: Alliance disbanded and initialized again.
-    its:
-      - name: Disband
+                      # the call must fail, the weight spent is static
+                      value: 2,000,000,000
+
+      - name: Alliance disbanded and initialized again.
         actions:
           - extrinsics:
             - chain: *relay_chain
@@ -197,6 +198,8 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      # we don't know how much weight will be spent for custom call within Transact operation
+                      # value: skipping the assertion 
       - name: Alliance initiated, founders and fellows are set.
         actions:
           - extrinsics:
@@ -232,4 +235,6 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      # we don't know how much weight will be spent for custom call within Transact operation
+                      # value: skipping the assertion 
 

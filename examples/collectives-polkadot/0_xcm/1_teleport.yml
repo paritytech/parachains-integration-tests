@@ -8,6 +8,8 @@ settings:
       paraId: &cp_id 1001
   variables:
     xcm_version: &xcm_version '2'
+    weight_to_send_teleport: &weight_to_send_teleport 2,000,000,000 # must be same for both chains
+    weight_to_receive_teleport: &weight_to_receive_teleport 4,000,000,000 # must be same for both chains
     chains:
       accounts:
         alice_signer: &alice_signer //Alice
@@ -49,7 +51,7 @@ tests:
                     # },
                     { 
                       id: { concrete: { 0, interior: { here: true }}}, 
-                      fun: { fungible: 20000000000000 } # 20_000_000_000_000 
+                      fun: { fungible: 20000000000000 } # 20_000_000_000_000
                     }
                   ] 
                 }, # assets
@@ -57,9 +59,12 @@ tests:
               ]
               events:
                 - name: xcmPallet.Attempted
+                  chain: *relay_chain
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      # the weight must be static
+                      value: *weight_to_send_teleport
                 - name: balances.Deposit
                   chain: *collectives_parachain
                   attributes:
@@ -68,15 +73,16 @@ tests:
                       # Flaky assert since sent assets used to pay a fee
                       # query and assert Alice balance before and after teleport (see example in kick_member test)
                       # drop this event assert
-                      value: 19999996480626 # amount received
+                      value: 19,999,953,648,988 # amount received
                 - name: dmpQueue.ExecutedDownward
                   chain: *collectives_parachain
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
-  - name: Teleport assets from Collectives Parachain to Relay Chain successful
-    its:
-      - name: Teleport assets from Collectives Parachain to Relay Chain
+                      # the weight must be static
+                      value: *weight_to_receive_teleport
+
+      - name: Teleport assets from Collectives Parachain to Relay Chain successful
         actions:
           - extrinsics:
             - chain: *collectives_parachain
@@ -111,6 +117,8 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      # the weight must be static
+                      value: *weight_to_send_teleport
                 - name: balances.Withdraw
                   chain: *relay_chain
                   attributes:
@@ -122,6 +130,9 @@ tests:
                   attributes:
                     - type: XcmV2TraitsOutcome
                       xcmOutcome: Complete
+                      # the weight must be static
+                      value: *weight_to_receive_teleport
+
               # TODO (P2) assert Alice balance before and after teleport (see example in kick_member test)
 
   #TODO (P1) test: teleport of non relay chain assets fails
