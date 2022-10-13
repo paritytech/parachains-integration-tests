@@ -1,7 +1,7 @@
 [relaychain]
 default_command = "./bin/polkadot-0929"
 default_args = [ "-lparachain=trace", "-lxcm=trace" ]
-chain = "westend-local"
+chain = "polkadot-local"
 
     [[relaychain.nodes]]
     name = "alice"
