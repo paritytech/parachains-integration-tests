@@ -12,13 +12,14 @@ const run = async () => {
   let testsPath = process.env.TESTS_PATH;
   let testsConfig: TestFile[] = getTestFiles(testsPath);
   let testConfig: TestFile;
+  let providers = {};
 
   for (testConfig of testsConfig) {
     const { yaml, name } = testConfig;
 
     describe(`\n📂 ${name}`, async function () {
       beforeAddConsoleGroups(2);
-      beforeConnectToProviders(testConfig);
+      beforeConnectToProviders(testConfig, providers);
       beforeBuildEncodedCalls(yaml.settings.decodedCalls);
 
       for (const test of yaml.tests) {

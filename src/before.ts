@@ -29,7 +29,7 @@ const checkChains = (chains: {
   return chains;
 };
 
-export const beforeConnectToProviders = (testFile: TestFile) => {
+export const beforeConnectToProviders = (testFile: TestFile, providers) => {
   before(async function () {
     let timeout = process.env.TIMEOUT ? process.env.TIMEOUT : DEFAULT_TIMEOUT;
     this.timeout(timeout);
@@ -47,11 +47,15 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
     chains = checkChains(chains);
 
     for (let name in chains) {
-      console.log(`\n🔌 Connecting to '${name}'...\n`);
-      this.providers[chains[name].wsPort] = await connectToProviders(
-        chains[name]
-      );
-      await waitForChainToProduceBlocks(this.providers[chains[name].wsPort]);
+      if (!providers[chains[name].wsPort]) {
+        console.log(`\n🔌 Connecting to '${name}'...\n`);
+        this.providers[chains[name].wsPort] = await connectToProviders(
+          chains[name]
+        );
+        await waitForChainToProduceBlocks(this.providers[chains[name].wsPort]);
+      } else {
+        this.providers[chains[name].wsPort] = providers[chains[name].wsPort];
+      }
     }
   });
 };
