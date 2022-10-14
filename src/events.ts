@@ -118,6 +118,8 @@ const messageBuilder = (context, event: EventResult): string => {
         }
       });
     }
+  } else {
+    event.ok = false;
   }
 
   let isOk = event.ok ? '✅' : '❌';
@@ -158,7 +160,9 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
       let lastBlock = providers[chain.wsPort].lastBlock
 
       unsubscribe = await api.rpc.chain.subscribeNewHeads(async (header) => {
-        if (header.number.toHuman().replace(/,/g, '') > lastBlock) {
+        let CurrentBlock = header.number.toHuman().replace(/,/g, '')
+
+        if (BigInt(CurrentBlock) > BigInt(lastBlock)) {
           const blockHash = await api.rpc.chain.getBlockHash(header.number);
           const at = await api.at(blockHash);
           const events = await at.query.system.events();
