@@ -7,6 +7,7 @@ import {
   buildEncodedCallHex,
   getWallet,
   buildDispatchable,
+  sleep
 } from './utils';
 import { eventsHandler } from './events';
 
@@ -72,6 +73,8 @@ export const sendExtrinsic = async (
       checkExtrinsic(extrinsic, providers);
 
       const { chain, delay, signer, pallet, call, args, events } = extrinsic;
+
+      await sleep(delay ? delay : 0);
 
       let encodedCallHex = buildEncodedCallHex(context, extrinsic);
       let chainName = providers[chain.wsPort].name;
