@@ -302,7 +302,7 @@ const updateEventResult = (
 export const eventsHandler =
   (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) =>
   async ({ events = [], status }) => {
-    if (status.isReady) {
+    if (status.isInBlock) {
       try {
         for (let expectedEvent of expectedEvents) {
           checkEvent(expectedEvent);
