@@ -6,6 +6,7 @@ import {
   withinRange,
   withinThreshold,
   parseRange,
+  updateLastBlocks
 } from './utils';
 
 export const checkEvent = (event: Event) => {
@@ -117,6 +118,8 @@ const messageBuilder = (context, event: EventResult): string => {
         }
       });
     }
+  } else {
+    event.ok = false;
   }
 
   let isOk = event.ok ? '✅' : '❌';
@@ -148,22 +151,33 @@ const eventsResultsBuilder = (
 
 const eventLister = (context, event: EventResult): Promise<EventResult> => {
   return new Promise(async (resolve, reject) => {
+    let unsubscribe;
+
     try {
       const { providers } = context;
       const { name, chain, timeout } = event;
       let api = providers[chain.wsPort].api;
+      let lastBlock = providers[chain.wsPort].lastBlock
 
-      const unsubscribe = await api.query.system.events((events) => {
-        events.forEach((record) => {
-          const {
-            event: { method, section },
-          } = record;
+      unsubscribe = await api.rpc.chain.subscribeNewHeads(async (header) => {
+        let CurrentBlock = header.number.toHuman().replace(/,/g, '')
 
-          if (name === `${section}.${method}`) {
-            unsubscribe();
-            resolve(updateEventResult(true, record, event));
-          }
-        });
+        if (BigInt(CurrentBlock) > BigInt(lastBlock)) {
+          const blockHash = await api.rpc.chain.getBlockHash(header.number);
+          const at = await api.at(blockHash);
+          const events = await at.query.system.events();
+
+          events.forEach((record) => {
+            const {
+              event: { method, section },
+            } = record;
+
+            if (name === `${section}.${method}`) {
+              resolve(updateEventResult(true, record, event));
+              unsubscribe();
+            }
+          });
+        }
       });
 
       setTimeout(
@@ -176,6 +190,7 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
         timeout ? timeout : context.eventListenerTimeout
       );
     } catch (e) {
+      unsubscribe();
       addConsoleGroupEnd(2);
       reject(e);
     }
@@ -338,9 +353,12 @@ export const eventsHandler =
           let message = messageBuilder(context, result);
           return { ...result, message };
         });
+
+        await updateLastBlocks(context)
         resolve(finalEventsResults);
         return;
       } catch (e) {
+        await updateLastBlocks(context)
         addConsoleGroupEnd(2);
         reject(e);
       }
