@@ -3,6 +3,7 @@ import {
   addConsoleGroup,
   addConsoleGroupEnd,
   buildEncodedCall,
+  updateLastBlocks,
   waitForChainToProduceBlocks,
 } from './utils';
 import { connectToProviders } from './connection';
@@ -53,6 +54,8 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
       );
       await waitForChainToProduceBlocks(this.providers[chains[name].wsPort]);
     }
+
+    await updateLastBlocks(this)
   });
 };
 
