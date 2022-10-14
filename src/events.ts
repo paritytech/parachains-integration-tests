@@ -148,22 +148,31 @@ const eventsResultsBuilder = (
 
 const eventLister = (context, event: EventResult): Promise<EventResult> => {
   return new Promise(async (resolve, reject) => {
+    let unsubscribe;
+
     try {
       const { providers } = context;
       const { name, chain, timeout } = event;
       let api = providers[chain.wsPort].api;
+      let lastBlock = providers[chain.wsPort].lastBlock
 
-      const unsubscribe = await api.query.system.events((events) => {
-        events.forEach((record) => {
-          const {
-            event: { method, section },
-          } = record;
+      unsubscribe = await api.rpc.chain.subscribeNewHeads(async (header) => {
+        const blockHash = await api.rpc.chain.getBlockHash(header.number);
+        const at = await api.at(blockHash);
+        const events = await at.query.system.events();
 
-          if (name === `${section}.${method}`) {
-            unsubscribe();
-            resolve(updateEventResult(true, record, event));
-          }
-        });
+        if (header.number > lastBlock) {
+          events.forEach((record) => {
+            const {
+              event: { method, section },
+            } = record;
+
+            if (name === `${section}.${method}`) {
+              unsubscribe();
+              resolve(updateEventResult(true, record, event));
+            }
+          });
+        }
       });
 
       setTimeout(
@@ -176,6 +185,7 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
         timeout ? timeout : context.eventListenerTimeout
       );
     } catch (e) {
+      unsubscribe();
       addConsoleGroupEnd(2);
       reject(e);
     }
@@ -299,6 +309,15 @@ const updateEventResult = (
   return event;
 };
 
+const updateLastBlocks = async (context) => {
+  const { providers } = context;
+
+  for (const [chain, provider] of providers) {
+    const signedBlock = await provider.api.rpc.chain.getBlock();
+    providers[chain].lastBlock = signedBlock.block.header.number.replace(/,/g, '');
+  }
+}
+
 export const eventsHandler =
   (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) =>
   async ({ events = [], status }) => {
@@ -338,9 +357,12 @@ export const eventsHandler =
           let message = messageBuilder(context, result);
           return { ...result, message };
         });
+
+        await updateLastBlocks(context)
         resolve(finalEventsResults);
         return;
       } catch (e) {
+        await updateLastBlocks(context)
         addConsoleGroupEnd(2);
         reject(e);
       }
