@@ -1,14 +1,10 @@
 import { WsProvider, ApiPromise } from '@polkadot/api';
 import { ApiOptions } from '@polkadot/api/types';
-import { Chain } from './interfaces';
+import { Chain, ChainConfigs, Connection } from './interfaces';
 
 import { TypeRegistry } from '@polkadot/types';
-interface Configs {
-  chainName: string;
-  ss58Format: number;
-}
 
-export const getConfigs = async (apiPromise: ApiPromise): Promise<Configs> => {
+export const getConfigs = async (apiPromise: ApiPromise): Promise<ChainConfigs> => {
   const properties = apiPromise.registry.getChainProperties();
   const { ss58Format } = properties!;
   const systemChain = await apiPromise.rpc.system.chain();
@@ -35,7 +31,7 @@ export async function getApiConnection(connectionDetails: any) {
   return { api: apiPromise, isApiReady: true, configs };
 }
 
-export async function getConnections(chainsConnection) {
+export async function getConnections(chainsConnection): Promise<Connection> {
   const {
     configs: chainConfigs,
     api: chainApiPromise,
@@ -44,12 +40,13 @@ export async function getConnections(chainsConnection) {
 
   const chainName = chainConfigs.chainName;
 
-  let connection = {
+  let connection: Connection = {
     name: chainName,
     configs: chainConfigs,
     api: chainApiPromise,
     isApiReady: chainApiReady,
     subscriptions: {},
+    lastBlock: "0"
   };
 
   return connection;

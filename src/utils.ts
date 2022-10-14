@@ -174,6 +174,15 @@ export const waitForChainToProduceBlocks = async (provider): Promise<void> => {
   });
 };
 
+export const updateLastBlocks = async (context) => {
+  const { providers } = context;
+
+  for (const [chain, _] of Object.entries(providers)) {
+    const signedBlock = await providers[chain].api.rpc.chain.getBlock();
+    providers[chain].lastBlock = signedBlock.block.header.number.toHuman().replace(/,/g, '');
+  }
+}
+
 export const addConsoleGroup = (depth: number) => {
   for (let i = 0; i < depth; i++) {
     console.group();

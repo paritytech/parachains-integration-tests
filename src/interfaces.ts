@@ -134,6 +134,18 @@ export interface Chain {
   wsPort: number;
   ws?: string; // if undefined, it fallsback to the default value -> ws://localhost
 }
+export interface ChainConfigs {
+  chainName: string;
+  ss58Format: number;
+}
+export interface Connection {
+  name: string,
+  configs: ChainConfigs,
+  api: any,
+  isApiReady: boolean,
+  subscriptions: object,
+  lastBlock: string
+}
 export interface Settings {
   chains: { [key: string]: Chain };
   variables: { [key: string]: any };
