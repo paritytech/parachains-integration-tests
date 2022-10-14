@@ -161,7 +161,7 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
         const at = await api.at(blockHash);
         const events = await at.query.system.events();
 
-        if (header.number > lastBlock) {
+        if (header.number.replace(/,/g, '') > lastBlock) {
           events.forEach((record) => {
             const {
               event: { method, section },
