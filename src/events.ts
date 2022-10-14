@@ -6,6 +6,7 @@ import {
   withinRange,
   withinThreshold,
   parseRange,
+  updateLastBlocks
 } from './utils';
 
 export const checkEvent = (event: Event) => {
@@ -157,19 +158,19 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
       let lastBlock = providers[chain.wsPort].lastBlock
 
       unsubscribe = await api.rpc.chain.subscribeNewHeads(async (header) => {
-        const blockHash = await api.rpc.chain.getBlockHash(header.number);
-        const at = await api.at(blockHash);
-        const events = await at.query.system.events();
+        if (header.number.toHuman().replace(/,/g, '') > lastBlock) {
+          const blockHash = await api.rpc.chain.getBlockHash(header.number);
+          const at = await api.at(blockHash);
+          const events = await at.query.system.events();
 
-        if (header.number.replace(/,/g, '') > lastBlock) {
           events.forEach((record) => {
             const {
               event: { method, section },
             } = record;
 
             if (name === `${section}.${method}`) {
-              unsubscribe();
               resolve(updateEventResult(true, record, event));
+              unsubscribe();
             }
           });
         }
@@ -308,15 +309,6 @@ const updateEventResult = (
   }
   return event;
 };
-
-const updateLastBlocks = async (context) => {
-  const { providers } = context;
-
-  for (const [chain, provider] of providers) {
-    const signedBlock = await provider.api.rpc.chain.getBlock();
-    providers[chain].lastBlock = signedBlock.block.header.number.replace(/,/g, '');
-  }
-}
 
 export const eventsHandler =
   (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) =>
