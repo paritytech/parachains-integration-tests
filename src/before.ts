@@ -55,7 +55,7 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
       await waitForChainToProduceBlocks(this.providers[chains[name].wsPort]);
     }
 
-    await updateLastBlocks(this)
+    await updateLastBlocks(this);
   });
 };
 
