@@ -88,7 +88,7 @@ export interface EventResult extends Event {
   ok: boolean;
   message: string;
   data: EventData[];
-  record?: any
+  record?: any;
 }
 
 export interface Attribute {

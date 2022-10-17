@@ -54,7 +54,7 @@ export const stripUpperByte = (value: Uint8Array): Uint8Array  => {
 
 /**
  * @name stripEncodingDetails
- * @summary Strips encoded details 
+ * @summary Strips encoded details
  * @description
  * Strips encoded details which contains the compact length of the following bytes and 1 byte with
  * a signed or non-signed flag (1 bit) and a protocol version number (7 bits).
@@ -199,11 +199,14 @@ export const sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-export const adaptUnit = (value: string | number): string => {
-  if (typeof value === 'number') {
-    value = value.toLocaleString();
-  }
-  return value;
+export const adaptUnit = (value: any): any => {
+  let adapted = traverse(value).map(function (this, v) {
+    if (typeof v === 'number') {
+      this.update(v.toLocaleString());
+    }
+  })
+
+  return adapted;
 };
 
 export const parseRange = (value: string): Range => {
