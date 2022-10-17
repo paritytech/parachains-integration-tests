@@ -6,14 +6,14 @@ import {
   withinRange,
   withinThreshold,
   parseRange,
-  updateLastBlocks
+  updateLastBlocks,
 } from './utils';
 
 export const checkEvent = (event: Event) => {
   const { name, attributes } = event;
 
   if (attributes) {
-    attributes.forEach(attribute => {
+    attributes.forEach((attribute) => {
       if (name == undefined) {
         console.log(
           `\n⛔ ERROR: 'name' should be present for the following event:`,
@@ -64,20 +64,23 @@ const messageBuilder = (context, event: EventResult): string => {
     if (attributes) {
       attributes.forEach((attribute, i) => {
         try {
-          const { type, key, value, isRange, threshold, xcmOutcome } = attribute;
+          const { type, key, value, isRange, threshold, xcmOutcome } =
+            attribute;
 
           if (xcmOutcome) {
             let symbol = {
               [XcmOutcome.Complete]: '🟢',
               [XcmOutcome.Incomplete]: '🟠',
               [XcmOutcome.Error]: '🔴',
-              'undefined': ''
-            }
+              undefined: '',
+            };
 
             if (xcmOutcome === data[i].xcmOutcome) {
-              xcmOutcomeMessage = `\n\n   ✔️  Expected XCM outcome: ${symbol[xcmOutcome]} ${xcmOutcome}`
+              xcmOutcomeMessage = `\n\n   ✔️  Expected XCM outcome: ${symbol[xcmOutcome]} ${xcmOutcome}`;
             } else {
-              let dataXcmOutcome = data[i].xcmOutcome ? data[i].xcmOutcome : 'undefined';
+              let dataXcmOutcome = data[i].xcmOutcome
+                ? data[i].xcmOutcome
+                : 'undefined';
 
               if (dataXcmOutcome) {
                 xcmOutcomeMessage = `\n\n   ✖️  Expected XCM outcome: ${symbol[xcmOutcome]} ${xcmOutcome} | Received XCM outcome: ${symbol[dataXcmOutcome]} ${data[i].xcmOutcome}`;
@@ -88,8 +91,8 @@ const messageBuilder = (context, event: EventResult): string => {
 
           if (value) {
             let keyValue = key ? `${key}:` : '';
-            let typeValue = type ? `${type}` : ''
-            let gap = key && type ? ' ' : ''
+            let typeValue = type ? `${type}` : '';
+            let gap = key && type ? ' ' : '';
             let valueJson = JSON.stringify(value);
 
             if (!data[i]) {
@@ -97,7 +100,12 @@ const messageBuilder = (context, event: EventResult): string => {
               event.ok &&= false;
             } else {
               let dataJson = JSON.stringify(data[i].value);
-              let attributeOk = isExpectedEventAttribute(value, data[i].value, isRange, threshold);
+              let attributeOk = isExpectedEventAttribute(
+                value,
+                data[i].value,
+                isRange,
+                threshold
+              );
               event.ok &&= attributeOk;
 
               if (attributeOk) {
@@ -113,8 +121,8 @@ const messageBuilder = (context, event: EventResult): string => {
               }
             }
           }
-        } catch(e) {
-          console.log(e)
+        } catch (e) {
+          console.log(e);
         }
       });
     }
@@ -142,7 +150,7 @@ const eventsResultsBuilder = (
         ok: true,
         data: [],
         message: '',
-        strict: event.strict == undefined ? true : event.strict
+        strict: event.strict == undefined ? true : event.strict,
       },
     };
     return extendedEvent;
@@ -157,10 +165,10 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
       const { providers } = context;
       const { name, chain, timeout } = event;
       let api = providers[chain.wsPort].api;
-      let lastBlock = providers[chain.wsPort].lastBlock
+      let lastBlock = providers[chain.wsPort].lastBlock;
 
       unsubscribe = await api.rpc.chain.subscribeNewHeads(async (header) => {
-        let CurrentBlock = header.number.toHuman().replace(/,/g, '')
+        let CurrentBlock = header.number.toHuman().replace(/,/g, '');
 
         if (BigInt(CurrentBlock) > BigInt(lastBlock)) {
           const blockHash = await api.rpc.chain.getBlockHash(header.number);
@@ -201,11 +209,11 @@ const isExpectedEventResult = (event: EventResult): boolean => {
   const { result, record, strict } = event;
 
   if (strict) {
-    return _.isEqual(record, result)
+    return _.isEqual(record, result);
   } else {
-    return _.isMatch(record, result)
+    return _.isMatch(record, result);
   }
-}
+};
 
 const isExpectedEventAttribute = (
   value: string | number,
@@ -227,34 +235,29 @@ const isExpectedEventAttribute = (
   }
 };
 
-const eventDataBuilder = (
-  data: any,
-  typeDef: any,
-  key: string
-): EventData => {
-
+const eventDataBuilder = (data: any, typeDef: any, key: string): EventData => {
   let eventData: EventData = {
     type: typeDef.type,
     lookupName: typeDef.lookupName,
     key: key,
-    value: data
-  }
+    value: data,
+  };
 
   if (typeDef.lookupName === 'XcmV2TraitsOutcome') {
     if (data['Complete']) {
       eventData.xcmOutcome = XcmOutcome.Complete;
-      eventData.value = data['Complete']
+      eventData.value = data['Complete'];
     } else if (data['Incomplete']) {
       eventData.xcmOutcome = XcmOutcome.Incomplete;
-      eventData.value = data['Incomplete']
+      eventData.value = data['Incomplete'];
     } else if (data['Error']) {
       eventData.xcmOutcome = XcmOutcome.Error;
-      eventData.value = data['Error']
+      eventData.value = data['Error'];
     }
   }
 
-  return eventData
-}
+  return eventData;
+};
 
 const updateEventResult = (
   received: boolean,
@@ -270,8 +273,8 @@ const updateEventResult = (
     const { attributes, result } = event;
 
     if (attributes) {
-      let keys: string[] = []
-      let dataHuman = data.toHuman()
+      let keys: string[] = [];
+      let dataHuman = data.toHuman();
 
       if (
         typeof dataHuman === 'object' &&
@@ -282,24 +285,21 @@ const updateEventResult = (
       }
 
       data.forEach((dataItem, i) => {
-        let dataEvent = eventDataBuilder(dataItem.toHuman(), typeDef[i], keys[i])
+        let dataEvent = eventDataBuilder(
+          dataItem.toHuman(),
+          typeDef[i],
+          keys[i]
+        );
 
         for (let j = 0; j < attributes.length; j++) {
-          const {
-            type,
-            key,
-          } = attributes[j];
+          const { type, key } = attributes[j];
 
           let sameType =
-          type ===  dataEvent.type ||
-          type === dataEvent.lookupName;
+            type === dataEvent.type || type === dataEvent.lookupName;
 
           let sameKey = key === dataEvent.key;
 
-          if (
-            (!key && sameType) ||
-            (key && sameKey && sameType)
-          ) {
+          if ((!key && sameType) || (key && sameKey && sameType)) {
             event.data[j] = dataEvent;
             break;
           }
@@ -354,11 +354,11 @@ export const eventsHandler =
           return { ...result, message };
         });
 
-        await updateLastBlocks(context)
+        await updateLastBlocks(context);
         resolve(finalEventsResults);
         return;
       } catch (e) {
-        await updateLastBlocks(context)
+        await updateLastBlocks(context);
         addConsoleGroupEnd(2);
         reject(e);
       }
