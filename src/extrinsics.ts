@@ -7,7 +7,7 @@ import {
   buildEncodedCallHex,
   getWallet,
   buildDispatchable,
-  sleep
+  sleep,
 } from './utils';
 import { eventsHandler } from './events';
 
@@ -124,7 +124,7 @@ export const extrinsicsBuilder = async (context, extrinsics: Extrinsic[]) => {
 
     if (fail) {
       addConsoleGroupEnd(4);
-      throw fail
+      throw fail;
     }
 
     addConsoleGroupEnd(2);

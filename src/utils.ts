@@ -48,9 +48,9 @@ export const getTestFiles = (path): TestFile[] => {
  * @name stripUpperByte
  * @summary Strips upper byte
  */
-export const stripUpperByte = (value: Uint8Array): Uint8Array  => {
+export const stripUpperByte = (value: Uint8Array): Uint8Array => {
   return value.slice(1);
-}
+};
 
 /**
  * @name stripEncodingDetails
@@ -61,9 +61,9 @@ export const stripUpperByte = (value: Uint8Array): Uint8Array  => {
  * @param extrinsic encoded extrinsic with an encoding details
  * @returns encoded extrinsic without an encoding details
  */
-export const stripEncodingDetails = (extrinsic: Uint8Array): Uint8Array  => {
+export const stripEncodingDetails = (extrinsic: Uint8Array): Uint8Array => {
   return stripUpperByte(compactStripLength(extrinsic)[1]);
-}
+};
 
 export const buildEncodedCall = (context, decodedCall: Extrinsic) => {
   let dispatchable = buildDispatchable(context, decodedCall);
@@ -179,9 +179,11 @@ export const updateLastBlocks = async (context) => {
 
   for (const [chain, _] of Object.entries(providers)) {
     const signedBlock = await providers[chain].api.rpc.chain.getBlock();
-    providers[chain].lastBlock = signedBlock.block.header.number.toHuman().replace(/,/g, '');
+    providers[chain].lastBlock = signedBlock.block.header.number
+      .toHuman()
+      .replace(/,/g, '');
   }
-}
+};
 
 export const addConsoleGroup = (depth: number) => {
   for (let i = 0; i < depth; i++) {
@@ -204,7 +206,7 @@ export const adaptUnit = (value: any): any => {
     if (typeof v === 'number') {
       this.update(v.toLocaleString());
     }
-  })
+  });
 
   return adapted;
 };
@@ -232,11 +234,13 @@ export const withinRange = (value: string, data: string): boolean => {
 
   if (valid) {
     try {
-    let dataNumber = BigInt(data.replace(/,/g, ''));
-    return dataNumber >= lowerLimit && dataNumber <= upperLimit;
-    } catch(e) {
-      console.log(`\n⛔ ERROR: expected event value result to be a number, got '${data}'`);
-      return false
+      let dataNumber = BigInt(data.replace(/,/g, ''));
+      return dataNumber >= lowerLimit && dataNumber <= upperLimit;
+    } catch (e) {
+      console.log(
+        `\n⛔ ERROR: expected event value result to be a number, got '${data}'`
+      );
+      return false;
     }
   } else {
     console.log(`\n⛔ ERROR: invalid Range value format '${value}'`);
