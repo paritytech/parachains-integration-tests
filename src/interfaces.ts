@@ -88,7 +88,7 @@ export interface EventResult extends Event {
   ok: boolean;
   message: string;
   data: EventData[];
-  record?: any
+  record?: any;
 }
 
 export interface Attribute {
@@ -103,7 +103,7 @@ export interface Attribute {
 export enum XcmOutcome {
   Complete = 'Complete',
   Incomplete = 'Incomplete',
-  Error = 'Error'
+  Error = 'Error',
 }
 
 export interface It {
@@ -139,12 +139,12 @@ export interface ChainConfigs {
   ss58Format: number;
 }
 export interface Connection {
-  name: string,
-  configs: ChainConfigs,
-  api: any,
-  isApiReady: boolean,
-  subscriptions: object,
-  lastBlock: string
+  name: string;
+  configs: ChainConfigs;
+  api: any;
+  isApiReady: boolean;
+  subscriptions: object;
+  lastBlock: string;
 }
 export interface Settings {
   chains: { [key: string]: Chain };
