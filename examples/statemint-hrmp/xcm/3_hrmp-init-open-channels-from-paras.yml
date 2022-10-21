@@ -1,0 +1,293 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9800
+    assets_parachain: &assets_parachain
+      wsPort: 9810
+      paraId: &ap_id 1000
+    penpal_parachain_2000: &penpal_parachain_2000
+      wsPort: 9820
+      paraId: &pp_id_2000 2000
+    # penpal_parachain_2001: &penpal_parachain_2001
+    #   wsPort: 9830
+    #   paraId: &pp_id_2001 2001
+  variables:
+    common:
+      amount: &amount 2000000000000
+      require_weight_at_most: &weight_at_most 1000000000
+      hrmp_channels:
+        proposed_max_capacity: &max_capacity 8
+        proposed_max_message_size: &max_message_size 8192
+        channel: &channel {
+          maxCapacity: 8,
+          maxTotalSize: 8192,
+          maxMessageSize: 8192,
+          msgCount: 0,
+          totalSize: 0,
+          mqcHead: null,
+          senderDeposit: 0,
+          recipientDeposit: 0
+        }
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+        assets_parachain_destination: &ap_dest { v1: { 0, interior: { x1: { parachain: *ap_id }}}}
+        ksm: &rc_ksm { concrete: { 0, interior: { here: true }}}
+        ksm_fungible: &rc_ksm_fungible { id: *rc_ksm, fun: { fungible: *amount }}
+      assets_parachain_account:
+        sovereign_account: &ap_sovereign F7fq1jSNVTPfJmaHaXCMtatT1EZefCUsa7rRiQVNR5efcah
+        relay_chain_destination: &rc_dest { v1: { parents: 1, interior: { here: true }}}
+      penpal_parachain_2000:
+        sovereign_account: &pp_sovereign_2000 F7fq1jMZkfuCuoMTyiEVAP2DMpMt18WopgBqTJznLihLNbZ
+        sovereign_account_hex: &pp_sovereign_2000_hex "0x70617261d0070000000000000000000000000000000000000000000000000000"
+        signer: &pp_signer_2000 //Alice
+      # penpal_parachain_2001:
+      #   sovereign_account: &pp_sovereign_2001 F7fq1jMmNj5j2jAHcBxgM26JzUn2N4duXu1U4UZNdkfZEPV
+      #   sovereign_account_hex: &pp_sovereign_2001_hex 0x70617261d1070000000000000000000000000000000000000000000000000000
+      #   signer: &pp_signer_2001 //Alice
+  decodedCalls:
+    init_open_channel_with_ap:
+      chain: *relay_chain
+      pallet: hrmp
+      call: hrmpInitOpenChannel
+      args: [
+        *ap_id, # recipient
+        *max_capacity, # proposedMaxCapacity
+        *max_message_size # proposedMaxMessageSize
+      ]
+
+tests:
+  - name: HRMP
+    beforeEach:
+      - name: DEPENDANCY | Penpal Parachain 2000 Sovereign account in the Relay Chain needs to be funded
+        actions:
+          - extrinsics:
+            - chain: *relay_chain
+              signer: *rc_signer
+              pallet: balances
+              call: transfer
+              args: [
+                *pp_sovereign_2000, # destination
+                *amount, # value
+              ]
+              events:
+                - name: balances.Transfer
+
+      # - name: DEPENDANCY | Penpal Parachain 2001 Sovereign account in the Relay Chain needs to be funded
+      #   actions:
+      #     - extrinsics:
+      #       - chain: *relay_chain
+      #         signer: *rc_signer
+      #         pallet: balances
+      #         call: transfer
+      #         args: [
+      #           *pp_sovereign_2001, # destination
+      #           *amount, # value
+      #         ]
+      #         events:
+      #           - name: balances.Transfer
+
+      # - name: DEPENDANCY | Assets Parachain Sovereign account in the Relay Chain needs to be funded
+      #   actions:
+      #     - extrinsics:
+      #       - chain: *relay_chain
+      #         signer: *rc_signer
+      #         pallet: balances
+      #         call: transfer
+      #         args: [
+      #           *ap_sovereign, # destination
+      #           *amount, # value
+      #         ]
+      #         events:
+      #           - name: balances.Transfer
+    describes:
+      - name: hrmp.hrmpInitOpenChannel (Penpal Parachain 2000 → Assets Parachain)
+        its:
+          - name: Penpal Parachain 2000 sends a request to the Relay Chain to open a channel with the Assets Parchain
+            actions:
+              - extrinsics:
+                - chain: *penpal_parachain_2000
+                  signer: *pp_signer_2000
+                  sudo: true
+                  pallet: polkadotXcm
+                  call: send
+                  args: [
+                    *rc_dest, # destination
+                    {
+                      v2: [ #message
+                        {
+                          WithdrawAsset: [*rc_ksm_fungible]
+                        },
+                        {
+                          BuyExecution: {
+                              fees: *rc_ksm_fungible,
+                              weightLimit: Unlimited
+                          }
+                        },
+                        {
+                          Transact: {
+                            originType: Native,
+                            requireWeightAtMost: *weight_at_most,
+                            call: $init_open_channel_with_ap
+                          }
+                        },
+                        RefundSurplus,
+                        {
+                          DepositAsset: {
+                            assets: {
+                              Wild: {
+                                AllOf: {
+                                  id: {
+                                    Concrete: {
+                                      parents: 0,
+                                      interior: Here
+                                    }
+                                  },
+                                  fun: Fungible
+                                }
+                              }
+                            },
+                            maxAssets: 1,
+                            beneficiary: {
+                              parents: 0,
+                              interior: {
+                                X1: {
+                                  AccountId32: {
+                                    network: Any,
+                                    id: *pp_sovereign_2000_hex
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                  events:
+                    - name: sudo.Sudid
+                      attributes:
+                        - type: Result<Null, SpRuntimeDispatchError>
+                          value: Ok
+                    - name: polkadotXcm.Sent
+                    - name: ump.ExecutedUpward
+                      chain: *relay_chain
+                      attributes:
+                        - type: XcmV2TraitsOutcome
+                          xcmOutcome: Complete
+                          value: 6,000,000,000
+                    - name: hrmp.OpenChannelRequested
+                      chain: *relay_chain
+              - queries:
+                  requested_channels:
+                    chain: *relay_chain
+                    pallet: hrmp
+                    call: hrmpOpenChannelRequestsList
+                    args: []
+              - asserts:
+                  equal:
+                    args: [
+                      $requested_channels,
+                      [
+                        {
+                          sender: *pp_id_2000,
+                          recipient: *ap_id
+                        }
+                      ]
+                    ]
+
+      # - name: hrmp.hrmpInitOpenChannel (Penpal Parachain 2001 → Assets Parachain)
+      #   its:
+      #     - name: Penpal Parachain 2001 sends a request to the Relay Chain to open a channel with the Assets Parchain
+      #       actions:
+      #         - extrinsics:
+      #           - chain: *penpal_parachain_2001
+      #             signer: *pp_signer_2001
+      #             sudo: true
+      #             pallet: polkadotXcm
+      #             call: send
+      #             args: [
+      #               *rc_dest, # destination
+      #               {
+      #                 v2: [ #message
+      #                   {
+      #                     WithdrawAsset: [*rc_ksm_fungible]
+      #                   },
+      #                   {
+      #                     BuyExecution: {
+      #                         fees: *rc_ksm_fungible,
+      #                         weightLimit: Unlimited
+      #                     }
+      #                   },
+      #                   {
+      #                     Transact: {
+      #                       originType: Native,
+      #                       requireWeightAtMost: *weight_at_most,
+      #                       call: $init_open_channel_with_ap
+      #                     }
+      #                   },
+      #                   RefundSurplus,
+      #                   {
+      #                     DepositAsset: {
+      #                       assets: {
+      #                         Wild: {
+      #                           AllOf: {
+      #                             id: {
+      #                               Concrete: {
+      #                                 parents: 0,
+      #                                 interior: Here
+      #                               }
+      #                             },
+      #                             fun: Fungible
+      #                           }
+      #                         }
+      #                       },
+      #                       maxAssets: 1,
+      #                       beneficiary: {
+      #                         parents: 0,
+      #                         interior: {
+      #                           X1: {
+      #                             AccountId32: {
+      #                               network: Any,
+      #                               id: *pp_sovereign_2001_hex
+      #                             }
+      #                           }
+      #                         }
+      #                       }
+      #                     }
+      #                   }
+      #                 ]
+      #               }
+      #             ]
+      #             events:
+      #               - name: sudo.Sudid
+      #                 attributes:
+      #                   - type: Result<Null, SpRuntimeDispatchError>
+      #                     value: Ok
+      #               - name: polkadotXcm.Sent
+      #               - name: ump.ExecutedUpward
+      #                 chain: *relay_chain
+      #                 attributes:
+      #                   - type: XcmV2TraitsOutcome
+      #                     xcmOutcome: Complete
+      #                     value: 4,000,000,000
+      #               - name: hrmp.OpenChannelRequested
+      #                 chain: *relay_chain
+      #         - queries:
+      #             requested_channels:
+      #               chain: *relay_chain
+      #               pallet: hrmp
+      #               call: hrmpOpenChannelRequestsList
+      #               args: []
+      #         - asserts:
+      #             equal:
+      #               args: [
+      #                 $requested_channels,
+      #                 [
+      #                   {
+      #                     sender: *pp_id_2001,
+      #                     recipient: *ap_id
+      #                   }
+      #                 ]
+      #               ]
