@@ -11,8 +11,8 @@ settings:
       paraId: &pp_id 2000
   variables:
     common:
-      amount: &amount 20,000,000,000
-      require_weight_at_most: &weight_at_most 1,000,000,000
+      amount: &amount 20000000000
+      require_weight_at_most: &weight_at_most 1000000000
       hrmp_channels:
         proposed_max_capacity: &max_capacity 8
         proposed_max_message_size: &max_message_size 8192
@@ -48,6 +48,13 @@ settings:
       args: [
         2021
       ]
+    accept_init_open_request_from_2030:
+      chain: *relay_chain
+      pallet: hrmp
+      call: hrmpAcceptOpenChannel
+      args: [
+        2030
+      ]
     accept_init_open_request_from_2031:
       chain: *relay_chain
       pallet: hrmp
@@ -82,6 +89,15 @@ settings:
       call: hrmpInitOpenChannel
       args: [
         2021, # recipient
+        1000, # proposedMaxCapacity
+        102400 # proposedMaxMessageSize
+      ]
+    init_open_channel_with_2030:
+      chain: *relay_chain
+      pallet: hrmp
+      call: hrmpInitOpenChannel
+      args: [
+        2030, # recipient
         1000, # proposedMaxCapacity
         102400 # proposedMaxMessageSize
       ]
@@ -121,9 +137,8 @@ settings:
         1000, # proposedMaxCapacity
         102400 # proposedMaxMessageSize
       ]
-
     ###########################
-    # To Polkadot -> Refrendum
+    # In Polkadot -> Transact
     ###########################
     xcm_accept_init_open_request_from_cp:
       chain: *assets_parachain
@@ -147,6 +162,13 @@ settings:
                 originType: Native,
                 requireWeightAtMost: *weight_at_most,
                 call: $accept_init_open_request_from_2021
+              }
+            },
+            {
+              Transact: {
+                originType: Native,
+                requireWeightAtMost: *weight_at_most,
+                call: $accept_init_open_request_from_2030
               }
             },
             {
@@ -182,6 +204,13 @@ settings:
                 originType: Native,
                 requireWeightAtMost: *weight_at_most,
                 call: $init_open_channel_with_2021
+              }
+            },
+            {
+              Transact: {
+                originType: Native,
+                requireWeightAtMost: *weight_at_most,
+                call: $init_open_channel_with_2030
               }
             },
             {
@@ -246,6 +275,43 @@ settings:
         }
       ]
 
+    #################################
+    # To Polkadot -> Transfer Balance
+    #################################
+    transfer_balance_to_ap:
+      encode: false
+      chain: *relay_chain
+      pallet: balances
+      call: forceTransfer
+      args: [
+        *treasury_addr,
+        *ap_sovereign,
+        1020000000000
+      ]
+
+    #################################
+    # In Polkadot -> Transact to AP
+    #################################
+    transact_to_ap:
+      encode: false
+      chain: *relay_chain
+      pallet: xcmPallet
+      call: send
+      args: [
+        *ap_dest,
+        {
+          V2: [
+            {
+              Transact: {
+                originType: Superuser,
+                requireWeightAtMost: *weight_at_most,
+                call: $xcm_accept_init_open_request_from_cp
+              }
+            }
+          ]
+        }
+      ]
+
 tests:
   - name: HRMP
     beforeEach:
@@ -257,13 +323,13 @@ tests:
               pallet: balances
               call: transfer
               args: [
-                *trasury_addr, # destination
-                "100,000,000,000,000", # value
+                *treasury_addr, # destination
+                100000000000000, # value
               ]
               events:
                 - name: balances.Transfer
     describes:
-      - name: hrmp.hrmpAcceptOpenChannel && hrmp.hrmpInitOpenChannel (Assets Parachain → Penpal Parachain)
+      - name: Polkadot referendum to accept and open HRMP channels from Statemint
         its:
           - name: Assets Parachain sends a response to the Relay Chain accepting the Penpal Parachain's request for openning a HRMP channel & requesting opening one with it
             actions:
@@ -271,62 +337,8 @@ tests:
                 - chain: *relay_chain
                   signer: *rc_signer
                   sudo: true
-                  pallet: xcmPallet
-                  call: send
+                  pallet: utility
+                  call: batchAll
                   args: [
-                    *ap_dest, # destination
-                    {
-                      v2: [ #message
-                        {
-                          Transact: {
-                            originType: Superuser,
-                            requireWeightAtMost: *weight_at_most,
-                            call: $xcm_accept_init_open_request_from_cp
-                          }
-                        }
-                      ]
-                    }
+                    [$transfer_balance_to_ap, $transact_to_ap]
                   ]
-                  events:
-                    - name: sudo.Sudid
-                      attributes:
-                        - type: Result<Null, SpRuntimeDispatchError>
-                          value: Ok
-                    - name: xcmPallet.Sent
-                    - name: dmpQueue.ExecutedDownward
-                      chain: *assets_parachain
-                      attributes:
-                        - type: XcmV2TraitsOutcome
-                          xcmOutcome: Complete
-                          threshold: [10, 10]
-                          value: 1,020,807,000
-                    - name: polkadotXcm.Sent
-                      chain: *assets_parachain
-                    - name: ump.ExecutedUpward
-                      timeout: 40000
-                      attributes:
-                        - type: XcmV2TraitsOutcome
-                          xcmOutcome: Complete
-                          value: 6,000,000,000
-                    - name: hrmp.OpenChannelAccepted
-                      timeout: 40000
-                    - name: hrmp.OpenChannelRequested
-                      timeout: 40000
-              - queries:
-                  open_channels:
-                    chain: *relay_chain
-                    pallet: hrmp
-                    call: hrmpChannels
-                    delay: 100000
-                    args: [
-                      {
-                        sender: *pp_id,
-                        recipient: *ap_id
-                      }
-                    ]
-              - asserts:
-                  equal:
-                    args: [
-                      $open_channels,
-                      *channel
-                    ]
