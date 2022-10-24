@@ -52,6 +52,7 @@ export interface Rpc {
 }
 
 export interface Call {
+  encode?: boolean; // Indicates if the Call should be encoded
   chain: Chain;
   sudo?: boolean; // if 'true', the call will be wrapped with 'sudo.sudo()'
   pallet: string;
