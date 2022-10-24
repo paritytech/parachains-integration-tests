@@ -2,7 +2,7 @@ require('dotenv').config();
 import { getTestFiles } from './utils';
 import {
   beforeConnectToProviders,
-  beforeBuildEncodedCalls,
+  beforeBuildDecodedCalls,
   beforeAddConsoleGroups,
 } from './before';
 import { TestFile } from './interfaces';
@@ -19,7 +19,7 @@ const run = async () => {
     describe(`\n📂 ${name}`, async function () {
       beforeAddConsoleGroups(2);
       beforeConnectToProviders(testConfig);
-      beforeBuildEncodedCalls(yaml.settings.decodedCalls);
+      beforeBuildDecodedCalls(yaml.settings.decodedCalls);
 
       for (const test of yaml.tests) {
         describersBuilder(test);
