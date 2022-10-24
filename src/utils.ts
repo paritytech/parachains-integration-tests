@@ -13,6 +13,7 @@ import {
   PaymentInfo,
   Range,
 } from './interfaces';
+import { KeyringPair } from '@polkadot/keyring/types';
 
 export const getTestFiles = (path): TestFile[] => {
   console.log(resolve(process.cwd(), path));
@@ -103,7 +104,15 @@ export const getPaymentInfoForExtrinsic = async (
   return await dispatchable.paymentInfo(wallet);
 };
 
-export const getWallet = async (uri) => {
+export const getWallet = async (
+  uri: string
+): Promise<
+  | KeyringPair
+  | {
+      address: any;
+      addressRaw: Uint8Array;
+    }
+> => {
   if (uri.substring(0, 2) === '//') {
     await cryptoWaitReady();
     const keyring = new Keyring({ type: 'sr25519' });

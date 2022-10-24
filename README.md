@@ -115,9 +115,9 @@ export interface TestsConfig {
 ### Settings
 - `chains`: connection values for all the different chains we want to connect to. Defining `wsPort` should be enough unless you want to override the default `ws` URL (ws://localhost).
 
-- `variables`: section that allows you to define your own variables following the schema that better suits your tests logic. 
+- `variables`: section that allows you to define your own variables following the schema that better suits your tests logic.
 
-- `decodedCalls`: declaration of the different calls you want to calculate their econded call hex value. Each result is stored in a variable that will become available in the rest of the file ONLY after its declaration. The way to access those variables is appending a `$` symbol to the defined `decodedCalls` key. For instance, in the following example, the encoded call result for `my_call_id` will be accesible from `$my_call_id`
+- `decodedCalls`: declaration of the different calls you want to calculate their econded call hex value or use them inside a `batch` call. Each result is stored in a variable that will become available in the rest of the file ONLY after its declaration. The way to access those variables is appending a `$` symbol to the defined `decodedCalls` key. For instance, in the following example, the encoded call result for `my_call_id` will be accesible from `$my_call_id`. If you want to use the call inside a `batch` call, the attributte `encode: false` should be added. That attribute indicates if the call should be encoded or if it should be treated as `Submittable` Polkadot JS object.
 
 Example:
 ```yaml
@@ -142,6 +142,12 @@ settings: # Settings
   decodedCalls:
     my_call_id:
         chain: *relay_chain
+        pallet: system
+        call: remark
+        args: [ *my_variable ]
+    my_call_id:
+        chain: *relay_chain
+        encode: false # Indicates the call will not be encoded and used as Submittable
         pallet: system
         call: remark
         args: [ *my_variable ]
@@ -322,6 +328,7 @@ settings:
     relay_chain:
       signer: &signer //Alice
       parachain_destination: &dest { v1: { 0, interior: { x1: { parachain: *id }}}}
+      my_variable: &my_variable 0x0011
 
   decodedCalls:
     force_create_asset:
@@ -336,6 +343,12 @@ settings:
         true, # isSufficient
         1000 # minBalance
       ]
+    to_be_batched:
+      chain: *relay_chain
+      encode: false # Indicates the call will not be encoded and used as Submittable instead
+      pallet: system
+      call: remark
+      args: [ *my_variable ]
 
 tests: # Describe[]
   - name: My Describe
@@ -363,6 +376,13 @@ tests: # Describe[]
                 }
               ]
               events: [...]
+             - chain: *relay_chain # Chain
+                signer: *signer
+                pallet: utility
+                call: batchAll
+                args: [
+                  [$to_be_batched]
+                ]
     ...
 ```
 
@@ -370,6 +390,7 @@ Interfaces:
 
 ```typescript
 interface Call {
+  encode?: boolean; // Indicates if the Call should be encoded
   chain: Chain;
   sudo?: boolean; // if 'true', the call will be wrapped with 'sudo.sudo()'
   pallet: string;

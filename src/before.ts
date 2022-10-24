@@ -3,6 +3,7 @@ import {
   addConsoleGroup,
   addConsoleGroupEnd,
   buildEncodedCall,
+  buildEncodedCallHex,
   updateLastBlocks,
   waitForChainToProduceBlocks,
 } from './utils';
@@ -59,19 +60,26 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
   });
 };
 
-export const beforeBuildEncodedCalls = (decodedCalls) => {
+export const beforeBuildDecodedCalls = (decodedCalls) => {
   before(async function () {
-    this.variables = {};
     if (decodedCalls) {
+      this.variables = {};
       Object.keys(decodedCalls).forEach((key) => {
         if (!this.variables[`\$${key}`]) {
-          this.variables[`\$${key}`] = buildEncodedCall(
-            this,
-            decodedCalls[key]
-          );
+          if (decodedCalls[key].encode === false) {
+            this.variables[`\$${key}`] = buildEncodedCallHex(
+              this,
+              decodedCalls[key]
+            );
+          } else {
+            this.variables[`\$${key}`] = buildEncodedCall(
+              this,
+              decodedCalls[key]
+            );
+          }
         } else {
           console.log(
-            `\n⛔ ERROR: the key $'${key}' can not be reassigned for encoding calls`
+            `\n⛔ ERROR: the key $'${key}' can not be reassigned for decoded calls`
           );
           process.exit(1);
         }
