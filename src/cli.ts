@@ -92,6 +92,29 @@ const spawnTests = (options) => {
   );
 };
 
+const spawnChecker = (options) => {
+  let runnerExtension = 'js';
+  runnerExtension = options.env === 'dev' ? 'ts' : runnerExtension;
+
+  p['checker'] = spawn(
+    'ts-node',
+    [`${__dirname}/checker.${runnerExtension}`],
+    {
+      stdio: 'inherit',
+      detached: false,
+      env: {
+        ...process.env,
+        // TS_NODE_COMPILER_OPTIONS: '{"module": "commonjs" }',
+        TESTS_PATH: options.tests,
+        // TIMEOUT: options.timeout,
+        // EVENT_LISTENER_TIMEOUT: options.eventListenerTimeout,
+        // QUERY_DELAY: options.actionDelay,
+        ENV: options.env,
+      },
+    }
+  )
+}
+
 program
   .name('parachains-integrations-tests')
   .description('Tool for testing integration between Parachains')
@@ -111,6 +134,7 @@ program
         'zombienet-test',
         'polkadot-launch',
         'polkadot-launch-test',
+        'checker'
       ])
       .makeOptionMandatory()
   )
@@ -199,6 +223,12 @@ if (options.mode === 'zombienet-test') {
   );
   program.parse(process.argv);
   spawnTests(options);
+} else if (options.mode === 'checker') {
+  program.addOption(
+    new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
+  );
+  program.parse(process.argv);
+  spawnChecker(options);
 }
 
 process.on('exit', function () {
