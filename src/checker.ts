@@ -12,8 +12,18 @@ import { CheckerError, TestFile } from './interfaces';
 // import { describersBuilder } from './descriptor';
 import { Describe } from './interfaces';
 
-const formatLine = ({line, col}): string => {
-  return `\x1b[33mline ${line}:${col}\x1b[0m: `
+const formatLine = (start, end?): string => {
+  const { line: lineStart, col: colStart } = start;
+  let errorEnd;
+
+  if (end) {
+    const { line: lineEnd, col: colEnd } = end;
+    errorEnd = `\x1b[33mline ${lineEnd}:${colEnd}\x1b[0m: `;
+  }
+
+  let errorStart = `\x1b[33mline ${lineStart}:${colStart}\x1b[0m`;
+
+  return `${errorStart}${errorEnd ? ` \x1b[33m-\x1b[0m ${errorEnd}` : ': '}`
 }
 
 const mapTypeInstanceToFormat = (instance: any, type: any): any => {
@@ -28,8 +38,8 @@ const mapTypeInstanceToFormat = (instance: any, type: any): any => {
 
 class Null {};
 
-const checkNode = (nodeName: string, node: YAMLMap, lineCounter: LineCounter): string => {
-  let message = '';
+const checkNode = (nodeName: string, node: YAMLMap, lineCounter: LineCounter): Array<string> => {
+  let message: Array<string> = []
 
   let shouldHave = [
     { name: 'name', instance: Null, type: 'string' },
@@ -49,8 +59,9 @@ const checkNode = (nodeName: string, node: YAMLMap, lineCounter: LineCounter): s
       console.log("Node",node)
       if (node.range) {
         // console.log("Line", lineCounter.linePos(node.range[0]))
-        let errorLine = lineCounter.linePos(node.range[0])
-        message += `${formatLine(errorLine)}'${name}' attribute should be present for all '${nodeName}'\n`
+        let errorLineStart = lineCounter.linePos(node.range[0])
+        let errorLineEnd = lineCounter.linePos(node.range[2])
+        message.push(`${formatLine(errorLineStart, errorLineEnd)}'${name}' attribute should be present for '${nodeName}'`)
       }
     } else if (!(node.get(name) instanceof instance || typeof node.get(name) === type)) {
       console.log('GET ==', node.get(name, true))
@@ -58,7 +69,7 @@ const checkNode = (nodeName: string, node: YAMLMap, lineCounter: LineCounter): s
 
       if (attributeNode &&  attributeNode.range) {
         let errorLine = lineCounter.linePos(attributeNode.range[0])
-        message += `${formatLine(errorLine)}'${name}' attribute should be '${mapTypeInstanceToFormat(instance, type)}' type\n`
+        message.push(`${formatLine(errorLine)}'${name}' attribute should be '${mapTypeInstanceToFormat(instance, type)}' type for '${nodeName}'`)
       }
     }
   })
@@ -69,7 +80,7 @@ const checkNode = (nodeName: string, node: YAMLMap, lineCounter: LineCounter): s
         let attributeNode = node.get(name, true)
         if ( attributeNode &&  attributeNode.range) {
           let errorLine = lineCounter.linePos(attributeNode.range[0])
-          message += `${formatLine(errorLine)}'${name}' attribute should be '${mapTypeInstanceToFormat(instance, type)}' type\n`
+          message.push(`${formatLine(errorLine)}'${name}' attribute should be '${mapTypeInstanceToFormat(instance, type)}' type for '${nodeName}'`)
         }
       }
     }
@@ -110,10 +121,10 @@ const traverseDescribes = (describes: YAMLSeq) => {
 const printErrors = (errors: Array<CheckerError>) => {
   errors.forEach(({file, errors}) => {
     if (errors.length > 0) {
-      console.log(`${file}\n`)
+      console.log(`${file}`)
       addConsoleGroup(2)
       errors.forEach(error => {
-        console.log(error)
+        console.log(`\n${error}`)
       })
       addConsoleGroupEnd(2)
     }
@@ -139,7 +150,7 @@ const check = async () => {
       // beforeConnectToProviders(testConfig);
       // beforeBuildDecodedCalls(yaml.settings.decodedCalls);
 
-      let index = errors.push({ file: `\n${name}`, errors: [] });
+      let index = errors.push({ file: `\n\x1b[31m${name}\x1b[0m`, errors: [] });
 
       let tests = yaml2.get('tests')
       // console.log(tests)
@@ -150,7 +161,7 @@ const check = async () => {
         // console.log(tests.items)
         tests.items.forEach(describe => {
           console.log("Describe", describe)
-          errors[index - 1].errors.push(checkNode('describes', describe, lineCounter))
+          errors[index - 1].errors.push(...checkNode('describes', describe, lineCounter))
           if (describe.has('describes')) {
             console.log('has describe')
             console.log("Nested Describe", describe.get("describes"))
@@ -206,7 +217,7 @@ const check = async () => {
     // console.log(yaml2.get('tests').items[0].items)
     // console.log(stringify(yaml, { blockQuote: false,  nullStr: '~' }))
   }
-  // console.log(errors)
+  console.log(errors)
   printErrors(errors)
   // console.log('lalalal \x1b[33m Welcome to the app! \x1b[0m');
 
