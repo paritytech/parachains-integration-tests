@@ -1,4 +1,5 @@
 import YAML from 'yaml';
+import { Parser, CST, parseDocument } from 'yaml'
 import glob from 'glob';
 import fs from 'fs';
 import traverse from 'traverse';
@@ -35,8 +36,11 @@ export const getTestFiles = (path): TestFile[] => {
       let testDir = dirname(testPath);
 
       const file = fs.readFileSync(testFile, 'utf8');
+      // console.log(file)
       let yaml: TestsConfig = YAML.parse(file);
-      let test: TestFile = { name: testFile, dir: testDir, yaml };
+      // const [doc] = new Parser().parse(file)
+      const doc = parseDocument(file)
+      let test: TestFile = { name: testFile, dir: testDir, yaml, yaml2: doc, file };
       return test;
     }));
   } catch (e) {

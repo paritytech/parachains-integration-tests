@@ -2,6 +2,8 @@ export interface TestFile {
   name: string;
   dir: string;
   yaml: TestsConfig;
+  yaml2: any;
+  file: string;
 }
 export interface TestsConfig {
   settings: Settings;
@@ -162,4 +164,9 @@ export interface Range {
   valid: boolean;
   lowerLimit: BigInt;
   upperLimit: BigInt;
+}
+
+export interface CheckerError {
+  file: string;
+  errors: Array<string>;
 }
