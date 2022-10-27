@@ -110,7 +110,7 @@ tests:
                       attribute:
                         type: XcmV3TraitsOutcome
                         isComplete: true
-                        value: 1,037,996,000
+                        value: 2,000,000,000
               - queries:
                   forced_created_asset:
                     chain: *assets_parachain

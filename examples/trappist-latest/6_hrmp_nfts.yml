@@ -14,8 +14,7 @@ settings:
       paraId: &pp_id 3000
   variables:
     common:
-      amount: &amount 100000000000000
-      require_weight_at_most: &weight_at_most 1000000000
+      amount: &amount 10000000000000
       collection_id: &collection_id 2
       item_id: &item_id 69
     chains:
@@ -29,15 +28,21 @@ settings:
         penpal_parachain_dest_routed: &pp_dest_routed { v3: { parents: 1, interior: { x1: { parachain: *pp_id } }}}
       assets_parachain_account:
         signer: &ap_signer //Alice
+        signer_bob: &ap_bob_signer //Bob
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         bob_wallet: &ap_bob_wallet FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP
+        asset_id: &asset_id 1
+        assets_pallet_id: &assets_pallet_id 50
+        suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
+        suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *amount }}
       trappist_parachain:
         signer: &tp_signer //Alice
         wallet: &tp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        bob_signer: &tp_bob_signer //Bob
         bob_wallet: &tp_bob_wallet 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
         sovereign_account: &tp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
         trappist_parachain_account: &tp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
-        collection_id_routed: &collection_id_routed { parents: 1, interior: { x2: [ { parachain: *pp_id }, { GeneralIndex: *collection_id } ] }}
+        collection_id_routed: &collection_id_routed { parents: 1, interior: { x2: [ { parachain: *ap_id }, { GeneralIndex: *collection_id } ] }}
       penpal_parachain:
         signer: &pp_signer //Alice
         wallet: &pp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
@@ -47,25 +52,23 @@ settings:
 tests:
   - name: HRMP
     describes:
-      - name: Creating a Collections in Penpal Parachain and Trappist Parachain, .
+      - name: Creating a Collections in Assets Parachain and Trappist Parachain, .
         its:
-          - name: A Uniques Collection should exist in the Penpal Parachain
+          - name: A Uniques Collection should exist in the Assets Parachain
             actions:
               - extrinsics:
-                - chain: *penpal_parachain
-                  signer: *pp_signer
-                  sudo: true
+                - chain: *assets_parachain
+                  signer: *ap_signer
                   pallet: uniques
-                  call: forceCreate
+                  call: create
                   args: [
                     *collection_id,
-                    { id: *pp_wallet }, # owner
-                    false, # freeHolding
+                    { id: *ap_wallet }, # owner
                   ]
                   events:
-                    - name: uniques.ForceCreated
+                    - name: uniques.Created
 
-          - name: A "Foreign" Uniques Collection should exist in the Trappist Parachain (mirroring Penpal's)
+          - name: A "Foreign" Uniques Collection should exist in the Trappist Parachain (mirroring Assets's)
             actions:
               - extrinsics:
                 - chain: *trappist_parachain
@@ -81,11 +84,11 @@ tests:
                   events:
                     - name: foreignUniques.ForceCreated
 
-          - name: An NFT should be minted in Penpal for the Trappist Sovereign Account.
+          - name: An NFT should be minted in Assets for the Trappist Sovereign Account.
             actions:
               - extrinsics:
-                - chain: *penpal_parachain
-                  signer: *pp_signer
+                - chain: *assets_parachain
+                  signer: *ap_signer
                   pallet: uniques
                   call: mint
                   args: [
@@ -96,7 +99,22 @@ tests:
                   events:
                     - name: uniques.Issued
 
-          - name: Trappist Parachain should be able to reserve transfer an NFT from Penpal Parachain
+          - name: Transferring some assets to Trappist Sovereign Account to pay fees
+            actions:
+              - extrinsics:
+                - chain: *assets_parachain
+                  signer: *ap_bob_signer
+                  pallet: assets
+                  call: transfer
+                  args: [
+                    *asset_id,
+                    { id: *tp_sovereign_sibl },
+                    *amount,
+                  ]
+                  events:
+                    - name: assets.Transferred
+
+          - name: Trappist Parachain should be able to reserve transfer an NFT from Assets Parachain
             actions:
               - extrinsics:
                 - chain: *trappist_parachain
@@ -105,11 +123,12 @@ tests:
                   pallet: polkadotXcm
                   call: send
                   args: [
-                    *pp_dest_routed, # destination
+                    *ap_dest_routed, # destination
                     {
                       V3: [ #message
                         {
                           WithdrawAsset: [
+                            *ap_suff_asset_fungible,
                             {
                               id: {
                                 Concrete: {
@@ -126,9 +145,16 @@ tests:
                           ]
                         },
                         {
+                          BuyExecution: {
+                              fees: *ap_suff_asset_fungible,
+                              weightLimit: Unlimited
+                          }
+                        },
+                        { RefundSurplus: true },
+                        {
                           DepositReserveAsset: {
                             assets: {
-                              Wild: { AllCounted: 1 }
+                              Wild: All
                             },
                             dest: {
                               parents: 1,
@@ -142,7 +168,7 @@ tests:
                               {
                                 DepositAsset: {
                                   assets: {
-                                    Wild: { AllCounted: 1 }
+                                    Wild: All
                                   },
                                   beneficiary: {
                                     parents: 0,
@@ -165,8 +191,8 @@ tests:
                   ]
                   events:
                     - name: uniques.Burned
-                      chain: *penpal_parachain
+                      chain: *assets_parachain
                     - name: uniques.Issued
-                      chain: *penpal_parachain
+                      chain: *assets_parachain
                     - name: foreignUniques.Issued
                       chain: *trappist_parachain
