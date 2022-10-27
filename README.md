@@ -691,10 +691,10 @@ tests: # Describe[]
       - name: Should reduce the balance of the sender
         actions: # Action[]
           - asserts: # { [key: string]: AssertOrCustom }
-              custom:
+              customs:
                 path: ./asserts/checkSenderBalances.ts
-                args: 
-                  { 
+                args:
+                  {
                     balances: {
                       before: $balance_rc_sender_before,
                       after: $balance_rc_sender_after,
@@ -740,11 +740,13 @@ tests: # Describe[]
       ...
       - name: My custom action should do something
         actions: # Action[]
-          custom: # Custom[]
+          customs: # Custom[]
             - path: ./queryExternalOracle.ts
-              args: {
-                url: https://www.my-oracle.com/price/
-              }
+              args: [
+                {
+                  url: https://www.my-oracle.com/price/
+                }
+              ]
           asserts:
             equal: [$dot_price, 30]
 
@@ -772,7 +774,7 @@ Interfaces:
 ```typescript
 interface Custom {
   path: string;
-  args: any;
+  args: any[];
 }
 ```
 
