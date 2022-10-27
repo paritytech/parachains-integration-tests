@@ -34,7 +34,7 @@ export type Hook = Before | BeforeEach | After | AfterEach;
 
 export interface Custom {
   path: string;
-  args: any;
+  args: any[];
 }
 
 export interface Query {
