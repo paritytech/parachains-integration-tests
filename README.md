@@ -435,7 +435,7 @@ There are two different and compatible ways (you can apply both at the same time
 
   By setting `isRange: true` you are letting know to the tool that the expected value should be within the range defined in the `value` attribute. The expected `value`'s format is: `<lower_limit>..<upper_limit>`.
 
-  In addition, a `threhold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expenting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher.
+  In addition, a `threshold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expenting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher.
 
   For obvious reason, `isRange` and `threshold` can not be used at the same time. These features are especially useful when checking variables that often change such as _Weights_.
 
