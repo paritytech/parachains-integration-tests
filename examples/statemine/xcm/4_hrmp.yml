@@ -58,7 +58,7 @@ tests:
     describes:
       - name: polkadotXcm.limitedReserveTransferAssets (Asset) | Assets Parachain -> Penpal Parachain
         before:
-          - name: DEPENDANCY | A sufficient Asset should exist in the Assets Parachain
+          - name: DEPENDENCY | A sufficient Asset should exist in the Assets Parachain
             actions:
               - extrinsics:
                 - chain: *relay_chain
@@ -99,7 +99,7 @@ tests:
                   isSome:
                     args: [ $forced_created_asset ]
 
-          - name: DEPENDANCY | Some Assets should be minted for the sender
+          - name: DEPENDENCY | Some Assets should be minted for the sender
             actions:
               - extrinsics:
                 - chain: *assets_parachain
