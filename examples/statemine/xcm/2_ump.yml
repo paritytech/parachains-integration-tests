@@ -38,7 +38,7 @@ tests:
     describes:
       - name: polkadotXcm.limitedTeleportAssets
         before:
-          - name: DEPENDANCY | Do a 'limitedTeleportAssets' from the Relay Chain to the Assets Parachain to have funds to send them back
+          - name: DEPENDENCY | Do a 'limitedTeleportAssets' from the Relay Chain to the Assets Parachain to have funds to send them back
             actions:
               - extrinsics:
                 - chain: *relay_chain
@@ -148,7 +148,7 @@ tests:
 
       - name: polkadotXcm.send | Native - Transact(system.remark)
         its:
-          - name: Assets Parachain SHOULD NOT be able to dipatch 'send' call
+          - name: Assets Parachain SHOULD NOT be able to dispatch 'send' call
             actions:
               - extrinsics:
                 - chain: *assets_parachain

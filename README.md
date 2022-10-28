@@ -1,7 +1,7 @@
 # Parachains Integration Tests  ✅
-Since the arrival of XCMP-Lite, communication between different consensus systems became a reality in the Polkadot's ecosystem.  _Parachains Integration Tests_ is a tool that was created with the ambtion of easing testing interactions between Substrate based blockchains.
+Since the arrival of XCMP-Lite, communication between different consensus systems became a reality in the Polkadot ecosystem.  _Parachains Integration Tests_ is a tool that was created with the ambition of easing testing interactions between Substrate based blockchains.
 
-This tool allows you to develop tests radipdly describing them in a YAML file. Behind the scenes, the YAML files are converted to [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
+This tool allows you to develop tests rapidly describing them in a YAML file. Behind the scenes, the YAML files are converted to [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
 
 It can work alongside with [Zombienet](https://github.com/paritytech/zombienet) and [Polkadot Launch](https://github.com/paritytech/polkadot-launch), or you can run your tests against the testnet of your choice.
 
@@ -11,7 +11,7 @@ Under the `./examples` folder, this repository contains integration tests for th
 ### Requirements
 - `node v17.6.0` or higher.
 ### Versioning
-- `v2.0.0` contains **BREAKING CHANGES**. Tests based on `^1.0.0` will stop working properly from `v2.0.0` onwards. Check the Github [release](https://github.com/paritytech/parachains-integration-tests/releases/tag/v2.0.0) for more info and how to migrate the tests.
+- `v2.0.0` contains **BREAKING CHANGES**. Tests based on `^1.0.0` will stop working properly from `v2.0.0` onwards. Check the GitHub [release](https://github.com/paritytech/parachains-integration-tests/releases/tag/v2.0.0) for more info and how to migrate the tests.
 
 ### Installation
 It can be installed to be run in two different ways:
@@ -42,7 +42,7 @@ parachains-integration-tests -m <mode> -c <path> -t <path> -to <millisecons> -el
 - `-t`, `--test`: path to the tests folder or to a single test yaml file. All files under the _path_ with a `yml` extension  will be run. To choose the order, is necessary to add an index in front of the file name. E.g: `0_my_test.yml`, `1_my_other_test.yml`
 - `-to`, `--timeout`: overrides the default Mocha tests timeout set to `300000`
 - `-el`, `--event-listener-timeout`: overrides the default event listener timeout set to `40000`
-- `-ad`, `--action-delay`: delay before state queries, rpc calls and extrinsics. Overrides the default delay set to `40000`. Some delay is necessary to make sure the state is already updated. In the case of extrisics, it is also necessary until ID hashes are available in [XCM v3](https://github.com/paritytech/polkadot/pull/4756). Without an indentifier, it is not posible to distinguish what XCM message event was triggered as a result of a specific extrinsic from another chain/context. For this reason, it is necessary to add a big delay between XCM messages, to avoid interferences from other unrelated events.
+- `-ad`, `--action-delay`: delay before state queries, rpc calls and extrinsics. Overrides the default delay set to `40000`. Some delay is necessary to make sure the state is already updated. In the case of extrinsics, it is also necessary until ID hashes are available in [XCM v3](https://github.com/paritytech/polkadot/pull/4756). Without an identifier, it is not possible to distinguish what XCM message event was triggered as a result of a specific extrinsic from another chain/context. For this reason, it is necessary to add a big delay between XCM messages, to avoid interferences from other unrelated events.
 - `-cl`, `--chain-logs`: path to the log file to redirect stdout and stderr from the testnets deployment tool, either Zombienet or Polkadot Launch.
 - `-tl`, `--test-logs`: path to the log file to redirect stdout and stderr from this testing tool.
 
@@ -58,7 +58,7 @@ Examples:
       parachains-integration-tests -m zombienet -c <zombienet_config_path>
       ```
 
-  - Run tests using Zombinet as testnet
+  - Run tests using Zombienet as testnet
       ```
       parachains-integration-tests -m zombienet-test -t <tests_path> -c <zombienet_config_path>
       ```
@@ -98,7 +98,7 @@ It is formed by two main sections: `settings` and `tests`.
 settings:
   # Declaration of the chains the tests should connect to
   chains: # { [key: string]: Chain }
-  # Arbitrary declaration of constants to be used across the tets
+  # Arbitrary declaration of constants to be used across the tests
   variables: # { [key: string]: any }
   # Calls that want to be encoded to be used in the tests
   decodedCalls: # { [key: string]: Call }
@@ -115,9 +115,9 @@ export interface TestsConfig {
 ### Settings
 - `chains`: connection values for all the different chains we want to connect to. Defining `wsPort` should be enough unless you want to override the default `ws` URL (ws://localhost).
 
-- `variables`: section that allows you to define your own variables following the schema that better suits your tests logic.
+- `variables`: section that allows you to define your own variables following the schema that better suits your test's logic.
 
-- `decodedCalls`: declaration of the different calls you want to calculate their econded call hex value or use them inside a `batch` call. Each result is stored in a variable that will become available in the rest of the file ONLY after its declaration. The way to access those variables is appending a `$` symbol to the defined `decodedCalls` key. For instance, in the following example, the encoded call result for `my_call_id` will be accesible from `$my_call_id`. If you want to use the call inside a `batch` call, the attributte `encode: false` should be added. That attribute indicates if the call should be encoded or if it should be treated as `Submittable` Polkadot JS object.
+- `decodedCalls`: declaration of the different calls you want to calculate their encoded call hex value or use them inside a `batch` call. Each result is stored in a variable that will become available in the rest of the file ONLY after its declaration. The way to access those variables is appending a `$` symbol to the defined `decodedCalls` key. For instance, in the following example, the encoded call result for `my_call_id` will be accessible from `$my_call_id`. If you want to use the call inside a `batch` call, the attribute `encode: false` should be added. That attribute indicates if the call should be encoded or if it should be treated as `Submittable` Polkadot JS object.
 
 Example:
 ```yaml
@@ -309,7 +309,7 @@ export type Action = ExtrinsicAction | QueryAction | AsserAction | RpcAction | C
 ```
 
 ### Extrinsic
-Extends the _Call_ interface adding two new attributes: `signer` (indispensable) and `events` (optional). A _Extrinsic_ by itself will not perform any chai assertion. Assertions are build based on the `events` that the extrinsic is expetected to trigger. Each event defined under the `events` attribute will build and perform its corresponding chai assertion.
+Extends the _Call_ interface adding two new attributes: `signer` (indispensable) and `events` (optional). A _Extrinsic_ by itself will not perform any chai assertion. Assertions are build based on the `events` that the extrinsic is expected to trigger. Each event defined under the `events` attribute will build and perform its corresponding chai assertion.
 
 Example:
 
@@ -369,7 +369,7 @@ tests: # Describe[]
                       Transact: {
                         originType: Superuser,
                         requireWeightAtMost: *weight_at_most,
-                        call: $force_create_asset # enconded call hex
+                        call: $force_create_asset # encoded call hex
                       }
                     }
                   ]
@@ -406,9 +406,9 @@ interface Extrinsic extends Call {
 ```
 
 ### Event
-If the `chain` attribute is not defined, it means the event is expected to happpen in the same chain context where the extrinsic was dispatched and as a result of it. Otherwise, the `chain` attribute referring to another context must be defined.
+If the `chain` attribute is not defined, it means the event is expected to happen in the same chain context where the extrinsic was dispatched and as a result of it. Otherwise, the `chain` attribute referring to another context must be defined.
 
-Default event listener timeout can be overriden by the `timeout` attribute.
+Default event listener timeout can be overridden by the `timeout` attribute.
 
 There are two different and compatible ways (you can apply both at the same time) of checking if an event returns the expected values: comparing the "whole" `result`, or comparing by `atrributes`.
 
@@ -435,11 +435,11 @@ There are two different and compatible ways (you can apply both at the same time
 
   By setting `isRange: true` you are letting know to the tool that the expected value should be within the range defined in the `value` attribute. The expected `value`'s format is: `<lower_limit>..<upper_limit>`.
 
-  In addition, a `threshold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expenting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher.
+  In addition, a `threshold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expecting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher.
 
   For obvious reason, `isRange` and `threshold` can not be used at the same time. These features are especially useful when checking variables that often change such as _Weights_.
 
-  There is a especial treatment for the attribute type `XcmV2TraitsOutcome`. Only in that case, `xcmOutput` and `value` can be set to replace a event `result` with the format `{ outcome: { <xcmOutput>: <value> }}`. Valid `xcmOutput` are `Complete`, `Incomplete` and `Error`.
+  There is a special treatment for the attribute type `XcmV2TraitsOutcome`. Only in that case, `xcmOutput` and `value` can be set to replace an event `result` with the format `{ outcome: { <xcmOutput>: <value> }}`. Valid `xcmOutput` are `Complete`, `Incomplete` and `Error`.
 
 Example:
 
@@ -543,7 +543,7 @@ export enum XcmOutcome {
 ```
 
 ### Query
-Query the chain state. The result of the query will be stored in a new variable based on the key name of the _Query_. The variable naming follows the same format of `decodedCalls`. Therefore, for the followig example, the result of the query is stored in: `$balance_sender_before`. The variable becomes available in the rest of the file ONLY after its declaration.
+Query the chain state. The result of the query will be stored in a new variable based on the key name of the _Query_. The variable naming follows the same format of `decodedCalls`. Therefore, for the following example, the result of the query is stored in: `$balance_sender_before`. The variable becomes available in the rest of the file ONLY after its declaration.
 
 Example:
 
@@ -633,15 +633,15 @@ Unlike _Query_ and _Rpc_ where their keys can be arbitrarily chosen to generate 
   - `./src/asserts/isNone.ts`
 - `isSome`: the argument is not null.
   - `./src/asserts/isSome.ts`
--  `balanceDecreased`: compares balances queried with `system.account`. If `amount` and `fees` are not inclueded as arguments, it will just check that `after` is lower than `before`
+-  `balanceDecreased`: compares balances queried with `system.account`. If `amount` and `fees` are not included as arguments, it will just check that `after` is lower than `before`
     - `./src/asserts/balanceDecreased.ts`
-- `balanceIncreased`: compares balances queried with `system.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
+- `balanceIncreased`: compares balances queried with `system.account`. If `amount` and `fees`(only for XCM messages) are not included as arguments, it will just check that `after` is bigger than `before`
   - `./src/asserts/balanceIncreased.ts`
--  `assetsDecreased`: compares balances queried with `assets.account`. If `amount` and `fees` are not inclueded as arguments, it will just check that `after` is lower than `before`
+-  `assetsDecreased`: compares balances queried with `assets.account`. If `amount` and `fees` are not included as arguments, it will just check that `after` is lower than `before`
     - `./src/asserts/assetsDecreased.ts`
-- `assetsIncreased`: compares balances queried with `assets.account`. If `amount` and `fees`(only for XCM messages) are not inclueded as arguments, it will just check that `after` is bigger than `before`
+- `assetsIncreased`: compares balances queried with `assets.account`. If `amount` and `fees`(only for XCM messages) are not included as arguments, it will just check that `after` is bigger than `before`
   - `./src/asserts/assetsIncreased.ts`
-- `custom`: assertion cases can be endless, therefore they are diffucult to standarize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom](#custom). Notice that you will have to include a `tsconfig.json` file with `typeRoots` and `types` attributes pointing to your types in case of adding paths to a typescript file.
+- `custom`: assertion cases can be endless, therefore they are difficult to standardize. `custom` solves that issue providing the `path` argument. Its value should point to a file where the desired asserts are performed based on the provided `args`. It can not be any kind of file though, and it should export a specific function signature. To learn more about this files see [Custom](#custom). Notice that you will have to include a `tsconfig.json` file with `typeRoots` and `types` attributes pointing to your types in case of adding paths to a typescript file.
 
 These methods are extensible opening a PR to include them:
 1. Add a new assertion key to `REGISTERED_ASSERTIONS` in `./src/constants.ts`
@@ -723,10 +723,10 @@ type AssertOrCustom = Assert | Custom;
 ### Custom
 
 This _Action_ type enables the possibility of referring to your own files to perform those actions that a constrained YAML schema can not provide. The file must export a very specific function signature that the tool is expecting to import: `async (context, ...args)`
-- `context`: corresponds to the test's `this` object. All user created variables (in `encodedCalls`, `queries` and `rpcs`) are stored and accessible from the `this.variables` key. In a similar way, `context` can be use to stored new variables that will become available in the rest of the tests.
+- `context`: corresponds to the test's `this` object. All user created variables (in `encodedCalls`, `queries` and `rpcs`) are stored and accessible from the `this.variables` key. In a similar way, `context` can be used to stored new variables that will become available in the rest of the tests.
 - `args`: the arguments used as input for your custom file function.
 
-The following example shows how to use a `custom` action to perform an assertion, but there are not limitations about what to achive.
+The following example shows how to use a `custom` action to perform an assertion, but there are no limitations about what to achieve.
 
 Example:
 

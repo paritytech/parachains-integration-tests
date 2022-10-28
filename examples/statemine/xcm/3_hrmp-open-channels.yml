@@ -131,7 +131,7 @@ settings:
 tests:
   - name: HRMP
     beforeEach:
-      - name: DEPENDANCY | Penpal Parachain Sovereign account in the Relay Chain needs to be funded
+      - name: DEPENDENCY | Penpal Parachain Sovereign account in the Relay Chain needs to be funded
         actions:
           - extrinsics:
             - chain: *relay_chain
@@ -145,7 +145,7 @@ tests:
               events:
                 - name: balances.Transfer
 
-      - name: DEPENDANCY | Assets Parachain Sovereign account in the Relay Chain needs to be funded
+      - name: DEPENDENCY | Assets Parachain Sovereign account in the Relay Chain needs to be funded
         actions:
           - extrinsics:
             - chain: *relay_chain
@@ -161,7 +161,7 @@ tests:
     describes:
       - name: hrmp.hrmpInitOpenChannel (Penpal Parachain → Assets Parachain)
         its:
-          - name: Penpal Parachain sends a request to the Relay Chain to open a channel with the Assets Parchain
+          - name: Penpal Parachain sends a request to the Relay Chain to open a channel with the Assets Parachain
             actions:
               - extrinsics:
                 - chain: *penpal_parachain
@@ -227,7 +227,7 @@ tests:
 
       - name: hrmp.hrmpAcceptOpenChannel (Assets Parachain → Penpal Parachain)
         its:
-          - name: Assets Parachain sends a response to the Relay Chain accepting the Penpal Parachain's request for openning a HRMP channel
+          - name: Assets Parachain sends a response to the Relay Chain accepting the Penpal Parachain's request for opening a HRMP channel
             actions:
               - extrinsics:
                 - chain: *relay_chain
@@ -294,7 +294,7 @@ tests:
 
       - name: hrmp.hrmpInitOpenChannel (Assets Parachain → Penpal Parachain)
         its:
-          - name: Assets Parchain sends a request to the Relay Chain to open a channel with a Penpal Parachain
+          - name: Assets Parachain sends a request to the Relay Chain to open a channel with a Penpal Parachain
             actions:
               - extrinsics:
                 - chain: *relay_chain
@@ -360,7 +360,7 @@ tests:
 
       - name: hrmp.hrmpAcceptOpenChannel (Penpal Parachain → Assets Parachain)
         its:
-          - name: Penpal Parachain sends a response to the Relay Chain accepting the Assets Parachain's request for openning a HRMP channel
+          - name: Penpal Parachain sends a response to the Relay Chain accepting the Assets Parachain's request for ope dning a HRMP channel
             actions:
               - extrinsics:
                 - chain: *penpal_parachain
