@@ -27,7 +27,7 @@ settings:
 tests:
   - name: Member kicked out, deposited assets slashed and teleported to Relay Chain treasury.
     before:
-      - name: DEPENDANCY | Do a 'limitedTeleportAssets' from the Relay Chain to the Collectives Parachain
+      - name: DEPENDENCY | Do a 'limitedTeleportAssets' from the Relay Chain to the Collectives Parachain
         actions:
           - extrinsics:
             - chain: *relay_chain
@@ -121,7 +121,7 @@ tests:
                 ]
       - name: Kick Alice from alliance
         actions:
-          - extrinsics: # Assset Parachain sets supported version for Relay Chain through it
+          - extrinsics: # Asset Parachain sets supported version for Relay Chain through it
             - chain: *relay_chain
               signer: *acc_alice_signer
               sudo: true
