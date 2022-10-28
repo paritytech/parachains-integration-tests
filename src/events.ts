@@ -180,7 +180,7 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
               event: { method, section },
             } = record;
 
-            if (name === `${section}.${method}`) {
+            if (name === `${section}.${method}` && isExpectedEvent(record, event)) {
               resolve(updateEventResult(true, record, event));
               unsubscribe();
             }
@@ -203,6 +203,37 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
       reject(e);
     }
   });
+};
+
+const isExpectedEvent = (record, event: Readonly<EventResult>): boolean => {
+  // Match only on name when no result/attributes specified
+  if (_.isNil(event.result) && _.isNil(event.attributes))
+    return true;
+
+  // Clone event result and apply actual event (record) to determine match
+  let clone = _.cloneDeep(event);
+  updateEventResult(true, record, clone);
+  const { attributes, data, result } = clone;
+
+  // Check whether event is expected based on result/attributes (simplified logic from messageBuilder)
+  if (result)
+    return isExpectedEventResult(clone);
+  else if (attributes)
+    return attributes.every((attribute, i) => {
+      try {
+        const { value, isRange, threshold, xcmOutcome } = attribute;
+
+        if (xcmOutcome)
+          return xcmOutcome === data[i].xcmOutcome;
+        else if (value && data[i])
+          return isExpectedEventAttribute(value, data[i].value, isRange, threshold);
+      } catch (e) {
+        console.log(e);
+        return false;
+      }
+    });
+
+  return false;
 };
 
 const isExpectedEventResult = (event: EventResult): boolean => {
