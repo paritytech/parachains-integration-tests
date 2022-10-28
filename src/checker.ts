@@ -1,16 +1,8 @@
 require('dotenv').config();
 import { getTestFiles, addConsoleGroup, addConsoleGroupEnd } from './utils'
-import YAML, { isCollection, isScalar, YAMLMap, LineCounter, Parser } from 'yaml';
+import YAML, { isCollection, isScalar, YAMLMap, LineCounter, Parser, Pair, isAlias } from 'yaml';
 import { stringify, YAMLSeq, Scalar } from 'yaml'
-import traverse from 'traverse';
-import {
-  beforeConnectToProviders,
-  beforeBuildDecodedCalls,
-  beforeAddConsoleGroups,
-} from './before';
 import { CheckerError, TestFile, XcmOutcome } from './interfaces';
-// import { describersBuilder } from './descriptor';
-import { Describe } from './interfaces';
 
 const formatLine = (start, end?): string => {
   const { line: lineStart, col: colStart } = start;
@@ -26,7 +18,7 @@ const formatLine = (start, end?): string => {
   return `${errorStart}${errorEnd ? ` \x1b[33m-\x1b[0m ${errorEnd}` : ': '}`
 }
 
-const mapTypeToFormat = (type: any): string => {
+const mapFormat = (type: any): string => {
   if (type === YAMLMap) {
     return 'object'
   } else if (type === YAMLSeq) {
@@ -44,6 +36,18 @@ interface Interface {
 }
 
 const INTERFACE: { [key: string]: Interface } = {
+  tests: {
+    instance: YAMLSeq,
+    attributes: {
+      name: true,
+      its: false,
+      before: false,
+      beforeEach: false,
+      after: false,
+      afterEach: false,
+      describes: false
+    },
+  },
   describes: {
     instance: YAMLSeq,
     attributes: {
@@ -95,6 +99,7 @@ const INTERFACE: { [key: string]: Interface } = {
     attributes: {
       wsPort: true,
       ws: false,
+      paraId: false,
     }
   },
   wsPort: {
@@ -102,6 +107,9 @@ const INTERFACE: { [key: string]: Interface } = {
   },
   ws: {
     type: 'string'
+  },
+  paraId: {
+    type: 'number'
   },
   pallet: {
     type: 'string'
@@ -153,7 +161,7 @@ const INTERFACE: { [key: string]: Interface } = {
       isRange: false,
       threshold: false,
       value: false,
-      XcmOutcome: false,
+      xcmOutcome: false,
     },
     rule: {
       or: ['type', 'key']
@@ -174,7 +182,7 @@ const INTERFACE: { [key: string]: Interface } = {
   value: {
     type: 'any'
   },
-  XcmOutcome: {
+  xcmOutcome: {
     type: 'string'
   },
   customs: {
@@ -193,19 +201,67 @@ const INTERFACE: { [key: string]: Interface } = {
   asserts: {
     instance: YAMLMap,
     attributes: {
+      equal: false,
+      isSome: false,
+      balanceDecreased: false,
+      balanceIncreased: false,
+      assetsDecreased: false,
+      assetsIncreased: false,
+      custom: false
+    }
+  },
+  equal: {
+    instance: YAMLMap,
+    attributes: {
       args: true,
-      path: false
+    }
+  },
+  isSome: {
+    instance: YAMLMap,
+    attributes: {
+      args: true
+    }
+  },
+  balanceDecreased: {
+    instance: YAMLMap,
+    attributes: {
+      args: true
+    }
+  },
+  balanceIncreased: {
+    instance: YAMLMap,
+    attributes: {
+      args: true
+    }
+  },
+  assetsDecreased: {
+    instance: YAMLMap,
+    attributes: {
+      args: true
+    }
+  },
+  assetsIncreased: {
+    instance: YAMLMap,
+    attributes: {
+      args: true
+    }
+  },
+  custom: {
+    instance: YAMLMap,
+    attributes: {
+      path: true,
+      args: true
     }
   },
   queries: {
-    instance: YAMLSeq,
-    attributes: {
-      chain: true,
-      delay: false,
-      pallet: true,
-      call: true,
-      args: true
-    }
+    instance: YAMLMap,
+    // attributes: {
+    //   chain: true,
+    //   delay: false,
+    //   pallet: true,
+    //   call: true,
+    //   args: true
+    // }
   },
   rpcs: {
     instance: YAMLSeq,
@@ -247,223 +303,96 @@ const INTERFACE: { [key: string]: Interface } = {
   }
 }
 
-// const assessChildNode = (nodeInterface: Interface, value): { rightFormat: boolean, isNode: boolean } => {
-//   const { instance, type } = nodeInterface
+const assessNodeWithInterface = (
+  yaml: any,
+  attributeInterface: string,
+  node: any,
+  initialRange: any,
+  comesFromSeq: boolean
+): { nextNode: any, nextNodeType: string, exist: boolean, rightFormat: boolean, range: any, hasItems: boolean, format: any, comesFromSeq: boolean } => {
+  let expectedInterface = INTERFACE[attributeInterface]
 
-//   let rightFormat = false;
-//   let isNode = false;
+  // console.log("NODE Attribute=======", attributeInterface)
+  // console.log("NODE =======", node)
 
-//   if (instance) {
-//     console.log("Instance", value, instance)
-//     rightFormat = value instanceof instance;
-//     isNode = true;
-//   } else if (type) {
-//     rightFormat = typeof value === type || type === 'any'
-//     isNode = false;
-//   }
-
-//   return { rightFormat, isNode }
-// }
-
-const assessValueWithExpectedAttribute = (
-  value: Scalar | YAMLMap | YAMLSeq,
-  attribute: Interface
-): { rightFormat: boolean, isNode: boolean } => {
-  const { instance, type } = attribute
+  const { instance, type, attributes } = expectedInterface
 
   let rightFormat = false;
-  let isNode = false;
+  let hasItems = false;
+  let exist = expectedInterface ? true : false;
+  let range = initialRange
+  let format;
+  let nextNodeType = attributeInterface;
+  let nextNode = node
 
-  if (instance) {
-    // console.log("Instance", value, instance)
-    rightFormat = value instanceof instance;
-    isNode = true;
-  } else if (type) {
-    value = value as Scalar
-    rightFormat = typeof value.value === type || type === 'any'
-    isNode = false;
+  if (node instanceof YAMLMap || node instanceof YAMLSeq) {
+    rightFormat = node instanceof instance
+    range = node.range
+    hasItems = attributes ? true : false
+    format = instance
+  } else if (node instanceof Pair) {
+    let key = node.key
+    let value = node.value
+    range = key.range
+    nextNodeType = key.value
+
+    if (value instanceof YAMLMap || value instanceof YAMLSeq) {
+      nextNode = value
+      let collection = INTERFACE[key.value]
+      hasItems = collection.attributes ? true : false
+      exist = collection ? true : false;
+      if (exist && collection.instance) {
+        rightFormat = value instanceof collection.instance
+        format = collection.instance
+      } else if (exist) {
+        format = collection.type
+      }
+    } else if (value instanceof Scalar) {
+      let scalar = INTERFACE[key.value]
+      exist = scalar ? true : false;
+      if (scalar) {
+        rightFormat = (typeof value.value === scalar.type) || (scalar.type === 'any')
+        format = scalar.type
+      }
+    } else if(isAlias(value)) {
+      return assessNodeWithInterface(yaml, key.value, value.resolve(yaml), range, false)
+    }
+  } else if (isScalar(node)) {
+      if (exist) {
+        rightFormat = (typeof node.value === type) || (type === 'any')
+        format = type
+      }
   }
 
-  return { rightFormat, isNode }
+  rightFormat = comesFromSeq ? comesFromSeq : rightFormat
+  comesFromSeq = nextNode instanceof YAMLSeq;
+
+  return { nextNode, nextNodeType, exist, rightFormat, range, hasItems, format, comesFromSeq }
 }
 
-const checkNode = (nodeType: string, node: YAMLMap | YAMLSeq, lineCounter: LineCounter): Array<string> => {
-  let message: Array<string> = []
+let message: Array<string> = []
 
-  // console.log("======================== NEW NODE ==============================")
+const checkNode = (yaml: any, nodeType: string, node: any, fromSeq: boolean, lineCounter: LineCounter): Array<string> => {
 
-  // const { shouldHave, canHave } = INTERFACE[nodeName];
-
-  // let items;
-
-  // if (node instanceof YAMLMap) {
-  //   items = node.ites
-  // }
-
-  // node.items.forEach(item => {
-  //   console.log(item)
-  // })
-
-  // let nodeInterface: Interface = { ...INTERFACE[nodeType] }
-  // let nodeInterface: Interface = Object.assign({}, INTERFACE[nodeType]);
   let nodeInterface: Interface = JSON.parse(JSON.stringify(INTERFACE[nodeType]));
 
-  // const { attributes } = nodeInterface;
+  const { nextNode, nextNodeType, exist, rightFormat, range, hasItems, format, comesFromSeq } = assessNodeWithInterface(yaml, nodeType, node, node.range, fromSeq)
 
-  // console.log("COPY OF INTERFACE - START", nodeInterface)
-
-  node.items.forEach((item: any) => {
-    // console.log("== NEW ITEM", item)
-
-    // console.log("Item", item)
-    // let errorLineStart = lineCounter.linePos(item.range[0])
-    // let errorLineEnd = lineCounter.linePos(item.range[2])
-
-    let key = item.key.value
-    let value = item.value
-    // console.log("Value", item.value)
-    let attribute = INTERFACE[key]
-    if (attribute) {
-      if (nodeInterface.attributes) {
-        delete nodeInterface.attributes[key];
-      }
-      // const { rightFormat, isNode } = assessChildNode(nextNodeInterface, childNodeValue)
-      const { rightFormat, isNode } = assessValueWithExpectedAttribute(value, attribute)
-
-      if (!rightFormat) {
-        let errorLine = lineCounter.linePos(item.key.range[0])
-        let type = isNode ? attribute.instance : attribute.type
-        message.push(`${formatLine(errorLine)}'${key}' attribute should be of '${mapTypeToFormat(type)}' type for '${nodeType}'`)
-      }
-      if (isNode) {
-        // checkNode(key, value, lineCounter)
-      }
-    } else {
-        let errorLine = lineCounter.linePos(item.key.range[0])
-        message.push(`${formatLine(errorLine)}'${key}' attribute unexpected for '${nodeType}'`)
-    }
-
-
-    // for (const key in childNodeInterface.attributes) {
-    //   console.log(key)
-    //   console.log("Exists", item.has(key))
-    //   if (item.has(key)) {
-    //     let childNode = item.get(key, true);
-    //     let childNodeValue = item.get(key)
-    //     // let childValueWithRange = childNode.get(name, true)
-    //     let nextNodeInterface = INTERFACE[key];
-    //     console.log("ChildNode", childNode)
-    //     const { rightFormat, isNode } = assessChildNode(nextNodeInterface, childNodeValue)
-    //     if (!rightFormat) {
-    //       let errorLine = lineCounter.linePos(childNode.range[0])
-    //       let type = isNode ? nextNodeInterface.instance : nextNodeInterface.type
-    //       message.push(`${formatLine(errorLine)}'${key}' attribute should be of '${mapTypeToFormat(type)}' type for '${childNodeType}'`)
-    //     }
-    //     if (isNode) {
-    //       // checkNode(key, childValue, lineCounter)
-    //     }
-    //   } else if (childNodeInterface.attributes[key] === true){
-    //     // message should exist
-    //     let errorLineStart = lineCounter.linePos(item.range[0])
-    //     let errorLineEnd = lineCounter.linePos(item.range[2])
-    //     message.push(`${formatLine(errorLineStart, errorLineEnd)}'${key}' attribute should be present for '${childNodeType}'`)
-    //   }
-    // }
-  })
-  // console.log("NODE", node)
-  if (node.range) {
-    // console.log("COPY OF INTERFACE - FINAL", nodeInterface)
-    // check what atttributes are not included
-    for (const key in nodeInterface.attributes) {
-      if (nodeInterface.attributes[key] === true) {
-        let errorLineStart = lineCounter.linePos(node.range[0])
-        let errorLineEnd = lineCounter.linePos(node.range[2])
-        message.push(`${formatLine(errorLineStart, errorLineEnd)}'${key}' attribute should be present for '${nodeType}'`)
+  if (!exist) {
+    let errorLine = lineCounter.linePos(range[0])
+    message.push(`${formatLine(errorLine)} unexpected '${nextNodeType}' attribute`)
+  } else if (!rightFormat) {
+    let errorLine = lineCounter.linePos(range[0])
+    message.push(`${formatLine(errorLine)}'${nextNodeType}' attribute should be of '${mapFormat(format)}' type`)
+  } else {
+    if (hasItems) {
+      for (const item of nextNode.items) {
+        message.concat(checkNode(yaml, nextNodeType, item, comesFromSeq, lineCounter))
       }
     }
   }
-
-
-
-  // shouldHave.forEach(({name, instance, type}) => {
-  //   if (!node.has(name)) {
-  //     console.log("Node",node)
-  //     if (node.range) {
-  //       // console.log("Line", lineCounter.linePos(node.range[0]))
-  //       let errorLineStart = lineCounter.linePos(node.range[0])
-  //       let errorLineEnd = lineCounter.linePos(node.range[2])
-  //       message.push(`${formatLine(errorLineStart, errorLineEnd)}'${name}' attribute should be present for '${nodeName}'`)
-  //     }
-  //   } else if (!(node.get(name) instanceof instance || typeof node.get(name) === type)) {
-  //     console.log('GET ==', node.get(name, true))
-  //     let attributeNode = node.get(name, true)
-
-  //     if (attributeNode &&  attributeNode.range) {
-  //       let errorLine = lineCounter.linePos(attributeNode.range[0])
-  //       message.push(`${formatLine(errorLine)}'${name}' attribute should be '${mapTypeInstanceToFormat(instance, type)}' type for '${nodeName}'`)
-  //     }
-  //   }
-  // })
-
-  // canHave.forEach(({name, instance, type}) => {
-  //   if (node.has(name)) {
-  //     if (!(node.get(name) instanceof instance || typeof node.get(name) === type)) {
-  //       let attributeNode = node.get(name, true)
-  //       if ( attributeNode &&  attributeNode.range) {
-  //         let errorLine = lineCounter.linePos(attributeNode.range[0])
-  //         message.push(`${formatLine(errorLine)}'${name}' attribute should be '${mapTypeInstanceToFormat(instance, type)}' type for '${nodeName}'`)
-  //       }
-  //     }
-  //   }
-  // })
-
   return message
 };
-
-// const checkNode = (nodeName: string, node: YAMLMap | YAMLSeq, lineCounter: LineCounter): Array<string> => {
-//   let message: Array<string> = []
-
-//   const { shouldHave, canHave } = INTERFACE[nodeName];
-
-
-//   node.items.forEach(item => {
-
-//   })
-
-//   shouldHave.forEach(({name, instance, type}) => {
-//     if (!node.has(name)) {
-//       console.log("Node",node)
-//       if (node.range) {
-//         // console.log("Line", lineCounter.linePos(node.range[0]))
-//         let errorLineStart = lineCounter.linePos(node.range[0])
-//         let errorLineEnd = lineCounter.linePos(node.range[2])
-//         message.push(`${formatLine(errorLineStart, errorLineEnd)}'${name}' attribute should be present for '${nodeName}'`)
-//       }
-//     } else if (!(node.get(name) instanceof instance || typeof node.get(name) === type)) {
-//       console.log('GET ==', node.get(name, true))
-//       let attributeNode = node.get(name, true)
-
-//       if (attributeNode &&  attributeNode.range) {
-//         let errorLine = lineCounter.linePos(attributeNode.range[0])
-//         message.push(`${formatLine(errorLine)}'${name}' attribute should be '${mapTypeInstanceToFormat(instance, type)}' type for '${nodeName}'`)
-//       }
-//     }
-//   })
-
-//   canHave.forEach(({name, instance, type}) => {
-//     if (node.has(name)) {
-//       if (!(node.get(name) instanceof instance || typeof node.get(name) === type)) {
-//         let attributeNode = node.get(name, true)
-//         if ( attributeNode &&  attributeNode.range) {
-//           let errorLine = lineCounter.linePos(attributeNode.range[0])
-//           message.push(`${formatLine(errorLine)}'${name}' attribute should be '${mapTypeInstanceToFormat(instance, type)}' type for '${nodeName}'`)
-//         }
-//       }
-//     }
-//   })
-
-//   return message
-// };
 
 const printErrors = (errors: Array<CheckerError>) => {
   errors.forEach(({file, errors}) => {
@@ -492,7 +421,7 @@ const check = async () => {
     const lineCounter = new LineCounter()
     const parser = new Parser(lineCounter.addNewLine)
     const tokens = parser.parse(file)
-    Array.from(tokens) // forces iteration
+    Array.from(tokens)
 
 
     let index = errors.push({ file: `\n\x1b[31m${name}\x1b[0m`, errors: [] });
@@ -502,15 +431,10 @@ const check = async () => {
     // TODO: check also the decodedCalls
 
     if (tests.items.length > 0) {
-      tests.items.forEach(describe => {
-        errors[index - 1].errors.push(...checkNode('describes', describe, lineCounter))
-      })
-      // errors[index - 1].errors.push(...checkNode('describes', tests, lineCounter))
-
+        errors[index - 1].errors.push(...checkNode(yaml2, 'tests', tests, false, lineCounter))
     }
   }
   printErrors(errors)
-  // console.log(INTERFACE['describes'])
 };
 
 check();

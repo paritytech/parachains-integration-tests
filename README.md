@@ -165,6 +165,7 @@ interface Settings {
 interface Chain {
   wsPort: number;
   ws?: string; // if 'undefined', it fallback to the default value -> ws://localhost
+  paraId: number; // parachain id
 }
 ```
 

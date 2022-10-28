@@ -136,6 +136,7 @@ export type AssertOrCustom = Assert | Custom;
 export interface Chain {
   wsPort: number;
   ws?: string; // if undefined, it fallsback to the default value -> ws://localhost
+  paraId: number;
 }
 export interface ChainConfigs {
   chainName: string;
