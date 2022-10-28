@@ -4,34 +4,30 @@ timeout = 1000
 [relaychain]
 chain = "rococo-local"
 default_command = "./bin/polkadot-latest"
-default_args = [ "--log=xcm=trace,pallet-xcm=trace" ]
+default_args = [ "--log=parachain=debug,xcm=trace,pallet-xcm=trace" ]
 
   [[relaychain.nodes]]
   name = "alice"
   validator = true
   ws_port = 9900
-  extra_args = [ "-lparachain=debug" ]
 
   [[relaychain.nodes]]
   name = "bob"
   validator = true
-  extra_args = [ "-lparachain=debug" ]
 
   [[relaychain.nodes]]
   name = "charlie"
   validator = true
-  extra_args = [ "-lparachain=debug" ]
 
   [[relaychain.nodes]]
   name = "dave"
   validator = true
-  extra_args = [ "-lparachain=debug" ]
 
 [[parachains]]
 id = 1000
-addToGenesis = true
-cumulus_based = true
 chain = "statemine-local"
+cumulus_based = true
+add_to_genesis = true
 
   [parachains.collator]
   name = "statemine-collator01"
@@ -41,8 +37,8 @@ chain = "statemine-local"
 
 [[parachains]]
 id = 2000
-addToGenesis = true
 cumulus_based = true
+add_to_genesis = true
 
   [parachains.collator]
   name = "trappist-collator01"
@@ -52,9 +48,9 @@ cumulus_based = true
 
 [[parachains]]
 id = 3000
-addToGenesis = true
-cumulus_based = true
 chain = "penpal-kusama-3000"
+cumulus_based = true
+add_to_genesis = true
 
   [parachains.collator]
   name = "collator01"
@@ -67,38 +63,38 @@ number = "u64"
 parent_hash = "Hash"
 post_state = "Hash"
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 1000
 recipient = 2000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 2000
 recipient = 1000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 1000
 recipient = 3000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 3000
 recipient = 1000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 2000
 recipient = 3000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
 
-[[hrmpChannels]]
+[[hrmp_channels]]
 sender = 3000
 recipient = 2000
-maxCapacity = 8
-maxMessageSize = 512
+max_capacity = 8
+max_message_size = 512
