@@ -147,7 +147,7 @@ settings: # Settings
         args: [ *my_variable ]
     my_call_id:
         chain: *relay_chain
-        encode: false # Indicates the call will not be encoded and used as Submittable
+        encode: false # Indicates the call will not be encoded and used instead as Submittable
         pallet: system
         call: remark
         args: [ *my_variable ]
@@ -346,7 +346,7 @@ settings:
       ]
     to_be_batched:
       chain: *relay_chain
-      encode: false # Indicates the call will not be encoded and used as Submittable instead
+      encode: false # Indicates the call will not be encoded and used instead as Submittable instead
       pallet: system
       call: remark
       args: [ *my_variable ]
