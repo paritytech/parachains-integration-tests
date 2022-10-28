@@ -31,6 +31,7 @@ const mapFormat = (type: any): string => {
 interface Interface {
   instance?: any;
   type?: string,
+  anyKey?: boolean,
   attributes?: { [key: string]: boolean };
   rule?: object;
 }
@@ -255,13 +256,14 @@ const INTERFACE: { [key: string]: Interface } = {
   },
   queries: {
     instance: YAMLMap,
-    // attributes: {
-    //   chain: true,
-    //   delay: false,
-    //   pallet: true,
-    //   call: true,
-    //   args: true
-    // }
+    anyKey: true,
+    attributes: {
+      chain: true,
+      delay: false,
+      pallet: true,
+      call: true,
+      args: true
+    }
   },
   rpcs: {
     instance: YAMLSeq,
@@ -339,20 +341,23 @@ const assessNodeWithInterface = (
     if (value instanceof YAMLMap || value instanceof YAMLSeq) {
       nextNode = value
       let collection = INTERFACE[key.value]
-      hasItems = collection.attributes ? true : false
       exist = collection ? true : false;
       if (exist && collection.instance) {
+        hasItems = collection.attributes ? true : false
         rightFormat = value instanceof collection.instance
         format = collection.instance
       } else if (exist) {
+        // hasItems = false
         format = collection.type
       }
     } else if (value instanceof Scalar) {
       let scalar = INTERFACE[key.value]
       exist = scalar ? true : false;
-      if (scalar) {
+      if (exist && scalar.type) {
         rightFormat = (typeof value.value === scalar.type) || (scalar.type === 'any')
         format = scalar.type
+      } else if (exist) {
+        format = scalar.instance
       }
     } else if(isAlias(value)) {
       return assessNodeWithInterface(yaml, key.value, value.resolve(yaml), range, false)
@@ -408,7 +413,7 @@ const printErrors = (errors: Array<CheckerError>) => {
 }
 
 const check = async () => {
-  console.log('\n🕵️‍♂️  Checking YAML files format integrity...')
+  console.log('\n🕵️‍♂️  Checking format integrity of the YAML files ...')
 
   let testsPath = process.env.TESTS_PATH;
   let testsConfig: TestFile[] = getTestFiles(testsPath);
