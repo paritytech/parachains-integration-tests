@@ -3,6 +3,7 @@
     /* Language and Environment */
     "target": "es5",
     "lib": ["es2019"],
+    "sourceMap": true,
 
     /* Modules */
     "module": "commonjs",
