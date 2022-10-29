@@ -1,0 +1,161 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+    reserve_parachain:
+      wsPort: 9910
+      paraId: &rp_id 1000
+  variables:
+    common:
+      amount_to_send: &amount_to_send 1000000000000000 # 1,000,000,000,000,000
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+        account: &rc_account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+      reserve_parachain:
+        #bob_wallet: &rp_bob_wallet FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP
+        bob_account: &rp_bob_account '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+        sovereign_account: &rc_sovereign_acc 5EYCAe5ijiYgWYWi1fs8Xz1td1djEtJVVnNfzvDRP4VtLL7Y
+
+tests:
+  - name: DMP
+    describes:
+      - name: xcmPallet.limitedTeleportAssets | Relay Chain -> Reserve Parachain
+        before: &before_get_balances
+          - name: Get the balances of the Relay Chain's sender & Assets Parachain's receiver
+            actions:
+              - queries:
+                  rc_sender_balance_before:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *rc_account ]
+
+        its:
+          - name: Relay chain should be able to teleport an asset to Reserve Parachain
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *rc_signer
+                    pallet: xcmPallet
+                    call: limitedTeleportAssets
+                    args: [
+                      # dest: XcmVersionedMultiLocation
+                      {
+                        v1: {
+                          parents: 0,
+                          interior: {
+                            x1: {
+                              Parachain: *rp_id
+                            }
+                          }
+                        }
+                      },
+                      # beneficiary: XcmVersionedMultiLocation
+                      {
+                        v1: {
+                          parents: 0,
+                          interior: {
+                            x1: {
+                              AccountId32: {
+                                network: Any,
+                                id: *rp_bob_account
+                              }
+                            }
+                          }
+                        }
+                      },
+                      # assets: XcmVersionedMultiAssets
+                      {
+                        v1: [
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 0,
+                                interior: Here
+                              }
+                            },
+                            fun: {
+                              Fungible: *amount_to_send
+                            }
+                          }
+                        ]
+                      },
+                      # feeAssetItem: u32
+                      0,
+                      # weightLimit: XcmV2WeightLimit
+                      Unlimited
+                    ]
+                    events:
+                      # XCM message attempted
+                      - name: xcmPallet.Attempted
+                        attributes:
+                          - type: XcmV2TraitsOutcome
+                            xcmOutcome: Complete
+                            threshold: [ 10, 10 ]
+                            value: 761,173,000
+                      # Requested withdrawn from Alice's account (on relay chain)
+                      - name: balances.Withdraw
+                        ignore: true
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_account
+                          - type: u128
+                            value: *amount_to_send
+                      # Fees deducted from Alice's account for the teleport (on relay chain)
+                      - name: balances.Withdraw
+                        ignore: true
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_account
+                          - type: u128
+                            threshold: [10, 10]
+                            value: 148,804,953
+                      # Teleport checking account created for reserve chain
+                      - name: system.NewAccount
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_sovereign_acc
+                      # Teleport checking account endowed with minimum balance
+                      - name: balances.Endowed
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_sovereign_acc
+                          - type: u128
+                            value: *amount_to_send
+                      # Amount deposited into teleport checking account
+                      - name: balances.Deposit
+                        attributes:
+                          - type: AccountId32
+                            value: *rc_sovereign_acc
+                          - type: u128
+                            value: *amount_to_send
+              - queries:
+                  # todo: check alice's account was debited by amount + fees
+                  # todo: native token issuance decremented by amount sent (burn operation)
+                  # todo: check checking account has funds
+                  rc_sender_balance_after:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *rc_account ]
+                  bob_received_asset:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [
+                      *rc_sovereign_acc,
+                    ]
+              - asserts:
+                  isSome:
+                    args: [ $bob_received_asset ]
+                  balanceDecreased:
+                    args: [
+                      {
+                        balances: {
+                          before: $rc_sender_balance_before,
+                          after: $rc_sender_balance_after,
+                        }
+                      }
+                    ]
