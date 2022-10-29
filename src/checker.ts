@@ -310,22 +310,33 @@ const assessNodeWithInterface = (
   attributeInterface: string,
   node: any,
   initialRange: any,
-  comesFromSeq: boolean
-): { nextNode: any, nextNodeType: string, exist: boolean, rightFormat: boolean, range: any, hasItems: boolean, format: any, comesFromSeq: boolean } => {
+  comesFromSeq: boolean,
+  comesFromMap: boolean
+): { nextNode: any, nextNodeType: string, exist: boolean, rightFormat: boolean, range: any, hasItems: boolean, format: any, comesFromSeq: boolean, comesFromMap: boolean } => {
   let expectedInterface = INTERFACE[attributeInterface]
 
   // console.log("NODE Attribute=======", attributeInterface)
-  // console.log("NODE =======", node)
+  // if (attributeInterface === 'queries') {
+  //   console.log("NODE =======", node)
+  // }
 
-  const { instance, type, attributes } = expectedInterface
+  const { instance, type, attributes, anyKey } = expectedInterface
+  // console.log("AnyKEy", anyKey)
 
   let rightFormat = false;
   let hasItems = false;
-  let exist = expectedInterface ? true : false;
+  let exist = expectedInterface ? true : false
   let range = initialRange
   let format;
   let nextNodeType = attributeInterface;
   let nextNode = node
+  let validAnyKey = anyKey ? true : false
+
+  if (validAnyKey && !comesFromMap) {
+    nextNode = node.value
+    range = node.key.range
+    return assessNodeWithInterface(yaml, attributeInterface, nextNode, range, false, validAnyKey)
+  }
 
   if (node instanceof YAMLMap || node instanceof YAMLSeq) {
     rightFormat = node instanceof instance
@@ -341,18 +352,25 @@ const assessNodeWithInterface = (
     if (value instanceof YAMLMap || value instanceof YAMLSeq) {
       nextNode = value
       let collection = INTERFACE[key.value]
-      exist = collection ? true : false;
+      exist = collection ? true : false
       if (exist && collection.instance) {
         hasItems = collection.attributes ? true : false
         rightFormat = value instanceof collection.instance
         format = collection.instance
-      } else if (exist) {
+      } else if (exist && collection.type) {
         // hasItems = false
         format = collection.type
-      }
+      }// } else if (exist) {
+      //   hasItems = true
+      //   nextNodeType = 'queries'
+      //   rightFormat = true
+      // }
     } else if (value instanceof Scalar) {
       let scalar = INTERFACE[key.value]
+      // console.log("ComesFromMap", comesFromMap)
       exist = scalar ? true : false;
+      // console.log("Exist", exist)
+      // console.log("AnyKey", anyKey)
       if (exist && scalar.type) {
         rightFormat = (typeof value.value === scalar.type) || (scalar.type === 'any')
         format = scalar.type
@@ -360,7 +378,7 @@ const assessNodeWithInterface = (
         format = scalar.instance
       }
     } else if(isAlias(value)) {
-      return assessNodeWithInterface(yaml, key.value, value.resolve(yaml), range, false)
+      return assessNodeWithInterface(yaml, key.value, value.resolve(yaml), range, false, false)
     }
   } else if (isScalar(node)) {
       if (exist) {
@@ -371,17 +389,23 @@ const assessNodeWithInterface = (
 
   rightFormat = comesFromSeq ? comesFromSeq : rightFormat
   comesFromSeq = nextNode instanceof YAMLSeq;
+  validAnyKey = anyKey ? true : false
 
-  return { nextNode, nextNodeType, exist, rightFormat, range, hasItems, format, comesFromSeq }
+  // comesFromMap = anyKey ? true : false;
+  // console.log("Comes from maps 2", comesFromMap)
+
+  // console.log("EXISTS", exist)
+
+  return { nextNode, nextNodeType, exist, rightFormat, range, hasItems, format, comesFromSeq, comesFromMap }
 }
 
 let message: Array<string> = []
 
-const checkNode = (yaml: any, nodeType: string, node: any, fromSeq: boolean, lineCounter: LineCounter): Array<string> => {
+const checkNode = (yaml: any, nodeType: string, node: any, fromSeq: boolean, anyKey: boolean, lineCounter: LineCounter): Array<string> => {
 
   let nodeInterface: Interface = JSON.parse(JSON.stringify(INTERFACE[nodeType]));
 
-  const { nextNode, nextNodeType, exist, rightFormat, range, hasItems, format, comesFromSeq } = assessNodeWithInterface(yaml, nodeType, node, node.range, fromSeq)
+  const { nextNode, nextNodeType, exist, rightFormat, range, hasItems, format, comesFromSeq, comesFromMap } = assessNodeWithInterface(yaml, nodeType, node, node.range, fromSeq, anyKey)
 
   if (!exist) {
     let errorLine = lineCounter.linePos(range[0])
@@ -392,7 +416,7 @@ const checkNode = (yaml: any, nodeType: string, node: any, fromSeq: boolean, lin
   } else {
     if (hasItems) {
       for (const item of nextNode.items) {
-        message.concat(checkNode(yaml, nextNodeType, item, comesFromSeq, lineCounter))
+        message.concat(checkNode(yaml, nextNodeType, item, comesFromSeq, comesFromMap, lineCounter))
       }
     }
   }
@@ -436,7 +460,7 @@ const check = async () => {
     // TODO: check also the decodedCalls
 
     if (tests.items.length > 0) {
-        errors[index - 1].errors.push(...checkNode(yaml2, 'tests', tests, false, lineCounter))
+        errors[index - 1].errors.push(...checkNode(yaml2, 'tests', tests, false, false, lineCounter))
     }
   }
   printErrors(errors)
