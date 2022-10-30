@@ -439,15 +439,18 @@ const traverseNode = (doc: any, node: any, rootNode: any): Assesment => {
     rootNode: rootNode,
     nextNodes: []
   }
+  console.log(rootNode)
   let interfaceKey
 
-  if (node instanceof YAMLMap || node instanceof YAMLSeq) {
+  if (node instanceof YAMLMap || node instanceof YAMLSeq || INTERFACE[rootNode.key?.value]?.anyKey) {
+    console.log("Entra")
+    console.log(node)
     assesment = {
       ...assesment,
       exist: true,
       rightFormat: true,
-      range: node.range,
-      nextNodes: node.items
+      range: node.range || node.value.range,
+      nextNodes: node.items || node.value.items
     }
     return assesment
   } else if (node instanceof Pair) {
@@ -515,24 +518,31 @@ const traverseNode = (doc: any, node: any, rootNode: any): Assesment => {
     }
     // console.log(node)
   }
+  // assesment.rootNode = node
   return assesment
 }
 
 
 
-const checkNode = (doc: any, node: any, rootNode: any, initialRange: any, message: Array<string>, lineCounter: LineCounter): Array<string> => {
+const checkNode = (doc: any, node: any, root: any, initialRange: any, message: Array<string>, lineCounter: LineCounter): Array<string> => {
 
   // let nodeInterface: Interface = JSON.parse(JSON.stringify(INTERFACE[nodeType]));
 
   // console.log("NODE", node)
 
-  const { key, exist, rightFormat, format, range, nextNodes } = traverseNode(doc, node, doc)
+  const { key, exist, rightFormat, format, range, nextNodes, rootNode } = traverseNode(doc, node, root)
 
   let errorLine = lineCounter.linePos(range[0])
   if (!exist) {
-    message.push(`${formatLine(errorLine)} unexpected '${key}' attribute`)
+    let newMessage = `${formatLine(errorLine)} unexpected '${key}' attribute`
+    if (message.indexOf(newMessage) === -1) {
+      message.push(newMessage)
+    }
   } else if (!rightFormat) {
-    message.push(`${formatLine(errorLine)}'${key}' attribute should be of '${mapFormat(format)}' type`)
+    let newMessage = `${formatLine(errorLine)}'${key}' attribute should be of '${mapFormat(format)}' type`
+    if (message.indexOf(newMessage) === -1) {
+      message.push(newMessage)
+    }
   }
 
   nextNodes.forEach(nextNode => {
@@ -553,6 +563,7 @@ const checkNode = (doc: any, node: any, rootNode: any, initialRange: any, messag
   //     }
   //   }
   // }
+  console.log(message)
   return message
 };
 
