@@ -20,16 +20,6 @@ const formatLine = (start, end?): string => {
   return `${errorStart}${errorEnd ? ` \x1b[33m-\x1b[0m ${errorEnd}` : ': '}`
 }
 
-const mapFormat = (type: any): string => {
-  if (type === YAMLMap) {
-    return 'object'
-  } else if (type === YAMLSeq) {
-    return 'array'
-  } else {
-    return type
-  }
-}
-
 interface Interface {
   instance?: any;
   type?: string,
@@ -307,100 +297,6 @@ const INTERFACE: { [key: string]: Interface } = {
   }
 }
 
-// const assessNodeWithInterface = (
-//   yaml: any,
-//   attributeInterface: string,
-//   node: any,
-//   initialRange: any,
-//   comesFromSeq: boolean,
-//   comesFromMap: boolean
-// ): { nextNode: any, nextNodeType: string, exist: boolean, rightFormat: boolean, range: any, hasItems: boolean, format: any, comesFromSeq: boolean, comesFromMap: boolean } => {
-//   let expectedInterface = INTERFACE[attributeInterface]
-
-//   // console.log("NODE Attribute=======", attributeInterface)
-//   // if (attributeInterface === 'queries') {
-//   //   console.log("NODE =======", node)
-//   // }
-
-//   const { instance, type, attributes, anyKey } = expectedInterface
-//   // console.log("AnyKEy", anyKey)
-
-//   let rightFormat = false;
-//   let hasItems = false;
-//   let exist = expectedInterface ? true : false
-//   let range = initialRange
-//   let format;
-//   let nextNodeType = attributeInterface;
-//   let nextNode = node
-//   let validAnyKey = anyKey ? true : false
-
-//   if (validAnyKey && !comesFromMap) {
-//     nextNode = node.value
-//     range = node.key.range
-//     return assessNodeWithInterface(yaml, attributeInterface, nextNode, range, false, validAnyKey)
-//   }
-
-//   if (node instanceof YAMLMap || node instanceof YAMLSeq) {
-//     rightFormat = node instanceof instance
-//     range = node.range
-//     hasItems = attributes ? true : false
-//     format = instance
-//   } else if (node instanceof Pair) {
-//     let key = node.key
-//     let value = node.value
-//     range = key.range
-//     nextNodeType = key.value
-
-//     if (value instanceof YAMLMap || value instanceof YAMLSeq) {
-//       nextNode = value
-//       let collection = INTERFACE[key.value]
-//       exist = collection ? true : false
-//       if (exist && collection.instance) {
-//         hasItems = collection.attributes ? true : false
-//         rightFormat = value instanceof collection.instance
-//         format = collection.instance
-//       } else if (exist && collection.type) {
-//         // hasItems = false
-//         format = collection.type
-//       }// } else if (exist) {
-//       //   hasItems = true
-//       //   nextNodeType = 'queries'
-//       //   rightFormat = true
-//       // }
-//     } else if (value instanceof Scalar) {
-//       let scalar = INTERFACE[key.value]
-//       // console.log("ComesFromMap", comesFromMap)
-//       exist = scalar ? true : false;
-//       // console.log("Exist", exist)
-//       // console.log("AnyKey", anyKey)
-//       if (exist && scalar.type) {
-//         rightFormat = (typeof value.value === scalar.type) || (scalar.type === 'any')
-//         format = scalar.type
-//       } else if (exist) {
-//         format = scalar.instance
-//       }
-//     } else if(isAlias(value)) {
-//       return assessNodeWithInterface(yaml, key.value, value.resolve(yaml), range, false, false)
-//     }
-//   } else if (isScalar(node)) {
-//       if (exist) {
-//         rightFormat = (typeof node.value === type) || (type === 'any')
-//         format = type
-//       }
-//   }
-
-//   rightFormat = comesFromSeq ? comesFromSeq : rightFormat
-//   comesFromSeq = nextNode instanceof YAMLSeq;
-//   validAnyKey = anyKey ? true : false
-
-//   // comesFromMap = anyKey ? true : false;
-//   // console.log("Comes from maps 2", comesFromMap)
-
-//   // console.log("EXISTS", exist)
-
-//   return { nextNode, nextNodeType, exist, rightFormat, range, hasItems, format, comesFromSeq, comesFromMap }
-// }
-
 interface Assesment {
   key: string | undefined;
   exist: boolean;
@@ -429,7 +325,7 @@ const rightFormat = (value: any, interfaceValue: Interface): { is: boolean, form
   return { is: false, format: undefined }
 }
 
-const traverseNode = (doc: any, node: any, rootNode: any): Assesment => {
+const assessNode = (doc: any, node: any, rootNode: any): Assesment => {
   let assesment: Assesment = {
     key: undefined,
     exist: false,
@@ -439,12 +335,10 @@ const traverseNode = (doc: any, node: any, rootNode: any): Assesment => {
     rootNode: rootNode,
     nextNodes: []
   }
-  console.log(rootNode)
+
   let interfaceKey
 
   if (node instanceof YAMLMap || node instanceof YAMLSeq || INTERFACE[rootNode.key?.value]?.anyKey) {
-    console.log("Entra")
-    console.log(node)
     assesment = {
       ...assesment,
       exist: true,
@@ -485,13 +379,10 @@ const traverseNode = (doc: any, node: any, rootNode: any): Assesment => {
           format
         }
       } else if(isAlias(value)) {
-        // console.log("=================")
-        return traverseNode(doc, value.resolve(doc), node)
+        return assessNode(doc, value.resolve(doc), node)
       }
     }
   } else if (isScalar(node)) {
-    // console.log(node)
-    // console.log(rootNode)
     const { key } = rootNode
     const { value } = node
 
@@ -504,10 +395,6 @@ const traverseNode = (doc: any, node: any, rootNode: any): Assesment => {
     }
 
     if (interfaceKey) {
-      // if (key.value === 'signer') {
-      //   console.log("Value", value)
-      //   console.log("IK", interfaceKey)
-      //  }
       const { is, format } = rightFormat(value, interfaceKey)
       assesment = {
         ...assesment,
@@ -516,21 +403,14 @@ const traverseNode = (doc: any, node: any, rootNode: any): Assesment => {
         format
       }
     }
-    // console.log(node)
   }
-  // assesment.rootNode = node
   return assesment
 }
 
 
 
 const checkNode = (doc: any, node: any, root: any, initialRange: any, message: Array<string>, lineCounter: LineCounter): Array<string> => {
-
-  // let nodeInterface: Interface = JSON.parse(JSON.stringify(INTERFACE[nodeType]));
-
-  // console.log("NODE", node)
-
-  const { key, exist, rightFormat, format, range, nextNodes, rootNode } = traverseNode(doc, node, root)
+  const { key, exist, rightFormat, format, range, nextNodes, rootNode } = assessNode(doc, node, root)
 
   let errorLine = lineCounter.linePos(range[0])
   if (!exist) {
@@ -539,7 +419,7 @@ const checkNode = (doc: any, node: any, root: any, initialRange: any, message: A
       message.push(newMessage)
     }
   } else if (!rightFormat) {
-    let newMessage = `${formatLine(errorLine)}'${key}' attribute should be of '${mapFormat(format)}' type`
+    let newMessage = `${formatLine(errorLine)}'${key}' attribute should be of '${format}' type`
     if (message.indexOf(newMessage) === -1) {
       message.push(newMessage)
     }
@@ -549,21 +429,6 @@ const checkNode = (doc: any, node: any, root: any, initialRange: any, message: A
     checkNode(doc, nextNode, node, range, message, lineCounter)
   })
 
-
-  // if (!exist) {
-  //   let errorLine = lineCounter.linePos(range[0])
-  //   message.push(`${formatLine(errorLine)} unexpected '${nextNodeType}' attribute`)
-  // } else if (!rightFormat) {
-  //   let errorLine = lineCounter.linePos(range[0])
-  //   message.push(`${formatLine(errorLine)}'${nextNodeType}' attribute should be of '${mapFormat(format)}' type`)
-  // } else {
-  //   if (hasItems) {
-  //     for (const item of nextNode.items) {
-  //       message.concat(checkNode(yaml, nextNodeType, item, comesFromSeq, comesFromMap, lineCounter))
-  //     }
-  //   }
-  // }
-  console.log(message)
   return message
 };
 
@@ -599,14 +464,10 @@ const check = async () => {
 
     let index = errors.push({ file: `\n\x1b[31m${name}\x1b[0m`, errors: [] });
 
-    // let tests = yaml2.get('tests')
-
     // TODO: check also the decodedCalls
     let message: Array<string> = []
-    // if (tests.items.length > 0) {
     const { contents, range } = yaml2
-        errors[index - 1].errors.push(...checkNode(yaml2, contents, yaml2, yaml2.range, message, lineCounter))
-    // }
+    errors[index - 1].errors.push(...checkNode(yaml2, contents, yaml2, range, message, lineCounter))
   }
   printErrors(errors)
 };
