@@ -1,0 +1,28 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+  variables:
+    chains:
+      relay_chain:
+        alice_account: &account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+  decodedCalls: {}
+
+tests:
+  - name: Tests
+    describes:
+      - name: Query tests
+        its:
+          - name: Query selector should return nested value
+            actions:
+              - queries:
+                  balance:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *account ]
+                    selector: 'data.free'
+              - asserts:
+                  equal:
+                    args: [ $balance, 1000000000000000000 ]
