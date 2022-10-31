@@ -582,7 +582,7 @@ interface Query {
   pallet: string;
   call: string;
   args: any[];
-  // An optional path used to select a nested value within a query result.
+  // An optional path used to select a nested value within a query result (https://lodash.com/docs/#get).
   selector?: string
 }
 ```
