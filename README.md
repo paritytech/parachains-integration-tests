@@ -691,18 +691,18 @@ tests: # Describe[]
       - name: Should reduce the balance of the sender
         actions: # Action[]
           - asserts: # { [key: string]: AssertOrCustom }
-              custom:
-                path: ./asserts/checkSenderBalances.ts
-                args: 
-                  { 
-                    balances: {
-                      before: $balance_rc_sender_before,
-                      after: $balance_rc_sender_after,
-                    },
-                    amount: *amount,
-                  }
-              equal:
-                args: [true, true]
+              - custom:
+                  path: ./asserts/checkSenderBalances.ts
+                  args: 
+                    { 
+                      balances: {
+                        before: $balance_rc_sender_before,
+                        after: $balance_rc_sender_after,
+                      },
+                      amount: *amount,
+                    }
+              - equal:
+                  args: [true, true]
 ```
 
 Interfaces:
@@ -746,7 +746,7 @@ tests: # Describe[]
                 url: https://www.my-oracle.com/price/
               }
           asserts:
-            equal: [$dot_price, 30]
+            - equal: [$dot_price, 30]
 
 ```
 ```typescript
