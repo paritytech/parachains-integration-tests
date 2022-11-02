@@ -1,10 +1,8 @@
 require('dotenv').config();
 import { getTestFiles, addConsoleGroup, addConsoleGroupEnd } from './utils'
-import YAML, { isCollection, Range, isMap, isScalar, YAMLMap, LineCounter, Parser, Pair, isAlias, isSeq, isPair } from 'yaml';
-import { stringify, YAMLSeq, Scalar } from 'yaml'
-import { CheckerError, TestFile, XcmOutcome } from './interfaces';
-import { KeyObject } from 'crypto';
-import { isAnyArrayBuffer } from 'util/types';
+import {isScalar, YAMLMap, LineCounter, Parser, Pair, isAlias } from 'yaml';
+import { YAMLSeq, Scalar } from 'yaml'
+import { CheckerError, TestFile } from './interfaces';
 
 const formatLine = (start, end?): string => {
   const { line: lineStart, col: colStart } = start;
@@ -29,6 +27,14 @@ interface Interface {
 }
 
 const INTERFACE: { [key: string]: Interface } = {
+  settings: {
+    instance: YAMLMap,
+    attributes: {
+      chains: true,
+      variables: false,
+      decodedCalls: false
+    },
+  },
   tests: {
     instance: YAMLSeq,
     attributes: {
@@ -125,7 +131,7 @@ const INTERFACE: { [key: string]: Interface } = {
   events: {
     instance: YAMLSeq,
     attributes: {
-      chain: true,
+      chain: false,
       name: true,
       remote: false,
       timeout: false,
@@ -407,22 +413,83 @@ const assessNode = (doc: any, node: any, rootNode: any): Assesment => {
   return assesment
 }
 
+const lookupMissingAttributes = (doc: any, rootNode: any, node: any, lineCounter: LineCounter, message: string[]): string[] => {
+  // console.log("PRe node", node)
+  // console.log("PRe node root", rootNode)
+  if (node instanceof Pair) {
+    const { key } = rootNode;
+    const { value } = node;
+    // console.log("NODE", node)
+    // console.log("ROOT NODE", node)
+    // console.log("Node key", key.value)
+    // console.log("Node Value", value)
+    let interfaceAttr = INTERFACE[key.value];
+
+
+    if (value instanceof YAMLSeq) {
+      // console.log("========================================")
+      // console.log("KEY", key.value)
+      // console.log("INTERFACE", interfaceAttr)
+      // if (interfaceAttr && interfaceAttr.attributes && !interfaceAttr.anyKey) {
+      if (interfaceAttr && interfaceAttr.attributes) {
+        // console.log(value.has(attr))
+        value.items.forEach((item) => {
+          // console.log("ITEM", item)
+          for (const attr in interfaceAttr.attributes) {
+            // console.log("Attr", attr, item.has(attr))
+            if (interfaceAttr.attributes[attr] && !item.has(attr)) {
+              if (value.range) {
+                let errorLineStart = lineCounter.linePos(item.range[0])
+                let errorLineEnd = lineCounter.linePos(item.range[2])
+                message.push(`${formatLine(errorLineStart)}:${formatLine(errorLineEnd)} missing '${attr}' attribute in '${key.value}'`)
+                message.concat(lookupMissingAttributes(doc, item, item, lineCounter, message))
+              }
+            }
+          }
+        })
+      }
+    } else if (value instanceof YAMLMap) {
+      if ((interfaceAttr && interfaceAttr.attributes && !interfaceAttr.anyKey) || ((interfaceAttr && interfaceAttr.attributes && (rootNode !== node) ))) {
+          for (const attr in interfaceAttr.attributes) {
+            // console.log("Attr", attr, value.has(attr))
+            if (interfaceAttr.attributes[attr] && !value.has(attr)) {
+              if (value.range) {
+                let errorLineStart = lineCounter.linePos(value.range[0])
+                let errorLineEnd = lineCounter.linePos(value.range[2])
+                message.push(`${formatLine(errorLineStart)}:${formatLine(errorLineEnd)} missing '${attr}' attribute in '${key.value}'`)
+              }
+            }
+          }
+      } else if (interfaceAttr && interfaceAttr.attributes && interfaceAttr.anyKey && (rootNode === node)) {
+        // console.log("entra")
+        value.items.forEach((item) => {
+          message.concat(lookupMissingAttributes(doc, node, item, lineCounter, message))
+        })
+      }
+    } else if (isAlias(value)) {
+      // console.log("Alias ROOT NODE", node)
+      // console.log("Alias NODE", value.resolve(doc))
+      node.value = value.resolve(doc)
+      message.concat(lookupMissingAttributes(doc, node, node, lineCounter, message))
+    }
+  }
+
+  return message
+}
+
 
 
 const checkNode = (doc: any, node: any, root: any, initialRange: any, message: Array<string>, lineCounter: LineCounter): Array<string> => {
   const { key, exist, rightFormat, format, range, nextNodes, rootNode } = assessNode(doc, node, root)
+  lookupMissingAttributes(doc, node, node, lineCounter, message)
 
   let errorLine = lineCounter.linePos(range[0])
   if (!exist) {
     let newMessage = `${formatLine(errorLine)} unexpected '${key}' attribute`
-    if (message.indexOf(newMessage) === -1) {
-      message.push(newMessage)
-    }
+    message.push(newMessage)
   } else if (!rightFormat) {
     let newMessage = `${formatLine(errorLine)}'${key}' attribute should be of '${format}' type`
-    if (message.indexOf(newMessage) === -1) {
-      message.push(newMessage)
-    }
+    message.push(newMessage)
   }
 
   nextNodes.forEach(nextNode => {
@@ -467,7 +534,9 @@ const check = async () => {
     // TODO: check also the decodedCalls
     let message: Array<string> = []
     const { contents, range } = yaml2
-    errors[index - 1].errors.push(...checkNode(yaml2, contents, yaml2, range, message, lineCounter))
+    let error = checkNode(yaml2, contents, yaml2, range, message, lineCounter)
+    error = [...new Set(error)]
+    errors[index - 1].errors.push(...error)
   }
   printErrors(errors)
 };
