@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { Query } from './interfaces';
 import { parseArgs, sleep } from './utils';
 
@@ -40,8 +41,17 @@ export const sendQuery = async (context, key: string, query: Query) => {
   let parsedArgs = parseArgs(context, args);
   await sleep(delay ? delay : context.actionDelay);
   let result = await api.query[pallet][call](...parsedArgs);
+  if (result && query.selector)
+    result = get(result, query.selector);
   return result;
 };
+
+const get = (object, path: string): any => {
+  object = _.get(object, path);
+  if (_.isNil(object)) return object;
+  if (object.__UIntType) return BigInt(object);
+  return object;
+}
 
 export const queriesBuilder = async (
   context,

@@ -136,7 +136,7 @@ export const parseArgs = (context, args): any[] => {
         let replacement = variables[keys[i]];
         if (typeof replacement === 'string') {
           strigifiedArg = strigifiedArg.replace(regex, `"${replacement}"`);
-        } else if (typeof replacement === 'number') {
+        } else if (typeof replacement === 'number' || typeof replacement === 'bigint') {
           strigifiedArg = strigifiedArg.replace(regex, `${replacement}`);
         } else if (typeof replacement === 'object') {
           strigifiedArg = strigifiedArg.replace(

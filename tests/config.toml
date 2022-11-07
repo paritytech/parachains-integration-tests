@@ -5,21 +5,21 @@ timeout = 1000
 chain = "rococo-local"
 default_command = "./bin/polkadot"
 
-  [[relaychain.nodes]]
-  name = "alice"
-  validator = true
-  ws_port = 9900
-  extra_args = [ "-lparachain=debug" ]
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+ws_port = 9900
+extra_args = [ "-lparachain=debug" ]
 
-  [[relaychain.nodes]]
-  name = "bob"
-  validator = true
-  extra_args = [ "-lparachain=debug" ]
+[[relaychain.nodes]]
+name = "bob"
+validator = true
+extra_args = [ "-lparachain=debug" ]
 
-  [[relaychain.nodes]]
-  name = "charlie"
-  validator = true
-  extra_args = [ "-lparachain=debug" ]
+[[relaychain.nodes]]
+name = "charlie"
+validator = true
+extra_args = [ "-lparachain=debug" ]
 
 [[parachains]]
 id = 1000
@@ -27,17 +27,17 @@ add_to_genesis = true
 cumulus_based = true
 chain = "statemine-local"
 
-  [[parachains.collators]]
-  name = "statemine-collator01"
-  command = "./bin/polkadot-parachain"
-  ws_port = 9910
-  args = ["--log=xcm=trace,pallet-assets=trace"]
+[[parachains.collators]]
+name = "statemine-collator01"
+command = "./bin/polkadot-parachain"
+ws_port = 9910
+args = ["--log=xcm=trace,pallet-assets=trace"]
 
-  [[parachains.collators]]
-  name = "statemine-collator02"
-  command = "./bin/polkadot-parachain"
-  ws_port = 9911
-  args = ["--log=xcm=trace,pallet-assets=trace"]
+[[parachains.collators]]
+name = "statemine-collator02"
+command = "./bin/polkadot-parachain"
+ws_port = 9911
+args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [types.Header]
 number = "u64"
