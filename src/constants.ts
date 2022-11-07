@@ -14,6 +14,8 @@ export const REGISTERED_ASSERTIONS = [
   'assetsIncreased',
   'isNone',
   'isSome',
+  'valueDecreased',
+  'valueIncreased',
 ];
 
 export const INTERFACE: { [key: string]: Interface } = {
@@ -239,6 +241,8 @@ export const INTERFACE: { [key: string]: Interface } = {
       balanceIncreased: false,
       assetsDecreased: false,
       assetsIncreased: false,
+      valueDecreased: false,
+      valueIncreased: false,
       custom: false,
     },
   },
@@ -273,6 +277,18 @@ export const INTERFACE: { [key: string]: Interface } = {
     },
   },
   assetsIncreased: {
+    instance: YAMLMap,
+    attributes: {
+      args: true,
+    },
+  },
+  valueDecreased: {
+    instance: YAMLMap,
+    attributes: {
+      args: true,
+    },
+  },
+  valueIncreased: {
     instance: YAMLMap,
     attributes: {
       args: true,
