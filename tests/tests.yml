@@ -1,0 +1,39 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+  variables:
+    chains:
+      relay_chain:
+        alice_account: &account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+  decodedCalls: {}
+
+tests:
+  - name: Tests
+    describes:
+      - name: Assert tests
+        its:
+          - name: Value increased/decreased assert tests
+            actions:
+              - queries:
+                  balance:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *account ]
+              - asserts:
+                  valueDecreased:
+                    args: [
+                      {
+                        before: 1,
+                        after: 0
+                      }
+                    ]
+                  valueIncreased:
+                    args: [
+                      {
+                        before: 0,
+                        after: 1
+                      }
+                    ]
