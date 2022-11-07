@@ -100,7 +100,7 @@ tests:
                     chain: *relay_chain
                     pallet: system
                     call: account
-                    args: [ *account ]
+                    args: [ *relay_chain_account ]
                     selector: 'data.free'
               - asserts:
                   equal:
