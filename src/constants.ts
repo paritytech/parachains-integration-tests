@@ -11,4 +11,6 @@ export const REGISTERED_ASSERTIONS = [
   'assetsIncreased',
   'isNone',
   'isSome',
+  'valueDecreased',
+  'valueIncreased',
 ];

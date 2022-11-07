@@ -117,3 +117,18 @@ tests:
                       args: [ false, false ]
                   - equal:
                       args: [ 10, 10 ]
+              - asserts:
+                  valueDecreased:
+                    args: [
+                      {
+                        before: 1,
+                        after: 0
+                      }
+                    ]
+                  valueIncreased:
+                    args: [
+                      {
+                        before: 0,
+                        after: 1
+                      }
+                    ]
