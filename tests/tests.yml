@@ -15,6 +15,7 @@ settings:
         alice_account: &relay_chain_account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
       reserve_parachain:
         bob_account: &reserve_parachain_account '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+  decodedCalls: {}
 
 tests:
   - name: Tests
@@ -86,3 +87,28 @@ tests:
                             threshold: [10, 10]
                             value: 148,804,953
                       - name: xcmPallet.Attempted # ensure an event can be matched by name only
+
+      - name: Assert tests
+        its:
+          - name: Assert tests
+            actions:
+              - queries:
+                  balance:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *relay_chain_account ]
+              # Support multiple asserts of same type (as sequence)
+              - asserts:
+                  - equal:
+                      args: [ false, false ]
+                  - equal:
+                      args: [ 10, 10 ]
+                  - isNone:
+                      args: [ null ]
+              # Supports custom asserts
+              - asserts:
+                  - custom:
+                      path: ./customAssert.ts
+                      args: [ 42 ]
+
