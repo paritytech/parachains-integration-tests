@@ -1,0 +1,36 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+  variables:
+    chains:
+      relay_chain:
+        alice_account: &account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+  decodedCalls: {}
+
+tests:
+  - name: Tests
+    describes:
+      - name: Assert tests
+        its:
+          - name: Assert tests
+            actions:
+              - queries:
+                  balance:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *account ]
+              # Support asserts by key (map)
+              - asserts:
+                  equal:
+                    args: [ true, true ]
+                  isNone:
+                    args: [ null ]
+              # Support multiple asserts of same type as list
+              - asserts:
+                  - equal:
+                      args: [ false, false ]
+                  - equal:
+                      args: [ 10, 10 ]
