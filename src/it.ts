@@ -1,6 +1,6 @@
 import {
   It,
-  AsserAction,
+  AssertAction,
   ExtrinsicAction,
   QueryAction,
   CustomAction,
@@ -24,7 +24,7 @@ export const itsBuilder = (test: It) => {
     for (let action of actions) {
       const { extrinsics } = action as ExtrinsicAction;
       const { customs } = action as CustomAction;
-      const { asserts } = action as AsserAction;
+      const { asserts } = action as AssertAction;
       const { queries } = action as QueryAction;
       const { rpcs } = action as RpcAction;
 

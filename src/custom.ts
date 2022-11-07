@@ -20,7 +20,7 @@ export const customBuilder = async (context, custom: Custom) => {
     await customFunction.default(context, parsedArgs);
   } else {
     console.log(
-      `\n⛔ ERROR: a funcion must be default exported from the file ${path}`
+      `\n⛔ ERROR: a function must be default exported from the file ${path}`
     );
     process.exit(1);
   }

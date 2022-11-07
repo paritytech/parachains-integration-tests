@@ -1,5 +1,4 @@
 const chai = require('chai');
-var should = require('chai').should();
 import { Assert, Custom, AssertOrCustom } from './interfaces';
 import { customBuilder } from './custom';
 import { addConsoleGroupEnd, parseArgs } from './utils';
@@ -43,12 +42,13 @@ const runAssert = async (context, key: string, assert: AssertOrCustom) => {
 };
 
 export const assertsBuilder = async (
-  context,
-  asserts: { [key: string]: AssertOrCustom }
+    context,
+    asserts: AssertOrCustom[]
 ) => {
-  for (let key of Object.keys(asserts)) {
+  for (const assert of asserts) {
+    const key = Object.keys(assert)[0]; // Assume object with single property (key)
     if (isRegisteredAssert(key)) {
-      await runAssert(context, key, asserts[key]);
+      await runAssert(context, key, assert[key]);
     } else {
       console.log(`\n⚠️  the assert type '${key}' is not implemented`);
       process.exit(1);

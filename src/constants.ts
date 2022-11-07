@@ -231,10 +231,11 @@ export const INTERFACE: { [key: string]: Interface } = {
     instance: YAMLSeq,
   },
   asserts: {
-    instance: YAMLMap,
+    instance: YAMLSeq,
     attributes: {
       equal: false,
       isSome: false,
+      isNone: false,
       balanceDecreased: false,
       balanceIncreased: false,
       assetsDecreased: false,
@@ -249,6 +250,12 @@ export const INTERFACE: { [key: string]: Interface } = {
     },
   },
   isSome: {
+    instance: YAMLMap,
+    attributes: {
+      args: true,
+    },
+  },
+  isNone: {
     instance: YAMLMap,
     attributes: {
       args: true,

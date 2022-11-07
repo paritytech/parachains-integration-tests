@@ -7,7 +7,7 @@ import {
   Action,
   ExtrinsicAction,
   QueryAction,
-  AsserAction,
+  AssertAction,
   CustomAction,
 } from './interfaces';
 import { customBuilder } from './custom';
@@ -58,7 +58,7 @@ export const hookBuilder = async (context, actions: Action[]) => {
   for (let action of actions) {
     const { extrinsics } = action as ExtrinsicAction;
     const { customs } = action as CustomAction;
-    const { asserts } = action as AsserAction;
+    const { asserts } = action as AssertAction;
     const { queries } = action as QueryAction;
 
     if (customs) {

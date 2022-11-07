@@ -309,7 +309,7 @@ export type RpcAction = {
   rpcs: { [key: string]: Rpc };
 }
 
-export type AsserAction = {
+export type AssertAction = {
   asserts: { [key: string]: AssertOrCustom };
 }
 
@@ -317,7 +317,7 @@ export type CustomAction = {
   customs: Custom[];
 }
 
-export type Action = ExtrinsicAction | QueryAction | AsserAction | RpcAction | CustomAction;
+export type Action = ExtrinsicAction | QueryAction | AssertAction | RpcAction | CustomAction;
 ```
 
 ### Extrinsic

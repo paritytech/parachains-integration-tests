@@ -121,13 +121,13 @@ export interface It {
 export type ExtrinsicAction = { extrinsics: Extrinsic[] };
 export type QueryAction = { queries: { [key: string]: Query } };
 export type RpcAction = { rpcs: { [key: string]: Rpc } };
-export type AsserAction = { asserts: { [key: string]: AssertOrCustom } };
+export type AssertAction = { asserts: AssertOrCustom[] };
 export type CustomAction = { customs: Custom[] };
 
 export type Action =
   | ExtrinsicAction
   | QueryAction
-  | AsserAction
+  | AssertAction
   | RpcAction
   | CustomAction;
 
