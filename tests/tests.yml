@@ -91,6 +91,9 @@ tests:
       - name: Query tests
         its:
           - name: Query selector should return nested value
+      - name: Assert tests
+        its:
+          - name: Assert tests
             actions:
               - queries:
                   balance:
@@ -102,3 +105,15 @@ tests:
               - asserts:
                   equal:
                     args: [ $balance, 1000000000000000000 ]
+              # Support asserts by key (map)
+              - asserts:
+                  equal:
+                    args: [ true, true ]
+                  isNone:
+                    args: [ null ]
+              # Support multiple asserts of same type as list
+              - asserts:
+                  - equal:
+                      args: [ false, false ]
+                  - equal:
+                      args: [ 10, 10 ]
