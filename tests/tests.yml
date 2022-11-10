@@ -1,0 +1,78 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+  variables:
+    chains:
+      relay_chain:
+        alice_account: &account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+  decodedCalls: {}
+
+tests:
+  - name: Tests
+    describes:
+      - name: Assert tests
+        its:
+          - name: Assert tests
+            actions:
+              # Support asserts by key (map)
+              - asserts:
+                  equal:
+                    args: [ true, true ]
+                  isNone:
+                    args: [ null ]
+              # Support multiple asserts of same type as list
+              - asserts:
+                  - equal:
+                      args: [ false, false ]
+                  - equal:
+                      args: [ 10, 10 ]
+          - name: Args tests
+            actions:
+              - queries:
+                  authorities:
+                    chain: *relay_chain
+                    pallet: babe
+                    call: authorities
+                    delay: 0
+                    args: [ ]
+                  epoch_config:
+                    chain: *relay_chain
+                    pallet: babe
+                    call: epochConfig
+                    delay: 0
+                    args: [ ]
+                  balance:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    delay: 0
+                    args: [ *account ]
+                  total_issuance:
+                    chain: *relay_chain
+                    pallet: balances
+                    call: totalIssuance
+                    delay: 0
+                    args: [ ]
+                  validators:
+                    chain: *relay_chain
+                    pallet: session
+                    call: validators
+                    delay: 0
+                    args: [ ]
+              - asserts:
+                  - equal:
+                      args: [ $authorities[2][0], '0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22' ]
+                  - equal:
+                      args: [ $epoch_config.value.c[1], 4 ]
+                  - equal:
+                      args: [ $balance.data.free, 1000000000000000000 ]
+                  - equal:
+                      args: [ $balance.providers, 1 ]
+                  - equal:
+                      args: [ $validators[0], 5GNJqTPyNqANBkUVMN1LPPrxXnFouWXoe2wNSmmEoLctxiZY ]
+                  - equal:
+                      args: [ $validators[1], 5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK1iQ7qUsSWFc ]
+                  - equal:
+                      args: [ $total_issuance, 12000000000033333333 ]
