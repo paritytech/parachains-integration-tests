@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import YAML from 'yaml';
 import glob from 'glob';
 import fs from 'fs';
@@ -34,7 +35,21 @@ export const getTestFiles = (path): TestFile[] => {
 
       let testDir = dirname(testPath);
 
-      const file = fs.readFileSync(testFile, 'utf8');
+      let file = fs.readFileSync(testFile, 'utf8');
+
+      // Parse args to satisfy yaml specification (no nested [] allowed within flow sequence)
+      file = file.replace(/(?<=args\s*:\s*\[)(.*)(?=])/gi, (match) => {
+        if (!match.includes('[')) return match;
+        return match.split(',').map(arg => {
+          // Ignore if argument does not contain [] or is already wrapped in ''/""
+          if (!arg.includes('[')) return arg;
+          arg = arg.trim();
+          return ((arg.startsWith('\'') && arg.endsWith('\'')) || (arg.startsWith('"') && arg.endsWith('"')))
+              ? arg
+              : `'${arg.trim()}'`; // wrap value containing [] in ''
+        }).join(',');
+      });
+
       let yaml: TestsConfig = YAML.parse(file);
       let test: TestFile = { name: testFile, dir: testDir, yaml };
       return test;
@@ -123,47 +138,56 @@ export const getWallet = async (
 };
 
 export const parseArgs = (context, args): any[] => {
+  if (args.length == 0) return args;
+
   let variables = context.variables;
-  let strigifiedArg = JSON.stringify(args);
-
   if (variables) {
-    let keys = Object.keys(variables);
+    // Check args for variables requiring value resolution
+    for (let i = 0; i < args.length; i++) {
+      if (typeof args[i] === 'string') {
+        // Check context variables for matching arguments
+        const arg = args[i];
+        for (const key of Object.keys(variables)) {
+          if (arg.startsWith(key)) {
+            // Resolve value based on argument
+            let value = _.get(variables, arg);
 
-    for (let i = 0; i < keys.length; i++) {
-      let pattern = `"\\${keys[i]}"`;
-      let regex = new RegExp(pattern, 'g');
-      if (strigifiedArg.match(regex)) {
-        let replacement = variables[keys[i]];
-        if (typeof replacement === 'string') {
-          strigifiedArg = strigifiedArg.replace(regex, `"${replacement}"`);
-        } else if (typeof replacement === 'number') {
-          strigifiedArg = strigifiedArg.replace(regex, `${replacement}`);
-        } else if (typeof replacement === 'object') {
-          strigifiedArg = strigifiedArg.replace(
-            regex,
-            `${JSON.stringify(replacement)}`
-          );
+            // Check whether value was resolved
+            if (_.isUndefined(value)) {
+              console.log(`\n⛔ ERROR: no value was found for the variable "${arg}".`);
+              process.exit(1);
+            }
+            else if (!_.isNull(value)) {
+              if (value.__UIntType) value = Number(value); // Auto-convert to number (if applicable)
+              else if (value.initialU8aLength) value = value.toString(); // Use string representation of bytes (address)
+            }
+
+            // Replace argument with value
+            args[i] = value;
+            break;
+          }
         }
-        i = -1;
       }
+
+      // Automatically convert all large number arguments to BigInt
+      if (typeof args[i] === 'number' && args[i] > Number.MAX_SAFE_INTEGER)
+        args[i] = BigInt(args[i])
     }
   }
 
-  let parsedStrigifiedArg = traverse(JSON.parse(strigifiedArg)).map(function (
-    this,
-    value
-  ) {
-    let pattern = /\$/;
-    let regex = new RegExp(pattern, 'g');
+  // Check for any remaining unprocessed variables
+  let unprocessed = args.filter(arg => typeof arg === 'string' && arg.startsWith('$'));
+  if (unprocessed.length > 0)
+  {
+    const many = unprocessed.length > 1;
+    console.log(
+        `\n⛔ ERROR: no value was found for the variable${many ? 's' : ''} "${unprocessed}". ` +
+        `Check that the action where ${many ? 'they are' : 'it is'} declared was not skipped after a failing assert.`
+    );
+    process.exit(1);
+  }
 
-    if (typeof value === 'string' && value.match(regex)) {
-      console.log(
-        `\n⛔ ERROR: no value was found for the variable "${value}". Check that the action where it is declared was not skipped after a failing assert`
-      );
-      process.exit(1);
-    }
-  });
-  return parsedStrigifiedArg;
+  return args;
 };
 
 export const waitForChainToProduceBlocks = async (provider): Promise<void> => {
