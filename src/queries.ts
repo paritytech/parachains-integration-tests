@@ -30,6 +30,21 @@ export const checkQuery = (key: string, query: Query, providers) => {
     );
     process.exit(1);
   }
+
+  // Ensure pallet/call exists in query api
+  const api = providers[chain.wsPort].api;
+  if (api === undefined) {
+    console.log(`\n⛔ ERROR: no query api available for provider.`);
+    process.exit(1);
+  }
+  else if (!(pallet in api.query)) {
+    console.log(`\n⛔ ERROR: "${pallet}" pallet not found in query api.`);
+    process.exit(1);
+  }
+  else if (!(call in api.query[pallet])) {
+    console.log(`\n⛔ ERROR: "${call}" call not found for "${pallet}" pallet in query api.`);
+    process.exit(1);
+  }
 };
 
 export const sendQuery = async (context, key: string, query: Query) => {
