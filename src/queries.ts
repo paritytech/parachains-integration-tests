@@ -62,10 +62,20 @@ export const queriesBuilder = async (
   context,
   queries: { [key: string]: Query }
 ) => {
-  for (let key of Object.keys(queries)) {
-    if (context.variables[`\$${key}`]) {
+  const build = async(key: string) => {
+      if (context.variables[`\$${key}`]) {
       console.log(`\n⚠️  WARNING: the key "$${key}" is being reassigned`);
     }
     context.variables[`\$${key}`] = await sendQuery(context, key, queries[key]);
+  };
+
+  // Run queries in parallel, provided no arguments reference variables
+  const variables = Object.entries(queries).some(([key, query]) =>
+      query.args.some(arg => typeof(arg) === 'string' && arg.startsWith("$")));
+  if (!variables)
+    await Promise.all(Object.keys(queries).map(build));
+  else {
+    for (let key of Object.keys(queries))
+      await build(key);
   }
 };
