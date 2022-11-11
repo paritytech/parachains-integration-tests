@@ -76,3 +76,24 @@ tests:
                       args: [ $validators[1], 5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK1iQ7qUsSWFc ]
                   - equal:
                       args: [ $total_issuance, 12000000000033333333 ]
+
+      - name: Query tests
+        its:
+          - name: Chained query tests
+            actions:
+              - queries:
+                  babe_authorities:
+                    chain: *relay_chain
+                    pallet: babe
+                    call: authorities
+                    delay: 0
+                    args: [ ]
+                  authority_balance:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    delay: 0
+                    args: [ $babe_authorities[2][0] ] # use value from previous query result
+              - asserts:
+                  - equal:
+                      args: [ $authority_balance.data.free, 1000000000000000000 ]
