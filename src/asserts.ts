@@ -74,7 +74,7 @@ export const assertsBuilder = async (
   context,
   asserts: { [key: string]: AssertOrCustom }
 ) => {
-  for (let [i, key] of Object.keys(asserts).entries()) {
+  let promises = Object.keys(asserts).map(async (key, i) => {
     // Check if key matches index (i.e. list item)
     if (key == i.toString())
       key = Object.keys(asserts[i])[0]; // Assume object with single property (key)
@@ -84,5 +84,6 @@ export const assertsBuilder = async (
       console.log(`\n⚠️  the assert type '${key}' is not implemented`);
       process.exit(1);
     }
-  }
+  });
+  await Promise.all(promises);
 };
