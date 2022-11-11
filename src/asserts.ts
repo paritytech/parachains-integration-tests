@@ -74,9 +74,12 @@ export const assertsBuilder = async (
   context,
   asserts: { [key: string]: AssertOrCustom }
 ) => {
-  for (let key of Object.keys(asserts)) {
+  for (let [i, key] of Object.keys(asserts).entries()) {
+    // Check if key matches index (i.e. list item)
+    if (key == i.toString())
+      key = Object.keys(asserts[i])[0]; // Assume object with single property (key)
     if (isRegisteredAssert(key)) {
-      await runAssert(context, key, asserts[key]);
+      await runAssert(context, key, asserts[key] ?? asserts[i][key]);
     } else {
       console.log(`\n⚠️  the assert type '${key}' is not implemented`);
       process.exit(1);
