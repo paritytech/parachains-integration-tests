@@ -35,6 +35,32 @@ const INTERFACE: { [key: string]: Interface } = {
       decodedCalls: false
     },
   },
+  chains: {
+    instance: YAMLMap,
+    attributes: {
+      wsPort: true,
+      ws: false,
+      paraId: false,
+    },
+    anyKey: true
+  },
+  variables: {
+    instance: YAMLMap,
+  },
+  decodedCalls: {
+    instance: YAMLMap,
+    attributes: {
+      chain: true,
+      pallet: true,
+      call: true,
+      args: true,
+      sudo: false,
+      encode: false,
+      delay: false,
+      events: false
+    },
+    anyKey: true
+  },
   tests: {
     instance: YAMLSeq,
     attributes: {
