@@ -1,8 +1,9 @@
 require('dotenv').config();
 import { getTestFiles, addConsoleGroup, addConsoleGroupEnd } from './utils'
-import {isScalar, YAMLMap, LineCounter, Parser, Pair, isAlias } from 'yaml';
+import {isScalar, YAMLMap, LineCounter, Parser, Pair, isAlias, Alias, Range, Document } from 'yaml';
 import { YAMLSeq, Scalar } from 'yaml'
 import { CheckerError, TestFile } from './interfaces';
+import { idText, isInterfaceDeclaration } from 'typescript';
 
 const formatLine = (start, end?): string => {
   const { line: lineStart, col: colStart } = start;
@@ -27,6 +28,13 @@ interface Interface {
 }
 
 const INTERFACE: { [key: string]: Interface } = {
+  doc: {
+    instance: YAMLMap,
+    attributes: {
+      settings: true,
+      tests: true
+    }
+  },
   settings: {
     instance: YAMLMap,
     attributes: {
@@ -46,6 +54,7 @@ const INTERFACE: { [key: string]: Interface } = {
   },
   variables: {
     instance: YAMLMap,
+    anyKey: true
   },
   decodedCalls: {
     instance: YAMLMap,
@@ -330,13 +339,17 @@ const INTERFACE: { [key: string]: Interface } = {
 }
 
 interface Assesment {
+  parentKey: string | undefined;
   key: string | undefined;
-  exist: boolean;
-  rightFormat: boolean;
+  exist: boolean | undefined;
+  rightFormat: boolean | undefined;
   format: string | undefined
   range: any;
-  rootNode: any;
-  nextNodes: any[]
+}
+
+interface ParentNode {
+  key: string
+  range: any
 }
 
 const rightFormat = (value: any, interfaceValue: Interface): { is: boolean, format: string | undefined } => {
@@ -357,87 +370,87 @@ const rightFormat = (value: any, interfaceValue: Interface): { is: boolean, form
   return { is: false, format: undefined }
 }
 
-const assessNode = (doc: any, node: any, rootNode: any): Assesment => {
-  let assesment: Assesment = {
-    key: undefined,
-    exist: false,
-    rightFormat: false,
-    format: undefined,
-    range: undefined,
-    rootNode: rootNode,
-    nextNodes: []
-  }
+// const assessNode = (doc: any, node: any, rootNode: any): Assesment => {
+//   let assesment: Assesment = {
+//     key: undefined,
+//     exist: false,
+//     rightFormat: false,
+//     format: undefined,
+//     range: undefined,
+//     rootNode: rootNode,
+//     nextNodes: []
+//   }
 
-  let interfaceKey
+//   let interfaceKey
 
-  if (node instanceof YAMLMap || node instanceof YAMLSeq || INTERFACE[rootNode.key?.value]?.anyKey) {
-    assesment = {
-      ...assesment,
-      exist: true,
-      rightFormat: true,
-      range: node.range || node.value.range,
-      nextNodes: node.items || node.value.items
-    }
-    return assesment
-  } else if (node instanceof Pair) {
-    const { key, value } = node
-    interfaceKey = INTERFACE[key.value]
-    assesment = {
-      ...assesment,
-      key: key.value,
-      range: key.range
-    }
+//   if (node instanceof YAMLMap || node instanceof YAMLSeq || INTERFACE[rootNode.key?.value]?.anyKey) {
+//     assesment = {
+//       ...assesment,
+//       exist: true,
+//       rightFormat: true,
+//       range: node.range || node.value.range,
+//       nextNodes: node.items || node.value.items
+//     }
+//     return assesment
+//   } else if (node instanceof Pair) {
+//     const { key, value } = node
+//     interfaceKey = INTERFACE[key.value]
+//     assesment = {
+//       ...assesment,
+//       key: key.value,
+//       range: key.range
+//     }
 
-    if (interfaceKey) {
-      assesment = {
-        ...assesment,
-        exist: interfaceKey,
-        rightFormat: true,
-      }
+//     if (interfaceKey) {
+//       assesment = {
+//         ...assesment,
+//         exist: interfaceKey,
+//         rightFormat: true,
+//       }
 
-      const { is, format } = rightFormat(value, interfaceKey)
+//       const { is, format } = rightFormat(value, interfaceKey)
 
-      if (value instanceof YAMLMap || value instanceof YAMLSeq) {
-        assesment = {
-          ...assesment,
-          rightFormat: is,
-          format,
-          nextNodes: (is && interfaceKey.attributes) ? value.items : []
-        }
-      } else if (value instanceof Scalar) {
-        assesment = {
-          ...assesment,
-          rightFormat: is,
-          format
-        }
-      } else if(isAlias(value)) {
-        return assessNode(doc, value.resolve(doc), node)
-      }
-    }
-  } else if (isScalar(node)) {
-    const { key } = rootNode
-    const { value } = node
+//       if (value instanceof YAMLMap || value instanceof YAMLSeq) {
+//         assesment = {
+//           ...assesment,
+//           rightFormat: is,
+//           format,
+//           nextNodes: (is && interfaceKey.attributes) ? value.items : []
+//         }
+//       } else if (value instanceof Scalar) {
+//         assesment = {
+//           ...assesment,
+//           rightFormat: is,
+//           format
+//         }
+//       } else if(isAlias(value)) {
+//         return assessNode(doc, value.resolve(doc), node)
+//       }
+//     }
+//   } else if (isScalar(node)) {
+//     const { key } = rootNode
+//     const { value } = node
 
-    interfaceKey = INTERFACE[key.value]
+//     interfaceKey = INTERFACE[key.value]
 
-    assesment = {
-      ...assesment,
-      key: key.value,
-      range: key.range
-    }
+//     assesment = {
+//       ...assesment,
+//       key: key.value,
+//       range: key.range
+//     }
 
-    if (interfaceKey) {
-      const { is, format } = rightFormat(value, interfaceKey)
-      assesment = {
-        ...assesment,
-        exist: true,
-        rightFormat: is,
-        format
-      }
-    }
-  }
-  return assesment
-}
+//     if (interfaceKey) {
+//       const { is, format } = rightFormat(value, interfaceKey)
+//       assesment = {
+//         ...assesment,
+//         exist: true,
+//         rightFormat: is,
+//         format
+//       }
+//     }
+//   }
+//   return assesment
+// }
 
 const lookupMissingAttributes = (doc: any, rootNode: any, node: any, lineCounter: LineCounter, message: string[]): string[] => {
   // console.log("PRe node", node)
@@ -505,25 +518,142 @@ const lookupMissingAttributes = (doc: any, rootNode: any, node: any, lineCounter
 
 
 
-const checkNode = (doc: any, node: any, root: any, initialRange: any, message: Array<string>, lineCounter: LineCounter): Array<string> => {
-  const { key, exist, rightFormat, format, range, nextNodes, rootNode } = assessNode(doc, node, root)
-  lookupMissingAttributes(doc, node, node, lineCounter, message)
+// const checkNode = (doc: any, node: any, root: any, initialRange: any, message: Array<string>, lineCounter: LineCounter): Array<string> => {
+//   const { key, exist, rightFormat, format, range, nextNodes, rootNode } = assessNode(doc, node, root)
+//   lookupMissingAttributes(doc, node, node, lineCounter, message)
 
-  let errorLine = lineCounter.linePos(range[0])
-  if (!exist) {
-    let newMessage = `${formatLine(errorLine)} unexpected '${key}' attribute`
-    message.push(newMessage)
-  } else if (!rightFormat) {
-    let newMessage = `${formatLine(errorLine)}'${key}' attribute should be of '${format}' type`
-    message.push(newMessage)
+//   let errorLine = lineCounter.linePos(range[0])
+//   if (!exist) {
+//     let newMessage = `${formatLine(errorLine)} unexpected '${key}' attribute`
+//     message.push(newMessage)
+//   } else if (!rightFormat) {
+//     let newMessage = `${formatLine(errorLine)}'${key}' attribute should be of '${format}' type`
+//     message.push(newMessage)
+//   }
+
+//   nextNodes.forEach(nextNode => {
+//     checkNode(doc, nextNode, node, range, message, lineCounter)
+//   })
+
+//   return message
+// };
+
+// const assessPair = (node: Pair, parentKey: any) => {
+//   let value = node.value
+
+//   if (value instanceof YAMLMap || value instanceof YAMLSeq) {
+//     value.items.forEach(item => {
+//       traverseNode
+//     })
+//   }
+// }
+
+const assessPair = (node: any, parentNode: ParentNode): Assesment => {
+
+  let assessment: Assesment = {
+    parentKey: parentNode.key,
+    key: node.key.value,
+    exist: undefined,
+    rightFormat: undefined,
+    format: undefined,
+    range: node.key.range
   }
 
-  nextNodes.forEach(nextNode => {
-    checkNode(doc, nextNode, node, range, message, lineCounter)
-  })
+  let interfaceParentNode = INTERFACE[parentNode.key]
+  let interfaceNode = INTERFACE[node.key.value]
 
-  return message
-};
+  if (interfaceParentNode && interfaceNode && interfaceParentNode.attributes && !(interfaceParentNode.attributes[node.key.value] === undefined)) {
+    const { is, format } = rightFormat(node.value, interfaceNode)
+
+    return assessment = {
+      ...assessment,
+      exist: true,
+      rightFormat: is,
+      format
+    }
+  } else {
+    return assessment = {
+      ...assessment,
+      exist: false || (interfaceParentNode?.anyKey)
+    }
+  }
+}
+
+// const assessMapSeq = (node: any, parentNode: ParentNode): Assesment => {
+//     let assessment: Assesment = {
+//       parentKey: parentNode.key,
+//       key: undefined,
+//       exist: undefined,
+//       rightFormat: false,
+//       format: undefined,
+//       range: parentNode.range
+//     }
+//     let interfaceNode = INTERFACE[parentNode.key]
+
+//     if (interfaceNode) {
+//       const { is, format } = rightFormat(node, interfaceNode)
+
+//       return assessment = {
+//         ...assessment,
+//         exist: true,
+//         rightFormat: is,
+//         format
+//       }
+//     } else {
+//       return assessment = {
+//         ...assessment,
+//         exist: false
+//       }
+//     }
+// }
+
+const traverseNode = (doc: any, node: any, parentNode: ParentNode, assessments: Array<Assesment>, lineCounter: LineCounter): Array<Assesment> => {
+  console.log("=========================================")
+  if (node instanceof YAMLMap || node instanceof YAMLSeq) {
+    // assessments.push(assessMapSeq(node, parentNode))
+    // console.log("YAMLMap or YAMLSeq")
+    // console.log("Parent Node", parentNode)
+    // console.log("Node", node)
+    node.items.forEach(item => {
+      traverseNode(doc, item, parentNode, assessments, lineCounter)
+    })
+  } else if (node instanceof Pair) {
+    let interfaceNode = INTERFACE[node.key.value]
+    let interfaceParentNode = INTERFACE[parentNode.key]
+
+    const { key, value } = node
+
+    // console.log("Pair")
+    // console.log("Parent Node", parentNode)
+    // console.log("Node", node)
+
+
+
+    if (value instanceof Alias) {
+      node.value = value.resolve(doc)
+      traverseNode(doc, node, parentNode, assessments, lineCounter)
+    } else if (interfaceParentNode?.anyKey && interfaceParentNode?.attributes && (interfaceParentNode.attributes[node.key.value] === undefined)) {
+      node.value.items.forEach(item => {
+        traverseNode(doc, item, parentNode, assessments, lineCounter)
+      })
+    } else {
+      // if (interfaceNode?.attributes) {
+        assessments.push(assessPair(node, parentNode))
+      // }
+
+      if ((value instanceof YAMLMap || value instanceof YAMLSeq) && interfaceNode?.attributes) {
+        let parentKey = key.value
+        let parentRange = key.range
+        parentNode = { key: parentKey, range: parentRange }
+
+        value.items.forEach(item => {
+          traverseNode(doc, item, parentNode, assessments, lineCounter)
+        })
+      }
+    }
+  }
+  return assessments
+}
 
 const printErrors = (errors: Array<CheckerError>) => {
   errors.forEach(({file, errors}) => {
@@ -559,10 +689,16 @@ const check = async () => {
 
     // TODO: check also the decodedCalls
     let message: Array<string> = []
+    let assessments: Array<Assesment> = []
     const { contents, range } = yaml2
-    let error = checkNode(yaml2, contents, yaml2, range, message, lineCounter)
-    error = [...new Set(error)]
-    errors[index - 1].errors.push(...error)
+    // console.log(yaml)
+    // console.log(contents)
+    // let error = checkNode(yaml2, contents, yaml2, range, message, lineCounter)
+    let parentNode: ParentNode = { key: 'doc', range: range }
+    assessments.concat(traverseNode(yaml2, contents, parentNode, assessments, lineCounter))
+    console.log("ASSESSMENTS: ",assessments)
+    // error = [...new Set(error)]
+    // errors[index - 1].errors.push(...error)
   }
   printErrors(errors)
 };
