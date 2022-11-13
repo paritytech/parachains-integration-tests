@@ -22,7 +22,7 @@ const formatLine = (start, end?): string => {
 const rightFormat = (value: any, interfaceValue: Interface): { is: boolean, format: string | undefined } => {
   const { type, instance } = interfaceValue
 
-  value = value.value ? value.value : value
+  value = value?.value ? value.value : value
 
   if (type) {
     return { is: (typeof value === type || type === 'any'), format: type }
@@ -223,19 +223,20 @@ const check = async () => {
     let assessments: Array<Assesment> = []
     const { contents, range } = yamlDoc
 
-    let docKey: Scalar = new Scalar('doc')
-    docKey.range = range
+    if (contents) {
+      let docKey: Scalar = new Scalar('YAMLdocument')
+      docKey.range = range
 
-    let doc = new Pair(docKey, contents)
-    let parentNode: ParentNode = { key: 'root', range: range }
-    assessments.concat(traverseNode(yamlDoc, doc, parentNode, assessments, lineCounter))
+      let doc = new Pair(docKey, contents)
+      let parentNode: ParentNode = { key: 'root', range: range }
+      assessments.concat(traverseNode(yamlDoc, doc, parentNode, assessments, lineCounter))
 
-    result.push(
-      {
-        file: `\n\x1b[31m${name}\x1b[0m`,
-        errors: collectErrors(assessments, lineCounter)
-      });
-
+      result.push(
+        {
+          file: `\n\x1b[31m${name}\x1b[0m`,
+          errors: collectErrors(assessments, lineCounter)
+        });
+    }
   }
   printErrors(result)
 };
