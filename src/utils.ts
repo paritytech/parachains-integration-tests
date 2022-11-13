@@ -17,7 +17,7 @@ import {
 import { KeyringPair } from '@polkadot/keyring/types';
 
 export const getTestFiles = (path): TestFile[] => {
-  console.log(resolve(process.cwd(), path));
+  // console.log(resolve(process.cwd(), path));
 
   let testsFiles;
 
@@ -40,7 +40,7 @@ export const getTestFiles = (path): TestFile[] => {
       let yaml: TestsConfig = YAML.parse(file);
       // const [doc] = new Parser().parse(file)
       const doc = parseDocument(file)
-      let test: TestFile = { name: testFile, dir: testDir, yaml, yaml2: doc, file };
+      let test: TestFile = { name: testFile, dir: testDir, yaml, yamlDoc: doc, file };
       return test;
     }));
   } catch (e) {
