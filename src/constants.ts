@@ -20,10 +20,10 @@ export const INTERFACE: { [key: string]: Interface } = {
   root: {
     instance: YAMLMap,
     attributes: {
-      doc: true,
+      YAMLdocument: true,
     }
   },
-  doc: {
+  YAMLdocument: {
     instance: YAMLMap,
     attributes: {
       settings: true,
