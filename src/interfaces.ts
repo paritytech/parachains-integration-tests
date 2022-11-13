@@ -2,7 +2,7 @@ export interface TestFile {
   name: string;
   dir: string;
   yaml: TestsConfig;
-  yaml2: any;
+  yamlDoc: any;
   file: string;
 }
 export interface TestsConfig {
@@ -170,4 +170,26 @@ export interface Range {
 export interface CheckerError {
   file: string;
   errors: Array<string>;
+}
+
+export interface Interface {
+  instance?: any;
+  type?: string,
+  anyKey?: boolean,
+  attributes?: { [key: string]: boolean };
+  rule?: object;
+}
+
+export interface Assesment {
+  parentKey: string | undefined;
+  key: string | undefined;
+  exist: boolean | undefined;
+  rightFormat: boolean | undefined;
+  format: string | undefined
+  range: any;
+}
+
+export interface ParentNode {
+  key: string
+  range: any
 }
