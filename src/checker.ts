@@ -4,6 +4,7 @@ import { YAMLMap, LineCounter, Parser, Pair, Alias } from 'yaml';
 import { YAMLSeq, Scalar } from 'yaml'
 import { CheckerError, TestFile, Interface, Assessment, ParentNode } from './interfaces';
 import { INTERFACE } from './constants'
+import _ from 'lodash'
 
 const formatLine = (start, end?): string => {
   const { line: lineStart, col: colStart } = start;
@@ -86,6 +87,7 @@ const assessPair = (node: any, parentNode: ParentNode, missingAttributes: object
 const traverseNode = (doc: any, node: any, parentNode: ParentNode, assessments: Array<Assessment>, missingAttributes: object): Array<Assessment> => {
   if (node instanceof YAMLMap || node instanceof YAMLSeq) {
     node.items?.forEach(item => {
+      parentNode = { ...parentNode, range: node.range}
       traverseNode(doc, item, parentNode, assessments, missingAttributes)
     })
   } else if (node instanceof Pair) {
@@ -104,6 +106,7 @@ const traverseNode = (doc: any, node: any, parentNode: ParentNode, assessments: 
       }
       traverseNode(doc, node, parentNode, assessments, missingAttributes)
     } else if (interfaceParentNode?.anyKey && interfaceParentNode?.attributes && (interfaceParentNode.attributes[node.key.value] === undefined)) {
+      parentNode = { ...parentNode, range: node.value.range}
       node.value?.items?.forEach(item => {
         traverseNode(doc, item, parentNode, assessments, missingAttributes)
       })
@@ -165,13 +168,28 @@ const collectErrors = (assessments: Assessment[], missingAttributes: object, lin
         errors.push(error)
       }
     }
+
+    let rule = INTERFACE[missingAttributes[block].key]?.rule
+
+    if (rule) {
+      if (rule['or']) {
+        let dontFollowTheRule = true;
+        rule['or'].forEach(attr => {
+          dontFollowTheRule &&= attributes[attr] !== undefined
+        })
+        if (dontFollowTheRule) {
+          let error = `${formatLine(errorLineStart, errorLineEnd)} at least one of these attributes ${JSON.stringify(rule['or'])} should be present for '${missingAttributes[block].key}' type`
+          errors.push(error)
+        }
+      }
+    }
   }
 
   return [...new Set(errors)]
 }
 
 const check = async () => {
-  console.log('\n🕵️‍♂️  Checking format integrity of the YAML files ...')
+  console.log('\n👮🏻‍♂️ Checking format integrity of the YAML files...')
 
   let testsPath = process.env.TESTS_PATH;
   let testsConfig: TestFile[] = getTestFiles(testsPath);
@@ -198,9 +216,6 @@ const check = async () => {
       let parentNode: ParentNode = { key: 'root', range: range }
       assessments.concat(traverseNode(yamlDoc, doc, parentNode, assessments, missingAttributes))
 
-      console.log(assessments)
-      console.log(missingAttributes)
-
       result.push(
         {
           file: `\n\x1b[31m${name}\x1b[0m`,
@@ -208,8 +223,10 @@ const check = async () => {
         });
     }
   }
-  console.log(result)
   printErrors(result)
+
+  let failed = _.find(result, (item: any) => {return item.errors.length !== 0});
+  failed ? process.exit(1) : process.exit(0)
 };
 
 check();

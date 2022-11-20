@@ -1,5 +1,5 @@
 import YAML from 'yaml';
-import { Parser, CST, parseDocument } from 'yaml'
+import { parseDocument } from 'yaml'
 import glob from 'glob';
 import fs from 'fs';
 import traverse from 'traverse';
@@ -10,43 +10,48 @@ import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
 import {
   Extrinsic,
   TestFile,
-  TestsConfig,
   PaymentInfo,
   Range,
 } from './interfaces';
 import { KeyringPair } from '@polkadot/keyring/types';
 
 export const getTestFiles = (path): TestFile[] => {
-  // console.log(resolve(process.cwd(), path));
 
   let testsFiles;
+  let absolutePath = resolve(process.cwd(), path);
 
-  try {
-    let absolutePath = resolve(process.cwd(), path);
+  if (fs.lstatSync(absolutePath).isFile()) {
+    testsFiles = [absolutePath];
+  } else if (fs.lstatSync(absolutePath).isDirectory()) {
+    testsFiles = glob.sync('/**/*.{yml,yaml}', { root: path });
+  }
 
-    if (fs.lstatSync(absolutePath).isFile()) {
-      testsFiles = [absolutePath];
-    } else if (fs.lstatSync(absolutePath).isDirectory()) {
-      testsFiles = glob.sync('/**/*.{yml,yaml}', { root: path });
+  let error = false
+
+  let result = (testsFiles = testsFiles.map((testFile) => {
+    let testPath = resolve(process.cwd(), testFile);
+    let testDir = dirname(testPath);
+    let yaml
+    let doc
+    let file
+
+    try {
+      file = fs.readFileSync(testFile, 'utf8');
+      yaml = YAML.parse(file);
+      doc = parseDocument(file)
+    } catch (e: any) {
+      console.log(`\n\x1b[31m${testFile}\x1b[0m`,)
+      console.log(`\n      ${e.message}`);
+      error = true
     }
+    let test: TestFile = { name: testFile, dir: testDir, yaml, yamlDoc: doc, file };
+    return test;
+  }));
 
-    return (testsFiles = testsFiles.map((testFile) => {
-      let testPath = resolve(process.cwd(), testFile);
-
-      let testDir = dirname(testPath);
-
-      const file = fs.readFileSync(testFile, 'utf8');
-      // console.log(file)
-      let yaml: TestsConfig = YAML.parse(file);
-      // const [doc] = new Parser().parse(file)
-      const doc = parseDocument(file)
-      let test: TestFile = { name: testFile, dir: testDir, yaml, yamlDoc: doc, file };
-      return test;
-    }));
-  } catch (e) {
-    console.log(e);
+  if (error) {
     process.exit(1);
   }
+  return result
 };
 
 /**
