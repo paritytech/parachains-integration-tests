@@ -13,28 +13,7 @@ import { queriesBuilder } from './queries';
 import { rpcsBuilder } from './rpcs';
 import { addConsoleGroup, addConsoleGroupEnd } from './utils';
 
-const checkIt = (it: It) => {
-  const { name, actions } = it;
-
-  if (!name) {
-    console.log(
-      `\n⛔ ERROR: 'name' should be present for the following 'it':`,
-      JSON.stringify(it, null, 2)
-    );
-    process.exit(1);
-  }
-  if (actions && !Array.isArray(actions)) {
-    console.log(
-      `\n⛔ ERROR: 'actions' invalid type, it should be of type Array for the 'it':`,
-      JSON.stringify(it, null, 2)
-    );
-    process.exit(1);
-  }
-};
-
 export const itsBuilder = (test: It) => {
-  checkIt(test);
-
   const { name, actions } = test;
 
   it(name, async function () {

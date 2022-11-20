@@ -132,7 +132,7 @@ const printErrors = (errors: Array<CheckerError>) => {
     if (errors.length > 0) {
       console.log(`${file}`)
       addConsoleGroup(2)
-      errors.sort().forEach(error => {
+      errors.forEach(error => {
         console.log(`\n${error}`)
       })
       addConsoleGroupEnd(2)
@@ -141,7 +141,7 @@ const printErrors = (errors: Array<CheckerError>) => {
 }
 
 const collectErrors = (assessments: Assessment[], missingAttributes: object, lineCounter: LineCounter): string[] => {
-  let errors: string[] = []
+  let errors: object[] = []
 
   assessments.forEach(assessment => {
     const { key, exist, rightFormat, format, range } = assessment
@@ -150,10 +150,10 @@ const collectErrors = (assessments: Assessment[], missingAttributes: object, lin
 
     if (!exist) {
       let error = `${formatLine(errorLine)} unexpected '${key}' attribute`
-      errors.push(error)
+      errors.push({ line: errorLine.line, error })
     } else if (!rightFormat) {
       let error = `${formatLine(errorLine)}'${key}' attribute should be of '${format}' type`
-      errors.push(error)
+      errors.push({ line: errorLine.line, error })
     }
   })
 
@@ -165,7 +165,7 @@ const collectErrors = (assessments: Assessment[], missingAttributes: object, lin
     for (let key in attributes) {
       if (attributes[key]) {
         let error = `${formatLine(errorLineStart, errorLineEnd)} missing '${key}' attribute for '${missingAttributes[block].key}' type`
-        errors.push(error)
+        errors.push({ line: errorLineStart.line, error })
       }
     }
 
@@ -179,13 +179,18 @@ const collectErrors = (assessments: Assessment[], missingAttributes: object, lin
         })
         if (dontFollowTheRule) {
           let error = `${formatLine(errorLineStart, errorLineEnd)} at least one of these attributes ${JSON.stringify(rule['or'])} should be present for '${missingAttributes[block].key}' type`
-          errors.push(error)
+          errors.push({ line: errorLineStart.line, error })
         }
       }
     }
   }
+  let orderedErrors = _.orderBy(errors, ['line'], ['asc'])
+  // console.log(_.orderBy(errors, ['line'], ['asc']))
+  let errorsArray: string[] = orderedErrors.map(item => {
+    return item.error
+  })
 
-  return [...new Set(errors)]
+  return [...new Set(errorsArray)]
 }
 
 const check = async () => {

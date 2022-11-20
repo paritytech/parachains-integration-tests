@@ -19,11 +19,6 @@ const checkChains = (chains: {
   [key: string]: Chain;
 }): { [key: string]: Chain } => {
   for (let id in chains) {
-    if (!chains[id].wsPort) {
-      console.log(`\n⛔ ERROR: 'wsPort' should be present for chain ${id}:`);
-      process.exit(1);
-    }
-
     if (!chains[id].ws) {
       chains[id].ws = 'ws://127.0.0.1';
     }
