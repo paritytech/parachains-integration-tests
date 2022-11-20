@@ -180,8 +180,9 @@ export interface Interface {
   rule?: object;
 }
 
-export interface Assesment {
+export interface Assessment {
   parentKey: string | undefined;
+  parentRange: any;
   key: string | undefined;
   exist: boolean | undefined;
   rightFormat: boolean | undefined;
