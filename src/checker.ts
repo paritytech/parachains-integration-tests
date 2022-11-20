@@ -1,8 +1,8 @@
 require('dotenv').config();
 import { getTestFiles, addConsoleGroup, addConsoleGroupEnd } from './utils'
-import { YAMLMap, LineCounter, Parser, Pair, isAlias, Alias } from 'yaml';
+import { YAMLMap, LineCounter, Parser, Pair, Alias } from 'yaml';
 import { YAMLSeq, Scalar } from 'yaml'
-import { CheckerError, TestFile, Interface, Assesment, ParentNode } from './interfaces';
+import { CheckerError, TestFile, Interface, Assessment, ParentNode } from './interfaces';
 import { INTERFACE } from './constants'
 
 const formatLine = (start, end?): string => {
@@ -16,7 +16,7 @@ const formatLine = (start, end?): string => {
 
   let errorStart = `\x1b[33mline ${lineStart}:${colStart}\x1b[0m`;
 
-  return `${errorStart}${errorEnd ? ` \x1b[33m-\x1b[0m ${errorEnd}` : ': '}`
+  return `${errorStart}${errorEnd ? ` \x1b[33mto\x1b[0m ${errorEnd}` : ': '}`
 }
 
 const rightFormat = (value: any, interfaceValue: Interface): { is: boolean, format: string | undefined } => {
@@ -37,78 +37,15 @@ const rightFormat = (value: any, interfaceValue: Interface): { is: boolean, form
   return { is: false, format: undefined }
 }
 
-const lookupMissingAttributes = (doc: any, rootNode: any, node: any, lineCounter: LineCounter, message: string[]): string[] => {
-  // console.log("PRe node", node)
-  // console.log("PRe node root", rootNode)
-  if (node instanceof Pair) {
-    const { key } = rootNode;
-    const { value } = node;
-    // console.log("NODE", node)
-    // console.log("ROOT NODE", node)
-    // console.log("Node key", key.value)
-    // console.log("Node Value", value)
-    let interfaceAttr = INTERFACE[key.value];
-
-
-    if (value instanceof YAMLSeq) {
-      // console.log("========================================")
-      // console.log("KEY", key.value)
-      // console.log("INTERFACE", interfaceAttr)
-      // if (interfaceAttr && interfaceAttr.attributes && !interfaceAttr.anyKey) {
-      if (interfaceAttr && interfaceAttr.attributes) {
-        // console.log(value.has(attr))
-        value.items.forEach((item) => {
-          // console.log("ITEM", item)
-          for (const attr in interfaceAttr.attributes) {
-            // console.log("Attr", attr, item.has(attr))
-            if (interfaceAttr.attributes[attr] && !item.has(attr)) {
-              if (value.range) {
-                let errorLineStart = lineCounter.linePos(item.range[0])
-                let errorLineEnd = lineCounter.linePos(item.range[2])
-                message.push(`${formatLine(errorLineStart)}:${formatLine(errorLineEnd)} missing '${attr}' attribute in '${key.value}'`)
-                message.concat(lookupMissingAttributes(doc, item, item, lineCounter, message))
-              }
-            }
-          }
-        })
-      }
-    } else if (value instanceof YAMLMap) {
-      if ((interfaceAttr && interfaceAttr.attributes && !interfaceAttr.anyKey) || ((interfaceAttr && interfaceAttr.attributes && (rootNode !== node) ))) {
-          for (const attr in interfaceAttr.attributes) {
-            // console.log("Attr", attr, value.has(attr))
-            if (interfaceAttr.attributes[attr] && !value.has(attr)) {
-              if (value.range) {
-                let errorLineStart = lineCounter.linePos(value.range[0])
-                let errorLineEnd = lineCounter.linePos(value.range[2])
-                message.push(`${formatLine(errorLineStart)}:${formatLine(errorLineEnd)} missing '${attr}' attribute in '${key.value}'`)
-              }
-            }
-          }
-      } else if (interfaceAttr && interfaceAttr.attributes && interfaceAttr.anyKey && (rootNode === node)) {
-        // console.log("entra")
-        value.items.forEach((item) => {
-          message.concat(lookupMissingAttributes(doc, node, item, lineCounter, message))
-        })
-      }
-    } else if (isAlias(value)) {
-      // console.log("Alias ROOT NODE", node)
-      // console.log("Alias NODE", value.resolve(doc))
-      node.value = value.resolve(doc)
-      message.concat(lookupMissingAttributes(doc, node, node, lineCounter, message))
-    }
-  }
-
-  return message
-}
-
-const assessPair = (node: any, parentNode: ParentNode): Assesment => {
-  let assessment: Assesment = {
+const assessPair = (node: any, parentNode: ParentNode, missingAttributes: object): Assessment => {
+  let assessment: Assessment = {
     parentKey: parentNode.key,
+    parentRange: parentNode.range,
     key: node.key.value,
     exist: undefined,
     rightFormat: undefined,
     format: undefined,
-    range: node.key.range
+    range: node.key.range,
   }
 
   let interfaceParentNode = INTERFACE[parentNode.key]
@@ -117,24 +54,39 @@ const assessPair = (node: any, parentNode: ParentNode): Assesment => {
   if (interfaceParentNode && interfaceNode && interfaceParentNode.attributes && !(interfaceParentNode.attributes[node.key.value] === undefined)) {
     const { is, format } = rightFormat(node.value, interfaceNode)
 
-    return assessment = {
+    assessment = {
       ...assessment,
       exist: true,
       rightFormat: is,
       format
     }
+
+    let key = `${assessment.parentRange[0]}-${assessment.parentRange[1]}`
+    let attributes = { ...INTERFACE[parentNode.key].attributes }
+
+    if (!missingAttributes[key]) {
+      missingAttributes[key] = {
+        key: assessment.parentKey,
+        attributes
+      }
+    }
+
+    delete missingAttributes[key].attributes[assessment.key]
+
   } else {
-    return assessment = {
+    assessment = {
       ...assessment,
       exist: false || (interfaceParentNode?.anyKey)
     }
   }
+
+  return assessment
 }
 
-const traverseNode = (doc: any, node: any, parentNode: ParentNode, assessments: Array<Assesment>, lineCounter: LineCounter): Array<Assesment> => {
+const traverseNode = (doc: any, node: any, parentNode: ParentNode, assessments: Array<Assessment>, missingAttributes: object): Array<Assessment> => {
   if (node instanceof YAMLMap || node instanceof YAMLSeq) {
     node.items?.forEach(item => {
-      traverseNode(doc, item, parentNode, assessments, lineCounter)
+      traverseNode(doc, item, parentNode, assessments, missingAttributes)
     })
   } else if (node instanceof Pair) {
     let interfaceNode = INTERFACE[node.key.value]
@@ -150,21 +102,21 @@ const traverseNode = (doc: any, node: any, parentNode: ParentNode, assessments: 
       } else if (refNode instanceof YAMLMap || refNode instanceof YAMLSeq || refNode instanceof Scalar) {
         node.key.range = refNode.range
       }
-      traverseNode(doc, node, parentNode, assessments, lineCounter)
+      traverseNode(doc, node, parentNode, assessments, missingAttributes)
     } else if (interfaceParentNode?.anyKey && interfaceParentNode?.attributes && (interfaceParentNode.attributes[node.key.value] === undefined)) {
       node.value?.items?.forEach(item => {
-        traverseNode(doc, item, parentNode, assessments, lineCounter)
+        traverseNode(doc, item, parentNode, assessments, missingAttributes)
       })
     } else {
-      assessments.push(assessPair(node, parentNode))
+      assessments.push(assessPair(node, parentNode, missingAttributes))
 
       if ((value instanceof YAMLMap || value instanceof YAMLSeq) && interfaceNode?.attributes) {
         let parentKey = key.value
-        let parentRange = key.range
+        let parentRange = value.range
         parentNode = { key: parentKey, range: parentRange }
 
         value.items.forEach(item => {
-          traverseNode(doc, item, parentNode, assessments, lineCounter)
+          traverseNode(doc, item, parentNode, assessments, missingAttributes)
         })
       }
     }
@@ -177,7 +129,7 @@ const printErrors = (errors: Array<CheckerError>) => {
     if (errors.length > 0) {
       console.log(`${file}`)
       addConsoleGroup(2)
-      errors.forEach(error => {
+      errors.sort().forEach(error => {
         console.log(`\n${error}`)
       })
       addConsoleGroupEnd(2)
@@ -185,11 +137,11 @@ const printErrors = (errors: Array<CheckerError>) => {
   })
 }
 
-const collectErrors = (assessments: Assesment[], lineCounter: LineCounter): string[] => {
+const collectErrors = (assessments: Assessment[], missingAttributes: object, lineCounter: LineCounter): string[] => {
   let errors: string[] = []
 
   assessments.forEach(assessment => {
-    const { parentKey, key, exist, rightFormat, format, range } = assessment
+    const { key, exist, rightFormat, format, range } = assessment
 
     let errorLine = lineCounter.linePos(range[0])
 
@@ -201,6 +153,20 @@ const collectErrors = (assessments: Assesment[], lineCounter: LineCounter): stri
       errors.push(error)
     }
   })
+
+  for (let block in missingAttributes) {
+    let attributes = missingAttributes[block].attributes;
+    let errorLineStart = lineCounter.linePos(Number(block.split('-')[0]))
+    let errorLineEnd = lineCounter.linePos(Number(block.split('-')[1]))
+
+    for (let key in attributes) {
+      if (attributes[key]) {
+        let error = `${formatLine(errorLineStart, errorLineEnd)} missing '${key}' attribute for '${missingAttributes[block].key}' type`
+        errors.push(error)
+      }
+    }
+  }
+
   return [...new Set(errors)]
 }
 
@@ -220,7 +186,8 @@ const check = async () => {
     const tokens = parser.parse(file)
     Array.from(tokens)
 
-    let assessments: Array<Assesment> = []
+    let assessments: Array<Assessment> = []
+    let missingAttributes = {}
     const { contents, range } = yamlDoc
 
     if (contents) {
@@ -229,15 +196,19 @@ const check = async () => {
 
       let doc = new Pair(docKey, contents)
       let parentNode: ParentNode = { key: 'root', range: range }
-      assessments.concat(traverseNode(yamlDoc, doc, parentNode, assessments, lineCounter))
+      assessments.concat(traverseNode(yamlDoc, doc, parentNode, assessments, missingAttributes))
+
+      console.log(assessments)
+      console.log(missingAttributes)
 
       result.push(
         {
           file: `\n\x1b[31m${name}\x1b[0m`,
-          errors: collectErrors(assessments, lineCounter)
+          errors: collectErrors(assessments, missingAttributes, lineCounter)
         });
     }
   }
+  console.log(result)
   printErrors(result)
 };
 
