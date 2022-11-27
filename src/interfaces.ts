@@ -2,6 +2,8 @@ export interface TestFile {
   name: string;
   dir: string;
   yaml: TestsConfig;
+  yamlDoc: any;
+  file: string;
 }
 export interface TestsConfig {
   settings: Settings;
@@ -32,7 +34,7 @@ export type Hook = Before | BeforeEach | After | AfterEach;
 
 export interface Custom {
   path: string;
-  args: any;
+  args: any[];
 }
 
 export interface Query {
@@ -134,6 +136,7 @@ export type AssertOrCustom = Assert | Custom;
 export interface Chain {
   wsPort: number;
   ws?: string; // if undefined, it fallsback to the default value -> ws://localhost
+  paraId: number;
 }
 export interface ChainConfigs {
   chainName: string;
@@ -162,4 +165,32 @@ export interface Range {
   valid: boolean;
   lowerLimit: BigInt;
   upperLimit: BigInt;
+}
+
+export interface CheckerError {
+  file: string;
+  errors: Array<string>;
+}
+
+export interface Interface {
+  instance?: any;
+  type?: string,
+  anyKey?: boolean,
+  attributes?: { [key: string]: boolean };
+  rule?: object;
+}
+
+export interface Assessment {
+  parentKey: string | undefined;
+  parentRange: any;
+  key: string | undefined;
+  exist: boolean | undefined;
+  rightFormat: boolean | undefined;
+  format: string | undefined
+  range: any;
+}
+
+export interface ParentNode {
+  key: string
+  range: any
 }

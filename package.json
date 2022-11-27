@@ -9,12 +9,14 @@
     "build": "tsc",
     "prepare": "tsc",
     "start": "yarn build && node dist/cli.js",
+    "checker": "yarn build && ts-node dist/cli.js -m checker",
     "test": "yarn build && ts-node dist/cli.js -m test",
     "zombienet": "yarn build && ts-node dist/cli.js -m zombienet",
     "zombienet-test": "yarn build && ts-node dist/cli.js -m zombienet-test",
     "polkadot-launch": "yarn build && ts-node dist/cli.js -m polkadot-launch",
     "polkadot-launch-test": "yarn build && ts-node dist/cli.js -m polkadot-launch-test",
     "dev": "ts-node src/cli.ts -e dev",
+    "dev:checker": "ts-node src/cli.ts -e dev -m checker",
     "dev:test": "ts-node src/cli.ts -e dev -m test",
     "dev:zombienet": "ts-node src/cli.ts -e dev -m zombienet",
     "dev:zombienet-test": "ts-node src/cli.ts -e dev -m zombienet-test",
@@ -42,7 +44,7 @@
     "traverse": "^0.6.6",
     "ts-node": "^10.4.0",
     "typescript": "^4.4.2",
-    "yaml": "^1.10.2"
+    "yaml": "2.1.3"
   },
   "devDependencies": {
     "prettier": "^2.5.1"
