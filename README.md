@@ -33,7 +33,8 @@ parachains-integration-tests -m <mode> -c <path> -t <path> -to <millisecons> -el
   - `prod`: for compiled TypeScript to Javascript (default)
   - `dev`: for development environment in TypeScript
 - `-m`, `--mode`:
-  - `test`: for running your tests
+  - `checker`: checks the format integtity of the yaml test files
+  - `test`: for running your tests (the checker will be autmatically run prior to the tests)
   - `zombienet`: only deploy a Zombienet network
   - `zombienet-test`: deploy a Zombienet testnet and run your tests against it
   - `polkadot-launch`: only deploy a Polkadot Launch network
@@ -48,6 +49,11 @@ parachains-integration-tests -m <mode> -c <path> -t <path> -to <millisecons> -el
 
 Examples:
 - **NPM package**
+  - Check the integrity of the tests format
+      ```
+      parachains-integration-tests -m checker -t <tests_path>
+      ```
+
   - Run tests using other testnet
       ```
       parachains-integration-tests -m test -t <tests_path>
@@ -64,6 +70,11 @@ Examples:
       ```
 
 - **From the repository**
+  - Check the integrity of the tests format
+      ```
+      yarn checker -t <tests_path>
+      ```
+
   - Run tests using other testnet
       ```
       yarn test -t <tests_path>
