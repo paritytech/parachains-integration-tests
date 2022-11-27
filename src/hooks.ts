@@ -16,29 +16,7 @@ import { queriesBuilder } from './queries';
 import { assertsBuilder } from './asserts';
 import { addConsoleGroup, addConsoleGroupEnd } from './utils';
 
-const checkHooks = (hook: Hook) => {
-  const { name, actions } = hook;
-
-  if (!name) {
-    console.log(`\n⛔ ERROR: 'name' should be present for all hooks`);
-    process.exit(1);
-  }
-
-  if (actions && !Array.isArray(actions)) {
-    console.log(
-      `\n⛔ ERROR: 'actions' invalid type, it should be of type Array for the hook: ${hook.name}`
-    );
-    process.exit(1);
-  }
-
-  if (!actions) {
-    hook.actions = [];
-  }
-};
-
 export const beforeBuilder = (hook: Before) => {
-  checkHooks(hook);
-
   const { name, actions } = hook;
 
   before(async function () {
