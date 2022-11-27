@@ -19,11 +19,6 @@ const checkChains = (chains: {
   [key: string]: Chain;
 }): { [key: string]: Chain } => {
   for (let id in chains) {
-    if (!chains[id].wsPort) {
-      console.log(`\n⛔ ERROR: 'wsPort' should be present for chain ${id}:`);
-      process.exit(1);
-    }
-
     if (!chains[id].ws) {
       chains[id].ws = 'ws://127.0.0.1';
     }
@@ -62,8 +57,8 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
 
 export const beforeBuildDecodedCalls = (decodedCalls) => {
   before(async function () {
+    this.variables = {};
     if (decodedCalls) {
-      this.variables = {};
       Object.keys(decodedCalls).forEach((key) => {
         if (!this.variables[`\$${key}`]) {
           if (decodedCalls[key].encode === false) {

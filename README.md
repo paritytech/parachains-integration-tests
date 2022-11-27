@@ -33,7 +33,8 @@ parachains-integration-tests -m <mode> -c <path> -t <path> -to <millisecons> -el
   - `prod`: for compiled TypeScript to Javascript (default)
   - `dev`: for development environment in TypeScript
 - `-m`, `--mode`:
-  - `test`: for running your tests
+  - `checker`: checks the format integtity of the yaml test files
+  - `test`: for running your tests (the checker will be autmatically run prior to the tests)
   - `zombienet`: only deploy a Zombienet network
   - `zombienet-test`: deploy a Zombienet testnet and run your tests against it
   - `polkadot-launch`: only deploy a Polkadot Launch network
@@ -48,6 +49,11 @@ parachains-integration-tests -m <mode> -c <path> -t <path> -to <millisecons> -el
 
 Examples:
 - **NPM package**
+  - Check the integrity of the tests format
+      ```
+      parachains-integration-tests -m checker -t <tests_path>
+      ```
+
   - Run tests using other testnet
       ```
       parachains-integration-tests -m test -t <tests_path>
@@ -64,6 +70,11 @@ Examples:
       ```
 
 - **From the repository**
+  - Check the integrity of the tests format
+      ```
+      yarn checker -t <tests_path>
+      ```
+
   - Run tests using other testnet
       ```
       yarn test -t <tests_path>
@@ -147,7 +158,7 @@ settings: # Settings
         args: [ *my_variable ]
     my_call_id:
         chain: *relay_chain
-        encode: false # Indicates the call will not be encoded and used as Submittable
+        encode: false # Indicates the call will not be encoded and used instead as Submittable
         pallet: system
         call: remark
         args: [ *my_variable ]
@@ -165,6 +176,7 @@ interface Settings {
 interface Chain {
   wsPort: number;
   ws?: string; // if 'undefined', it fallback to the default value -> ws://localhost
+  paraId: number; // parachain id
 }
 ```
 
@@ -345,7 +357,7 @@ settings:
       ]
     to_be_batched:
       chain: *relay_chain
-      encode: false # Indicates the call will not be encoded and used as Submittable instead
+      encode: false # Indicates the call will not be encoded and used instead as Submittable instead
       pallet: system
       call: remark
       args: [ *my_variable ]
@@ -691,10 +703,10 @@ tests: # Describe[]
       - name: Should reduce the balance of the sender
         actions: # Action[]
           - asserts: # { [key: string]: AssertOrCustom }
-              custom:
+              customs:
                 path: ./asserts/checkSenderBalances.ts
-                args: 
-                  { 
+                args:
+                  {
                     balances: {
                       before: $balance_rc_sender_before,
                       after: $balance_rc_sender_after,
@@ -740,11 +752,13 @@ tests: # Describe[]
       ...
       - name: My custom action should do something
         actions: # Action[]
-          custom: # Custom[]
+          customs: # Custom[]
             - path: ./queryExternalOracle.ts
-              args: {
-                url: https://www.my-oracle.com/price/
-              }
+              args: [
+                {
+                  url: https://www.my-oracle.com/price/
+                }
+              ]
           asserts:
             equal: [$dot_price, 30]
 
@@ -772,7 +786,7 @@ Interfaces:
 ```typescript
 interface Custom {
   path: string;
-  args: any;
+  args: any[];
 }
 ```
 

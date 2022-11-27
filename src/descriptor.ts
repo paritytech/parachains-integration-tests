@@ -9,28 +9,7 @@ import {
 import { itsBuilder } from './it';
 import { beforeAddConsoleGroups } from './before';
 
-const checkDescriptor = (descriptor: Describe) => {
-  if (!descriptor.name) {
-    console.log(`\n⛔ ERROR: 'name' should be present for all descriptors`);
-    process.exit(1);
-  }
-
-  if (descriptor.its && !Array.isArray(descriptor.its)) {
-    console.log(
-      `\n⛔ ERROR: 'its' invalid type, it should be present as an 'Array' for the following descriptor: `,
-      descriptor.name
-    );
-    process.exit(1);
-  }
-
-  if (!descriptor.its) {
-    descriptor.its = [];
-  }
-};
-
 export const describersBuilder = (description: Describe) => {
-  checkDescriptor(description);
-
   describe(`\n🏷️  ${description.name}`, async function () {
     beforeAddConsoleGroups(2);
 

@@ -8,6 +8,9 @@ import {
   DEFAULT_ACTION_DELAY,
   DEFAULT_TIMEOUT,
 } from './constants';
+const events = require('events');
+const emitter = new events.EventEmitter();
+
 var pjson = require('../package.json');
 
 const program = new Command();
@@ -92,6 +95,31 @@ const spawnTests = (options) => {
   );
 };
 
+const spawnChecker = (options) => {
+  let runnerExtension = 'js';
+  runnerExtension = options.env === 'dev' ? 'ts' : runnerExtension;
+
+  p['checker'] = spawn(
+    'ts-node',
+    [`${__dirname}/checker.${runnerExtension}`],
+    {
+      stdio: 'inherit',
+      detached: false,
+      env: {
+        ...process.env,
+        TESTS_PATH: options.tests,
+        ENV: options.env,
+      },
+    }
+  )
+
+  p['checker'].on('exit', (exitCode: string) => {
+    if (parseInt(exitCode) === 0) {
+      emitter.emit('checker-done');
+    }
+  })
+}
+
 program
   .name('parachains-integrations-tests')
   .description('Tool for testing integration between Parachains')
@@ -111,6 +139,7 @@ program
         'zombienet-test',
         'polkadot-launch',
         'polkadot-launch-test',
+        'checker'
       ])
       .makeOptionMandatory()
   )
@@ -159,8 +188,11 @@ if (options.mode === 'zombienet-test') {
       new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
     );
   program.parse(process.argv);
-  spawnZombienet(options);
-  spawnTests(options);
+  spawnChecker(options);
+  emitter.on('checker-done', () => {
+    spawnZombienet(options);
+    spawnTests(options);
+})
 } else if (options.mode === 'zombienet') {
   program.addOption(
     new Option(
@@ -182,8 +214,11 @@ if (options.mode === 'zombienet-test') {
       new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
     );
   program.parse(process.argv);
-  spawnPolkadotLaunch(options);
-  spawnTests(options);
+  spawnChecker(options);
+  emitter.on('checker-done', () => {
+    spawnPolkadotLaunch(options);
+    spawnTests(options);
+  })
 } else if (options.mode === 'polkadot-launch') {
   program.addOption(
     new Option(
@@ -198,7 +233,16 @@ if (options.mode === 'zombienet-test') {
     new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
   );
   program.parse(process.argv);
-  spawnTests(options);
+  spawnChecker(options);
+  emitter.on('checker-done', () => {
+    spawnTests(options);
+})
+} else if (options.mode === 'checker') {
+  program.addOption(
+    new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
+  );
+  program.parse(process.argv);
+  spawnChecker(options);
 }
 
 process.on('exit', function () {
