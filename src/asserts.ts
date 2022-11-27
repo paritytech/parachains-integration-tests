@@ -28,35 +28,7 @@ const isRegisteredAssert = (key) => {
   return REGISTERED_ASSERTIONS.includes(key);
 };
 
-const checkAssert = (key: string, assert: AssertOrCustom) => {
-  const { args } = assert;
-
-  if (key === 'custom') {
-    const { path } = assert as Custom;
-
-    if (!path) {
-      console.log(
-        `\n⛔ ERROR: 'path' should be present for the following assert: 'custom': ${JSON.stringify(
-          assert
-        )}`
-      );
-      process.exit(1);
-    }
-  }
-
-  if (!args) {
-    console.log(
-      `\n⛔ ERROR: 'args' should be present for the following assert: '${key}': ${JSON.stringify(
-        assert
-      )}`
-    );
-    process.exit(1);
-  }
-};
-
 const runAssert = async (context, key: string, assert: AssertOrCustom) => {
-  checkAssert(key, assert);
-
   let custom = assert as Custom;
 
   if (key === 'equal') {

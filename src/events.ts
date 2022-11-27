@@ -9,34 +9,6 @@ import {
   updateLastBlocks,
 } from './utils';
 
-export const checkEvent = (event: Event) => {
-  const { name, attributes } = event;
-
-  if (attributes) {
-    attributes.forEach((attribute) => {
-      if (name == undefined) {
-        console.log(
-          `\n⛔ ERROR: 'name' should be present for the following event:`,
-          JSON.stringify(event, null, 2)
-        );
-        process.exit(1);
-      }
-
-      if (attribute) {
-        const { type, key } = attribute;
-
-        if (type == undefined && key == undefined) {
-          console.log(
-            `\n⛔ ERROR: 'type' or 'key' should be present for the 'attribute' of the following event:`,
-            JSON.stringify(event, null, 2)
-          );
-          process.exit(1);
-        }
-      }
-    });
-  }
-};
-
 const messageBuilder = (context, event: EventResult): string => {
   const { providers } = context;
   const { name, chain, attributes, data, received, result, record } = event;
@@ -350,10 +322,6 @@ export const eventsHandler =
   async ({ events = [], status }) => {
     if (status.isReady) {
       try {
-        for (let expectedEvent of expectedEvents) {
-          checkEvent(expectedEvent);
-        }
-
         let initialEventsResults: EventResult[] = eventsResultsBuilder(
           extrinsicChain,
           expectedEvents
