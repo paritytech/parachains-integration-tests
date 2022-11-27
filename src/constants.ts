@@ -143,6 +143,9 @@ export const INTERFACE: { [key: string]: Interface } = {
   pallet: {
     type: 'string'
   },
+  method: {
+    type: 'string'
+  },
   call: {
     type: 'string'
   },
@@ -294,11 +297,12 @@ export const INTERFACE: { [key: string]: Interface } = {
     }
   },
   rpcs: {
-    instance: YAMLSeq,
+    instance: YAMLMap,
+    anyKey: true,
     attributes: {
       chain: true,
       delay: false,
-      pallet: true,
+      method: true,
       call: true,
       args: true
     }

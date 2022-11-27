@@ -39,11 +39,12 @@ export const sendExtrinsic = async (
       let api = providers[chain.wsPort].api;
       let wallet = await getWallet(signer);
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
+      let handler = events ? eventsHandler(context, chain, events, resolve, reject) : () => { resolve([]) }
 
       await dispatchable.signAndSend(
         wallet,
         { nonce, era: 0 },
-        eventsHandler(context, chain, events, resolve, reject)
+        handler
       );
     } catch (e) {
       addConsoleGroupEnd(2);
