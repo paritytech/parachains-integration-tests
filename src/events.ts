@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { EventResult, Chain, Event, EventData, XcmOutcome } from './interfaces';
+import { EventResult, EventResultsObject, Chain, Event, EventData, XcmOutcome, Attribute } from './interfaces';
 import {
   addConsoleGroupEnd,
   adaptUnit,
@@ -110,8 +110,10 @@ const messageBuilder = (context, event: EventResult): string => {
 const eventsResultsBuilder = (
   extrinsicChain: Chain,
   events: Event[]
-): EventResult[] => {
-  return events.map((event) => {
+): EventResultsObject => {
+  let eventsResultsObject: EventResultsObject = {}
+
+  events.map((event) => {
     let chain = event.chain ? event.chain : extrinsicChain;
     let extendedEvent: EventResult = {
       ...event,
@@ -125,11 +127,15 @@ const eventsResultsBuilder = (
         strict: event.strict == undefined ? true : event.strict,
       },
     };
-    return extendedEvent;
+    if (!eventsResultsObject[extendedEvent.name]) {
+      eventsResultsObject[extendedEvent.name] = []
+    }
+      eventsResultsObject[extendedEvent.name].push(extendedEvent)
   });
+  return eventsResultsObject
 };
 
-const eventLister = (context, event: EventResult): Promise<EventResult> => {
+const eventLister = (context, event: EventResult, allEvents: EventResultsObject): Promise<EventResult> => {
   return new Promise(async (resolve, reject) => {
     let unsubscribe;
 
@@ -152,7 +158,7 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
               event: { method, section },
             } = record;
 
-            if (name === `${section}.${method}` && isExpectedEvent(record, event)) {
+            if (name === `${section}.${method}` && isTheBestExpectedEvent(record, event, allEvents[`${section}.${method}`])) {
               resolve(updateEventResult(true, record, event));
               unsubscribe();
             }
@@ -177,7 +183,33 @@ const eventLister = (context, event: EventResult): Promise<EventResult> => {
   });
 };
 
-const isExpectedEvent = (record, event: Readonly<EventResult>): boolean => {
+const assessEvent = (event: EventResult): number => {
+  const { attributes, data } = event;
+  let totalMatches = 0;
+
+  if (attributes) {
+    attributes.forEach((attribute, i) => {
+      try {
+        const { value, isRange, threshold, xcmOutcome } = attribute;
+
+        if (xcmOutcome && xcmOutcome === data[i].xcmOutcome) {
+          totalMatches++
+        }
+        if (value && data[i] && isExpectedEventAttribute(value, data[i].value, isRange, threshold)) {
+          totalMatches++
+        }
+      } catch (e) {
+        console.log(e);
+        return 0;
+      }
+    });
+    return totalMatches/attributes.length
+  } else {
+    return totalMatches
+  }
+}
+
+const isTheBestExpectedEvent = (record, event: Readonly<EventResult>, similarEvents: EventResult[]): boolean => {
   // Match only on name when no result/attributes specified
   if (_.isNil(event.result) && _.isNil(event.attributes))
     return true;
@@ -185,26 +217,25 @@ const isExpectedEvent = (record, event: Readonly<EventResult>): boolean => {
   // Clone event result and apply actual event (record) to determine match
   let clone = _.cloneDeep(event);
   updateEventResult(true, record, clone);
-  const { attributes, data, result } = clone;
+  const { attributes, result } = clone;
 
   // Check whether event is expected based on result/attributes (simplified logic from messageBuilder)
-  if (result)
+  if (result) {
     return isExpectedEventResult(clone);
-  else if (attributes)
-    return attributes.every((attribute, i) => {
-      try {
-        const { value, isRange, threshold, xcmOutcome } = attribute;
-
-        if (xcmOutcome)
-          return xcmOutcome === data[i].xcmOutcome;
-        else if (value && data[i])
-          return isExpectedEventAttribute(value, data[i].value, isRange, threshold);
-      } catch (e) {
-        console.log(e);
-        return false;
-      }
-    });
-
+  } else if (attributes) {
+    let attributeMatches = assessEvent(clone);
+    let alternativeAttributeMatches = 0;
+    if (similarEvents.length > 1) {
+      similarEvents.forEach(similarEvent => {
+        if (similarEvent.chain.wsPort === event.chain.wsPort) {
+          let clone = _.cloneDeep(similarEvent);
+          updateEventResult(true, record, clone);
+          alternativeAttributeMatches = alternativeAttributeMatches < assessEvent(clone) ? assessEvent(clone) : alternativeAttributeMatches
+        }
+      })
+    }
+    return attributeMatches >= alternativeAttributeMatches
+  }
   return false;
 };
 
@@ -212,9 +243,9 @@ const isExpectedEventResult = (event: EventResult): boolean => {
   const { result, record, strict } = event;
 
   if (strict) {
-    return _.isEqual(record, result);
+    return _.isEqual(record, adaptUnit(result));
   } else {
-    return _.isMatch(record, result);
+    return _.isMatch(record, adaptUnit(result));
   }
 };
 
@@ -322,15 +353,15 @@ export const eventsHandler =
   async ({ events = [], status }) => {
     if (status.isReady) {
       try {
-        let initialEventsResults: EventResult[] = eventsResultsBuilder(
+        let initialEventsResults: EventResultsObject = eventsResultsBuilder(
           extrinsicChain,
           expectedEvents
         );
         let finalEventsResults: EventResult[] = [];
         let eventsPromises: Promise<EventResult>[] = [];
 
-        initialEventsResults.forEach((eventResult) => {
-          eventsPromises.push(eventLister(context, eventResult));
+        Object.values(initialEventsResults).flat().forEach((eventResult) => {
+          eventsPromises.push(eventLister(context, eventResult, initialEventsResults));
         });
 
         let events = await Promise.all(eventsPromises);
@@ -339,14 +370,14 @@ export const eventsHandler =
           finalEventsResults.push(event);
         }
 
-        initialEventsResults.forEach((eventResult) => {
-          const { received } = eventResult;
-          if (!received) {
-            finalEventsResults.push(
-              updateEventResult(received, undefined, eventResult)
-            );
-          }
-        });
+        // initialEventsResults.forEach((eventResult) => {
+        //   const { received } = eventResult;
+        //   if (!received) {
+        //     finalEventsResults.push(
+        //       updateEventResult(received, undefined, eventResult)
+        //     );
+        //   }
+        // });
 
         finalEventsResults = finalEventsResults.map((result) => {
           let message = messageBuilder(context, result);
