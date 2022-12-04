@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { EventResult, EventResultsObject, Chain, Event, EventData, XcmOutcome, Attribute } from './interfaces';
+import { EventResult, EventResultsObject, Chain, Event, EventData, XcmOutcome } from './interfaces';
 import {
   addConsoleGroupEnd,
   adaptUnit,
@@ -219,9 +219,24 @@ const isTheBestExpectedEvent = (record, event: Readonly<EventResult>, similarEve
   updateEventResult(true, record, clone);
   const { attributes, result } = clone;
 
-  // Check whether event is expected based on result/attributes (simplified logic from messageBuilder)
+  // Check whether event is expected based on result/attributes
   if (result) {
-    return isExpectedEventResult(clone);
+    if (isExpectedEventResult(clone)) {
+      return true
+    } else {
+      if (similarEvents.length > 1) {
+        similarEvents.forEach(similarEvent => {
+          if (similarEvent.chain.wsPort === event.chain.wsPort) {
+            let clone = _.cloneDeep(similarEvent);
+            updateEventResult(true, record, clone);
+            if (isExpectedEventResult(clone)) {
+              return false
+            }
+          }
+        })
+      }
+      return true
+    }
   } else if (attributes) {
     let attributeMatches = assessEvent(clone);
     let alternativeAttributeMatches = 0;
