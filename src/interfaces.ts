@@ -94,6 +94,10 @@ export interface EventResult extends Event {
   record?: any;
 }
 
+export interface EventResultsObject {
+  [key: string]: EventResult[]
+}
+
 export interface Attribute {
   type?: string;
   key?: string;

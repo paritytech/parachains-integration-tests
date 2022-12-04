@@ -2,7 +2,7 @@ import { YAMLMap, YAMLSeq } from 'yaml';
 import { Interface } from './interfaces';
 
 export const DEFAULT_TIMEOUT = 300000;
-export const DEFAULT_EVENT_LISTENER_TIMEOUT = 300000;
+export const DEFAULT_EVENT_LISTENER_TIMEOUT = 200000;
 export const DEFAULT_ACTION_DELAY = 40000;
 export const REGISTERED_ASSERTIONS = [
   'custom',
