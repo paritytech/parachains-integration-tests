@@ -1,5 +1,5 @@
 import YAML from 'yaml';
-import { parseDocument } from 'yaml'
+import { parseDocument } from 'yaml';
 import glob from 'glob';
 import fs from 'fs';
 import traverse from 'traverse';
@@ -7,16 +7,10 @@ import { resolve, dirname } from 'path';
 import { u8aToHex, compactAddLength, compactStripLength } from '@polkadot/util';
 import { Keyring } from '@polkadot/api';
 import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
-import {
-  Extrinsic,
-  TestFile,
-  PaymentInfo,
-  Range,
-} from './interfaces';
+import { Extrinsic, TestFile, PaymentInfo, Range } from './interfaces';
 import { KeyringPair } from '@polkadot/keyring/types';
 
 export const getTestFiles = (path): TestFile[] => {
-
   let testsFiles;
   let absolutePath = resolve(process.cwd(), path);
 
@@ -26,32 +20,38 @@ export const getTestFiles = (path): TestFile[] => {
     testsFiles = glob.sync('/**/*.{yml,yaml}', { root: path });
   }
 
-  let error = false
+  let error = false;
 
   let result = (testsFiles = testsFiles.map((testFile) => {
     let testPath = resolve(process.cwd(), testFile);
     let testDir = dirname(testPath);
-    let yaml
-    let doc
-    let file
+    let yaml;
+    let doc;
+    let file;
 
     try {
       file = fs.readFileSync(testFile, 'utf8');
       yaml = YAML.parse(file);
-      doc = parseDocument(file)
+      doc = parseDocument(file);
     } catch (e: any) {
-      console.log(`\n\x1b[31m${testFile}\x1b[0m`,)
+      console.log(`\n\x1b[31m${testFile}\x1b[0m`);
       console.log(`\n      ${e.message}`);
-      error = true
+      error = true;
     }
-    let test: TestFile = { name: testFile, dir: testDir, yaml, yamlDoc: doc, file };
+    let test: TestFile = {
+      name: testFile,
+      dir: testDir,
+      yaml,
+      yamlDoc: doc,
+      file,
+    };
     return test;
   }));
 
   if (error) {
     process.exit(1);
   }
-  return result
+  return result;
 };
 
 /**

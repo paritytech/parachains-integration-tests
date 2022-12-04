@@ -95,7 +95,7 @@ export interface EventResult extends Event {
 }
 
 export interface EventResultsObject {
-  [key: string]: EventResult[]
+  [key: string]: EventResult[];
 }
 
 export interface Attribute {
@@ -178,8 +178,8 @@ export interface CheckerError {
 
 export interface Interface {
   instance?: any;
-  type?: string,
-  anyKey?: boolean,
+  type?: string;
+  anyKey?: boolean;
   attributes?: { [key: string]: boolean };
   rule?: object;
 }
@@ -190,11 +190,11 @@ export interface Assessment {
   key: string | undefined;
   exist: boolean | undefined;
   rightFormat: boolean | undefined;
-  format: string | undefined
+  format: string | undefined;
   range: any;
 }
 
 export interface ParentNode {
-  key: string
-  range: any
+  key: string;
+  range: any;
 }
