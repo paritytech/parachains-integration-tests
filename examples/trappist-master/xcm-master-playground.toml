@@ -31,7 +31,7 @@ add_to_genesis = true
 
   [parachains.collator]
   name = "statemine-collator01"
-  command = "./bin/polkadot-parachain-latest-0931"
+  command = "./bin/polkadot-parachain-master"
   ws_port = 9910
   args = ["--log=xcm=trace,pallet-xcm=trace,pallet-assets=trace"]
 
@@ -42,19 +42,18 @@ add_to_genesis = true
 
   [parachains.collator]
   name = "trappist-collator01"
-  command = "./bin/trappist-collator-latest-0931"
+  command = "./bin/trappist-collator-master"
   ws_port = 9920
   args = ["--log=xcm=trace,pallet-assets=trace"]
 
 [[parachains]]
 id = 3000
-chain = "penpal-kusama-3000"
 cumulus_based = true
 add_to_genesis = true
 
   [parachains.collator]
-  name = "collator01"
-  command = "./bin/polkadot-parachain-latest-0931"
+  name = "base-collator01"
+  command = "./bin/trappist-collator-master-base"
   ws_port = 9930
   args = ["--log=xcm=trace,pallet-assets=trace"]
 

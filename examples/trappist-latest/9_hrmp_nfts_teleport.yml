@@ -104,7 +104,9 @@ tests:
                     { unlimited: true } # weightLimit
                   ]
                   events:
-                    - name: uniques.Transferred
+                    - name: uniques.Burned
+                      chain: *assets_parachain
+                    - name: uniques.Issued
                       chain: *assets_parachain
                     - name: foreignUniques.Issued
                       chain: *trappist_parachain
