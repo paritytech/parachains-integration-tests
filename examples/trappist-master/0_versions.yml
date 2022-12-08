@@ -3,6 +3,7 @@ settings:
   chains:
     relay_chain: &relay_chain
       wsPort: 9900
+      paraId: &rp_id 1000
     assets_parachain: &assets_parachain
       wsPort: 9910
       paraId: &ap_id 1000
@@ -22,7 +23,14 @@ settings:
         assets_parachain_destination: &ap_dest { v2: { 0, interior: { x1: { parachain: *ap_id }}}}
       trappist_parachain:
         signer: &tp_signer //Alice
+      assets_parachain:
+        max_individual: &ap_dmp_max_individual 10000000000
   decodedCalls:
+    update_weight_restrict_decay:
+      chain: *assets_parachain
+      pallet: xcmpQueue
+      call: updateWeightRestrictDecay
+      args: [ 0 ]
     ap_force_xcm_version:
       chain: *assets_parachain
       pallet: polkadotXcm
@@ -118,3 +126,45 @@ tests:
                   attribute:
                     type: u32
                     value: *xcm_version
+
+      # Hack to enable processing of large xcm message
+      - name: Update XCMP queue config (on Reserve Parachain) via Relay Chain
+        actions:
+          - extrinsics:
+              - chain: *relay_chain
+                sudo: true
+                signer: *rc_signer
+                pallet: parasSudoWrapper
+                call: sudoQueueDownwardXcm
+                delay: 0
+                args: [
+                  *rp_id, # id
+                  {
+                    v2: [
+                      {
+                        Transact: {
+                          originType: Superuser,
+                          requireWeightAtMost: *ap_dmp_max_individual,
+                          call: $update_weight_restrict_decay
+                        }
+                      }
+                    ]
+                  }, # xcm
+                ]
+                events:
+                  - chain: *relay_chain
+                    name: sudo.Sudid
+                    attributes:
+                      - key: sudoResult
+                        value: Ok
+                  - chain: *assets_parachain
+                    name: parachainSystem.DownwardMessagesReceived
+                  - chain: *assets_parachain
+                    name: parachainSystem.DownwardMessagesProcessed
+                  - chain: *assets_parachain
+                    name: dmpQueue.ExecutedDownward
+                    attributes:
+                      - type: XcmV2TraitsOutcome
+                        xcmOutcome: Complete
+                        threshold: [ 10, 10 ]
+                        value: 10,021,258,000

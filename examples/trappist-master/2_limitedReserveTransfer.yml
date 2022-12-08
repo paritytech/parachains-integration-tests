@@ -11,10 +11,9 @@ settings:
       paraId: &tp_id 2000
     base_parachain: &base_parachain
       wsPort: 9930
-      paraId: &tp_id 3000
+      paraId: &bp_id 3000
   variables:
     common:
-      amount_to_mint: &amount_to_mint 100000000000000
       amount_to_send: &amount_to_send 10000000000000
       require_weight_at_most: &weight_at_most 1000000000
     chains:
@@ -133,15 +132,7 @@ tests:
                           - type: XcmV2TraitsOutcome
                             xcmOutcome: Complete
                             threshold: [10, 10]
-                            value: 1,000,000,000
-                      - name: assets.Transferred
-                        attributes:
-                          - type: AccountId32
-                            value: *tp_sovereign_sibl
-                          - type: u128
-                            value: *amount_to_send
-                      - name: assets.Issued
-                        chain: *trappist_parachain
+                            value: 654,608,000
               - queries:
                   bob_received_asset:
                     chain: *trappist_parachain

@@ -1,8 +1,6 @@
 ---
 settings:
   chains:
-    relay_chain: &relay_chain
-      wsPort: 9900
     assets_parachain: &assets_parachain
       wsPort: 9910
       paraId: &ap_id 1000
@@ -25,13 +23,14 @@ settings:
         trappist_parachain_dest_routed: &tp_dest_routed { v2: { parents: 1, interior: { x1: { parachain: *tp_id } }}}
         base_parachain_destination: &base_dest { v2: { parents: 0, interior: { x1: { parachain: *base_id }}}}
         base_parachain_dest_routed: &base_dest_routed { v2: { parents: 1, interior: { x1: { parachain: *base_id } }}}
-      assets_parachain_account:
+      assets_parachain:
         signer: &ap_signer //Alice
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         bob_signer: &ap_bob_signer //Bob
         bob_wallet: &ap_bob_wallet FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP
         asset_id: &asset_id 1
         assets_pallet_id: &assets_pallet_id 50
+
       trappist_parachain:
         signer: &tp_signer //Alice
         wallet: &tp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
@@ -46,16 +45,13 @@ settings:
         bob_wallet: &base_bob_wallet 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
         base_parachain_bob_account: &base_bob_acc '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
   decodedCalls:
-    system_remark_with_event:
-      chain: *assets_parachain
-      pallet: system
-      call: remarkWithEvent
-      args: [ 0x0011 ]
+
 
 tests:
   - name: HRMP
     describes:
       - name: polkadotXcm.execute (Trappist) | Send tokens (xUSD) Trappist Parachain -> Base Parachain
+
         its:
           - name: Trappist Parachain should be able to reserve transfer an asset to Base Parachain
             actions:
@@ -138,6 +134,7 @@ tests:
                                   assets: {
                                     Wild: All
                                   },
+                                  maxAssets: 1,
                                   dest: {
                                     parents: 1,
                                     interior: {
@@ -152,6 +149,7 @@ tests:
                                         assets: {
                                           Wild: All
                                         },
+                                        maxAssets: 1,
                                         beneficiary: {
                                           parents: 0,
                                           interior: {
@@ -173,7 +171,7 @@ tests:
                         }
                       ]
                     },
-                    10000000000, # maxWeight
+                    [ 10000000000 ] , # maxWeight
                   ]
                   events:
                     - name: assets.Burned
