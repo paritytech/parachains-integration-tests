@@ -15,18 +15,6 @@ settings:
         alice_signer: &alice_signer //Alice
         alice_account32: &alice_acc32 '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
         alice_ss58: &acc_alice_ss58 '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5'
-  decodedCalls:
-    ap_force_xcm_version:
-      chain: *collectives_parachain
-      pallet: polkadotXcm
-      call: forceXcmVersion
-      args: [
-        { # location
-          parents: 1,
-          interior: Here
-        },
-        *xcm_version
-      ]
 
 tests:
   - name: Teleport assets from Relay Chain to Collectives Parachain successful
