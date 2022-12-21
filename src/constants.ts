@@ -114,6 +114,7 @@ export const INTERFACE: { [key: string]: Interface } = {
     attributes: {
       chain: true,
       signer: true,
+      keyPairType: false,
       pallet: true,
       call: true,
       args: true,
@@ -156,6 +157,9 @@ export const INTERFACE: { [key: string]: Interface } = {
     type: 'boolean'
   },
   signer: {
+    type: 'string'
+  },
+  keyPairType: {
     type: 'string'
   },
   delay: {

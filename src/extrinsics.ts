@@ -19,7 +19,7 @@ export const sendExtrinsic = async (
     try {
       let providers = context.providers;
 
-      const { chain, delay, signer, pallet, call, args, events } = extrinsic;
+      const { chain, delay, signer, keyPairType, pallet, call, args, events } = extrinsic;
 
       await sleep(delay ? delay : 0);
 
@@ -37,7 +37,7 @@ export const sendExtrinsic = async (
       );
 
       let api = providers[chain.wsPort].api;
-      let wallet = await getWallet(signer);
+      let wallet = await getWallet(signer, keyPairType);
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
       let handler = events ? eventsHandler(context, chain, events, resolve, reject) : () => { resolve([]) }
 

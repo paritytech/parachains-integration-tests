@@ -14,6 +14,7 @@ import {
   Range,
 } from './interfaces';
 import { KeyringPair } from '@polkadot/keyring/types';
+import { KeypairType } from "@polkadot/util-crypto/types";
 
 export const getTestFiles = (path): TestFile[] => {
 
@@ -108,13 +109,14 @@ export const getPaymentInfoForExtrinsic = async (
   const { signer } = extrinsic;
 
   let dispatchable = buildDispatchable(context, extrinsic);
-  let wallet = await getWallet(signer);
+  let wallet = await getWallet(signer, extrinsic.keyPairType);
 
   return await dispatchable.paymentInfo(wallet);
 };
 
 export const getWallet = async (
-  uri: string
+  uri: string,
+  type?: KeypairType
 ): Promise<
   | KeyringPair
   | {
@@ -122,9 +124,9 @@ export const getWallet = async (
       addressRaw: Uint8Array;
     }
 > => {
-  if (uri.substring(0, 2) === '//') {
+  if (uri.substring(0, 2) === '//' || uri.substring(0, 2) === '0x' ) {
     await cryptoWaitReady();
-    const keyring = new Keyring({ type: 'sr25519' });
+    const keyring = new Keyring({ type: type ?? 'sr25519' });
     return keyring.addFromUri(uri);
   } else {
     return { address: uri, addressRaw: decodeAddress(uri) };

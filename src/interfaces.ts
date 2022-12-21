@@ -1,3 +1,5 @@
+import {KeypairType} from "@polkadot/util-crypto/types";
+
 export interface TestFile {
   name: string;
   dir: string;
@@ -64,6 +66,7 @@ export interface Call {
 
 export interface Extrinsic extends Call {
   signer: string;
+  keyPairType?: KeypairType;
   delay?: number;
   events: Event[];
 }
