@@ -1,0 +1,88 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9900
+    reserve_parachain:
+      wsPort: 9910
+      paraId: &reserve_parachain_id 1000
+  variables:
+    common:
+      amount_to_send: &amount_to_send 1000000000000000
+    chains:
+      relay_chain:
+        alice_signer: &relay_chain_signer //Alice
+        alice_account: &relay_chain_account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+      reserve_parachain:
+        bob_account: &reserve_parachain_account '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'
+
+tests:
+  - name: Tests
+    describes:
+      - name: Multiple events of same type
+        its:
+          - name: Tests should support multiple events of the same type
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *relay_chain_signer
+                    pallet: xcmPallet
+                    call: limitedTeleportAssets
+                    args: [
+                      { # destination
+                        v1: {
+                          parents: 0,
+                          interior: {
+                            x1: {
+                              Parachain: *reserve_parachain_id
+                            }
+                          }
+                        }
+                      },
+                      { # beneficiary
+                        v1: {
+                          parents: 0,
+                          interior: {
+                            x1: {
+                              AccountId32: {
+                                network: Any,
+                                id: *reserve_parachain_account
+                              }
+                            }
+                          }
+                        }
+                      },
+                      { # assets
+                        v1: [
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 0,
+                                interior: Here
+                              }
+                            },
+                            fun: {
+                              Fungible: *amount_to_send
+                            }
+                          }
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      # ensure multiple events of same type can be matched
+                      - name: balances.Withdraw
+                        attributes:
+                          - type: AccountId32
+                            value: *relay_chain_account
+                          - type: u128
+                            value: *amount_to_send
+                      - name: balances.Withdraw
+                        attributes:
+                          - type: AccountId32
+                            value: *relay_chain_account
+                          - type: u128
+                            threshold: [10, 10]
+                            value: 148,804,953
+                      - name: xcmPallet.Attempted # ensure an event can be matched by name only

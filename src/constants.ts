@@ -2,7 +2,7 @@ import { YAMLMap, YAMLSeq } from 'yaml';
 import { Interface } from './interfaces';
 
 export const DEFAULT_TIMEOUT = 300000;
-export const DEFAULT_EVENT_LISTENER_TIMEOUT = 300000;
+export const DEFAULT_EVENT_LISTENER_TIMEOUT = 200000;
 export const DEFAULT_ACTION_DELAY = 40000;
 export const REGISTERED_ASSERTIONS = [
   'custom',
@@ -21,21 +21,21 @@ export const INTERFACE: { [key: string]: Interface } = {
     instance: YAMLMap,
     attributes: {
       YAMLdocument: true,
-    }
+    },
   },
   YAMLdocument: {
     instance: YAMLMap,
     attributes: {
       settings: true,
-      tests: true
-    }
+      tests: true,
+    },
   },
   settings: {
     instance: YAMLMap,
     attributes: {
       chains: true,
       variables: false,
-      decodedCalls: false
+      decodedCalls: false,
     },
   },
   chains: {
@@ -45,11 +45,11 @@ export const INTERFACE: { [key: string]: Interface } = {
       ws: false,
       paraId: false,
     },
-    anyKey: true
+    anyKey: true,
   },
   variables: {
     instance: YAMLMap,
-    anyKey: true
+    anyKey: true,
   },
   decodedCalls: {
     instance: YAMLMap,
@@ -61,9 +61,9 @@ export const INTERFACE: { [key: string]: Interface } = {
       sudo: false,
       encode: false,
       delay: false,
-      events: false
+      events: false,
     },
-    anyKey: true
+    anyKey: true,
   },
   tests: {
     instance: YAMLSeq,
@@ -74,7 +74,7 @@ export const INTERFACE: { [key: string]: Interface } = {
       beforeEach: false,
       after: false,
       afterEach: false,
-      describes: false
+      describes: false,
     },
   },
   describes: {
@@ -86,18 +86,18 @@ export const INTERFACE: { [key: string]: Interface } = {
       beforeEach: false,
       after: false,
       afterEach: false,
-      describes: false
+      describes: false,
     },
   },
   name: {
-    type: 'string'
+    type: 'string',
   },
   its: {
     instance: YAMLSeq,
     attributes: {
       name: true,
-      actions: true
-    }
+      actions: true,
+    },
   },
   actions: {
     instance: YAMLSeq,
@@ -106,8 +106,8 @@ export const INTERFACE: { [key: string]: Interface } = {
       customs: false,
       asserts: false,
       queries: false,
-      rpcs: false
-    }
+      rpcs: false,
+    },
   },
   extrinsics: {
     instance: YAMLSeq,
@@ -120,8 +120,8 @@ export const INTERFACE: { [key: string]: Interface } = {
       sudo: false,
       encode: false,
       delay: false,
-      events: false
-    }
+      events: false,
+    },
   },
   chain: {
     instance: YAMLMap,
@@ -129,37 +129,37 @@ export const INTERFACE: { [key: string]: Interface } = {
       wsPort: true,
       ws: false,
       paraId: false,
-    }
+    },
   },
   wsPort: {
-    type: 'number'
+    type: 'number',
   },
   ws: {
-    type: 'string'
+    type: 'string',
   },
   paraId: {
-    type: 'number'
+    type: 'number',
   },
   pallet: {
-    type: 'string'
+    type: 'string',
   },
   method: {
-    type: 'string'
+    type: 'string',
   },
   call: {
-    type: 'string'
+    type: 'string',
   },
   sudo: {
-    type: 'boolean'
+    type: 'boolean',
   },
   encode: {
-    type: 'boolean'
+    type: 'boolean',
   },
   signer: {
-    type: 'string'
+    type: 'string',
   },
   delay: {
-    type: 'number'
+    type: 'number',
   },
   events: {
     instance: YAMLSeq,
@@ -170,20 +170,20 @@ export const INTERFACE: { [key: string]: Interface } = {
       timeout: false,
       result: false,
       strict: false,
-      attributes: false
-    }
+      attributes: false,
+    },
   },
   remote: {
-    type: 'boolean'
+    type: 'boolean',
   },
   timeout: {
-    type: 'number'
+    type: 'number',
   },
   result: {
-    type: 'object'
+    type: 'object',
   },
   strict: {
-    type: 'boolean'
+    type: 'boolean',
   },
   attributes: {
     instance: YAMLSeq,
@@ -196,39 +196,39 @@ export const INTERFACE: { [key: string]: Interface } = {
       xcmOutcome: false,
     },
     rule: {
-      or: ['type', 'key']
-    }
+      or: ['type', 'key'],
+    },
   },
   type: {
-    type: 'string'
+    type: 'string',
   },
   key: {
-    type: 'string'
+    type: 'string',
   },
   isRange: {
-    type: 'boolean'
+    type: 'boolean',
   },
   threshold: {
-    instance: YAMLSeq
+    instance: YAMLSeq,
   },
   value: {
-    type: 'any'
+    type: 'any',
   },
   xcmOutcome: {
-    type: 'string'
+    type: 'string',
   },
   customs: {
     instance: YAMLSeq,
     attributes: {
       path: true,
-      args: true
-    }
+      args: true,
+    },
   },
   path: {
-    type: 'string'
+    type: 'string',
   },
   args: {
-    instance: YAMLSeq
+    instance: YAMLSeq,
   },
   asserts: {
     instance: YAMLMap,
@@ -239,51 +239,51 @@ export const INTERFACE: { [key: string]: Interface } = {
       balanceIncreased: false,
       assetsDecreased: false,
       assetsIncreased: false,
-      custom: false
-    }
+      custom: false,
+    },
   },
   equal: {
     instance: YAMLMap,
     attributes: {
       args: true,
-    }
+    },
   },
   isSome: {
     instance: YAMLMap,
     attributes: {
-      args: true
-    }
+      args: true,
+    },
   },
   balanceDecreased: {
     instance: YAMLMap,
     attributes: {
-      args: true
-    }
+      args: true,
+    },
   },
   balanceIncreased: {
     instance: YAMLMap,
     attributes: {
-      args: true
-    }
+      args: true,
+    },
   },
   assetsDecreased: {
     instance: YAMLMap,
     attributes: {
-      args: true
-    }
+      args: true,
+    },
   },
   assetsIncreased: {
     instance: YAMLMap,
     attributes: {
-      args: true
-    }
+      args: true,
+    },
   },
   custom: {
     instance: YAMLMap,
     attributes: {
       path: true,
-      args: true
-    }
+      args: true,
+    },
   },
   queries: {
     instance: YAMLMap,
@@ -293,8 +293,8 @@ export const INTERFACE: { [key: string]: Interface } = {
       delay: false,
       pallet: true,
       call: true,
-      args: true
-    }
+      args: true,
+    },
   },
   rpcs: {
     instance: YAMLMap,
@@ -304,35 +304,35 @@ export const INTERFACE: { [key: string]: Interface } = {
       delay: false,
       method: true,
       call: true,
-      args: true
-    }
+      args: true,
+    },
   },
   before: {
     instance: YAMLSeq,
     attributes: {
       name: false,
-      actions: true
-    }
+      actions: true,
+    },
   },
   beforeEach: {
     instance: YAMLSeq,
     attributes: {
       name: false,
-      actions: true
-    }
+      actions: true,
+    },
   },
   after: {
     instance: YAMLSeq,
     attributes: {
       name: false,
-      actions: true
-    }
+      actions: true,
+    },
   },
   afterEach: {
     instance: YAMLSeq,
     attributes: {
       name: false,
-      actions: true
-    }
-  }
-}
+      actions: true,
+    },
+  },
+};

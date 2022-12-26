@@ -99,26 +99,22 @@ const spawnChecker = (options) => {
   let runnerExtension = 'js';
   runnerExtension = options.env === 'dev' ? 'ts' : runnerExtension;
 
-  p['checker'] = spawn(
-    'ts-node',
-    [`${__dirname}/checker.${runnerExtension}`],
-    {
-      stdio: 'inherit',
-      detached: false,
-      env: {
-        ...process.env,
-        TESTS_PATH: options.tests,
-        ENV: options.env,
-      },
-    }
-  )
+  p['checker'] = spawn('ts-node', [`${__dirname}/checker.${runnerExtension}`], {
+    stdio: 'inherit',
+    detached: false,
+    env: {
+      ...process.env,
+      TESTS_PATH: options.tests,
+      ENV: options.env,
+    },
+  });
 
   p['checker'].on('exit', (exitCode: string) => {
     if (parseInt(exitCode) === 0) {
       emitter.emit('checker-done');
     }
-  })
-}
+  });
+};
 
 program
   .name('parachains-integrations-tests')
@@ -139,7 +135,7 @@ program
         'zombienet-test',
         'polkadot-launch',
         'polkadot-launch-test',
-        'checker'
+        'checker',
       ])
       .makeOptionMandatory()
   )
@@ -192,7 +188,7 @@ if (options.mode === 'zombienet-test') {
   emitter.on('checker-done', () => {
     spawnZombienet(options);
     spawnTests(options);
-})
+  });
 } else if (options.mode === 'zombienet') {
   program.addOption(
     new Option(
@@ -218,7 +214,7 @@ if (options.mode === 'zombienet-test') {
   emitter.on('checker-done', () => {
     spawnPolkadotLaunch(options);
     spawnTests(options);
-  })
+  });
 } else if (options.mode === 'polkadot-launch') {
   program.addOption(
     new Option(
@@ -236,7 +232,7 @@ if (options.mode === 'zombienet-test') {
   spawnChecker(options);
   emitter.on('checker-done', () => {
     spawnTests(options);
-})
+  });
 } else if (options.mode === 'checker') {
   program.addOption(
     new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
