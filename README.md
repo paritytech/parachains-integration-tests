@@ -310,7 +310,7 @@ export type RpcAction = {
 }
 
 export type AssertAction = {
-  asserts: { [key: string]: AssertOrCustom };
+  asserts: AssertOrCustom[];
 }
 
 export type CustomAction = {
@@ -703,18 +703,18 @@ tests: # Describe[]
       - name: Should reduce the balance of the sender
         actions: # Action[]
           - asserts: # { [key: string]: AssertOrCustom }
-              customs:
-                path: ./asserts/checkSenderBalances.ts
-                args:
-                  {
-                    balances: {
-                      before: $balance_rc_sender_before,
-                      after: $balance_rc_sender_after,
-                    },
-                    amount: *amount,
-                  }
-              equal:
-                args: [true, true]
+              - custom:
+                  path: ./asserts/checkSenderBalances.ts
+                  args:
+                    {
+                      balances: {
+                        before: $balance_rc_sender_before,
+                        after: $balance_rc_sender_after,
+                      },
+                      amount: *amount,
+                    }
+              - equal:
+                  args: [true, true]
 ```
 
 Interfaces:
@@ -760,7 +760,7 @@ tests: # Describe[]
                 }
               ]
           asserts:
-            equal: [$dot_price, 30]
+            - equal: [$dot_price, 30]
 
 ```
 ```typescript
