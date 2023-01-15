@@ -623,6 +623,7 @@ tests: # Describe[]
                 method: chain
                 call: getBlock
                 args: []
+                events: []
     its: [...]
 ```
 
@@ -635,6 +636,7 @@ interface Rpc {
   method: string;
   call: string;
   args: any[];
+  events?: Event[];
 }
 ```
 
@@ -759,6 +761,7 @@ tests: # Describe[]
                   url: https://www.my-oracle.com/price/
                 }
               ]
+              events: []
           asserts:
             equal: [$dot_price, 30]
 
@@ -787,6 +790,7 @@ Interfaces:
 interface Custom {
   path: string;
   args: any[];
+  events?: Event[];
 }
 ```
 

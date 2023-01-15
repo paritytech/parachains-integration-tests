@@ -17,7 +17,7 @@ export const itsBuilder = (test: It) => {
   const { name, actions } = test;
 
   it(name, async function () {
-    console.log(`\n🧪 It`);
+    console.log(`\n🧪 It: \x1b[4m${name}\x1b[0m`);
 
     addConsoleGroup(2);
 
