@@ -142,7 +142,7 @@ const eventsResultsBuilder = (
   return eventsResultsObject;
 };
 
-const eventLister = (
+const eventListener = (
   context,
   event: EventResult,
   allEvents: EventResultsObject
@@ -194,7 +194,7 @@ const eventLister = (
         timeout ? timeout : context.eventListenerTimeout
       );
     } catch (e) {
-      unsubscribe();
+      // unsubscribe();
       addConsoleGroupEnd(2);
       reject(e);
     }
@@ -391,53 +391,57 @@ const updateEventResult = (
   return event;
 };
 
+export const eventListenerBuilder = async (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) => {
+  try {
+    let initialEventsResults: EventResultsObject = eventsResultsBuilder(
+      extrinsicChain,
+      expectedEvents
+    );
+    let finalEventsResults: EventResult[] = [];
+    let eventsPromises: Promise<EventResult>[] = [];
+
+    Object.values(initialEventsResults)
+      .flat()
+      .forEach((eventResult) => {
+        eventsPromises.push(
+          eventListener(context, eventResult, initialEventsResults)
+        );
+      });
+
+    let events = await Promise.all(eventsPromises);
+
+    for (let event of events) {
+      finalEventsResults.push(event);
+    }
+
+    // initialEventsResults.forEach((eventResult) => {
+    //   const { received } = eventResult;
+    //   if (!received) {
+    //     finalEventsResults.push(
+    //       updateEventResult(received, undefined, eventResult)
+    //     );
+    //   }
+    // });
+
+    finalEventsResults = finalEventsResults.map((result) => {
+      let message = messageBuilder(context, result);
+      return { ...result, message };
+    });
+
+    await updateLastBlocks(context);
+    resolve(finalEventsResults);
+    return;
+  } catch (e) {
+    await updateLastBlocks(context);
+    addConsoleGroupEnd(2);
+    reject(e);
+  }
+}
+
 export const eventsHandler =
   (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) =>
   async ({ events = [], status }) => {
     if (status.isReady) {
-      try {
-        let initialEventsResults: EventResultsObject = eventsResultsBuilder(
-          extrinsicChain,
-          expectedEvents
-        );
-        let finalEventsResults: EventResult[] = [];
-        let eventsPromises: Promise<EventResult>[] = [];
-
-        Object.values(initialEventsResults)
-          .flat()
-          .forEach((eventResult) => {
-            eventsPromises.push(
-              eventLister(context, eventResult, initialEventsResults)
-            );
-          });
-
-        let events = await Promise.all(eventsPromises);
-
-        for (let event of events) {
-          finalEventsResults.push(event);
-        }
-
-        // initialEventsResults.forEach((eventResult) => {
-        //   const { received } = eventResult;
-        //   if (!received) {
-        //     finalEventsResults.push(
-        //       updateEventResult(received, undefined, eventResult)
-        //     );
-        //   }
-        // });
-
-        finalEventsResults = finalEventsResults.map((result) => {
-          let message = messageBuilder(context, result);
-          return { ...result, message };
-        });
-
-        await updateLastBlocks(context);
-        resolve(finalEventsResults);
-        return;
-      } catch (e) {
-        await updateLastBlocks(context);
-        addConsoleGroupEnd(2);
-        reject(e);
-      }
+      await eventListenerBuilder(context, extrinsicChain, expectedEvents, resolve, reject)
     }
   };

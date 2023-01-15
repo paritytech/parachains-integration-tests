@@ -222,6 +222,7 @@ export const INTERFACE: { [key: string]: Interface } = {
     attributes: {
       path: true,
       args: true,
+      events: false,
     },
   },
   path: {
@@ -305,6 +306,7 @@ export const INTERFACE: { [key: string]: Interface } = {
       method: true,
       call: true,
       args: true,
+      events: false,
     },
   },
   before: {
