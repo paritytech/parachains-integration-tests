@@ -35,6 +35,7 @@ export type Hook = Before | BeforeEach | After | AfterEach;
 export interface Custom {
   path: string;
   args: any[];
+  events?: Event[];
 }
 
 export interface Query {
@@ -51,6 +52,7 @@ export interface Rpc {
   method: string;
   call: string;
   args: any[];
+  events?: Event[];
 }
 
 export interface Call {
@@ -140,7 +142,7 @@ export type AssertOrCustom = Assert | Custom;
 export interface Chain {
   wsPort: number;
   ws?: string; // if undefined, it fallsback to the default value -> ws://localhost
-  paraId: number;
+  paraId?: number;
 }
 export interface ChainConfigs {
   chainName: string;
