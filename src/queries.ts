@@ -17,7 +17,7 @@ export const queriesBuilder = async (
 ) => {
   for (let key of Object.keys(queries)) {
     if (context.variables[`\$${key}`]) {
-      console.log(`\n⚠️  WARNING: the key "$${key}" is being reassigned`);
+      console.log(`\n⚠️  WARNING: the key "$${key}" is being reassigned\n`);
     }
     context.variables[`\$${key}`] = await sendQuery(context, key, queries[key]);
   }

@@ -19,9 +19,19 @@ const customAssert = async (context, assert: Custom, path: string) => {
 const equalAssert = async (context, assert: Assert) => {
   const { args } = assert;
 
-  let parsedArgs = parseArgs(context, args);
+  let fail;
 
-  chai.assert.deepEqual(parsedArgs[0], parsedArgs[1]);
+  let parsedArgs = parseArgs(context, args);
+  try {
+    chai.assert.deepEqual(parsedArgs[0], parsedArgs[1]);
+  } catch (e) {
+    fail = e;
+  }
+
+  if (fail) {
+    addConsoleGroupEnd(2);
+    throw fail;
+  }
 };
 
 const isRegisteredAssert = (key) => {
