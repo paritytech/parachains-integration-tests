@@ -320,7 +320,7 @@ const eventDataBuilder = (data: any, typeDef: any, key: string): EventData => {
     value: data,
   };
 
-  if (typeDef.lookupName === 'XcmV2TraitsOutcome') {
+  if (typeDef.lookupName === 'XcmV2TraitsOutcome' || typeDef.lookupName === 'XcmV3TraitsOutcome') {
     if (data['Complete']) {
       eventData.xcmOutcome = XcmOutcome.Complete;
       eventData.value = data['Complete'];
