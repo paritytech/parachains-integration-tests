@@ -57,7 +57,7 @@ tests:
                       attributes:
                         - type: XcmV3TraitsOutcome
                           # xcmOutcome: Complete
-                          value: {"Complete":{"refTime":"761,173,000","proofSize":"0"}}
+                          value: {"refTime":"761,173,000","proofSize":"0"}
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       attributes:
