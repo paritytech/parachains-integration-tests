@@ -56,13 +56,13 @@ tests:
                     - name: xcmPallet.Attempted
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
+                          xcmOutcome: Complete
                           value: {"refTime":"761,173,000","proofSize":"0"}
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
+                          xcmOutcome: Complete
                           # threshold: [10, 10]
                           value: {"refTime":"1,010,034,000","proofSize":"0"}
 
@@ -98,14 +98,14 @@ tests:
                     - name: polkadotXcm.Attempted
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
+                          xcmOutcome: Complete
                           # threshold: [10, 10]
                           value: {"refTime":"345,357,000","proofSize":"0"}
                     - name: ump.ExecutedUpward
                       chain: *relay_chain
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
+                          xcmOutcome: Complete
                           # threshold: [10, 10]
                           value: {"refTime":"298,716,000","proofSize":"0"}
               - queries:
@@ -201,5 +201,5 @@ tests:
                     - name: polkadotXcm.Attempted
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Error
+                          xcmOutcome: Error
                           value: Barrier

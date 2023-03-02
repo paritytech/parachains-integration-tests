@@ -71,16 +71,14 @@ tests:
                     - name: xcmPallet.Attempted
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
+                          xcmOutcome: Complete
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
-                          # threshold: [10, 10]
-                          # value: "100"
+                          xcmOutcome: Complete
+#                          threshold: [10, 10]
                           value: {"refTime":"1,010,034,000","proofSize":"0"}
-                          #{"Complete":{"refTime":"1010034000","proofSize":"0"}}
               - queries:
                   balance_rc_sender_after:
                     chain: *relay_chain
@@ -155,8 +153,8 @@ tests:
                       chain: *assets_parachain
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
-                          # threshold: [10, 10]
+                          xcmOutcome: Complete
+#                          threshold: [10, 10]
                           value: {"refTime":"1,014,103,000","proofSize":"200,000"}
               - queries:
                   forced_created_asset:
@@ -223,15 +221,14 @@ tests:
                     - name: xcmPallet.Attempted
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
-                          # threshold: [10, 10]
+                          xcmOutcome: Complete
+#                          threshold: [10, 10]
                           value: {"refTime":"750,645,000","proofSize":"0"}
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       attributes:
                         - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Error
-                          # value: "WeightNotComputable"
+                          xcmOutcome: Incomplete
                           value: [{"refTime":"1,000,000,000","proofSize":"0"},"UntrustedReserveLocation"]
               - queries:
                   balance_rc_sender_after:
