@@ -11,12 +11,12 @@ settings:
       paraId: &pp_id 2000
   variables:
     common:
-      xcm_version: &xcm_version '2'
-      require_weight_at_most: &weight_at_most 1000000000
+      xcm_version: &xcm_version '3'
+      require_weight_at_most: &weight_at_most {refTime: 1000000000, proofSize: 200000}
     chains:
       relay_chain:
         signer: &rc_signer //Alice
-        assets_parachain_destination: &ap_dest { v1: { 0, interior: { x1: { parachain: *ap_id }}}}
+        assets_parachain_destination: &ap_dest { v3: { 0, interior: { x1: { parachain: *ap_id }}}}
       penpal_parachain:
         signer: &pp_signer //Alice
   decodedCalls:
@@ -98,7 +98,17 @@ tests:
               args: [
                 *ap_dest, # destination
                 {
-                  v2: [ #message
+                  v3: [ #message
+                    {
+                      UnpaidExecution: {
+                        weightLimit: {
+                          limited: {
+                            refTime: 3200000000,
+                            proofSize: 200000
+                          }
+                        }
+                      }
+                    },
                     {
                       Transact: {
                         originType: Superuser,
