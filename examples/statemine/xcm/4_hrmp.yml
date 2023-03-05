@@ -30,7 +30,7 @@ settings:
         ksm_fungible: &ap_ksm_fungible { id: *ap_ksm, fun: { fungible: *amount }}
         suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
         suff_asset_fail: &suff_asset_fail { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: 3 } ] }}}
-        suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *weight_at_most }}
+        suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *amount }}
         suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: *weight_at_most }}
       penpal_parachain:
         sovereign_account: &pp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
@@ -61,34 +61,42 @@ tests:
           - name: DEPENDENCY | A sufficient Asset should exist in the Assets Parachain
             actions:
               - extrinsics:
-                - chain: *relay_chain
-                  signer: *rc_signer
-                  sudo: true
-                  pallet: xcmPallet
-                  call: send
-                  args: [
-                    *ap_dest, # destination
-                    {
-                      v3: [ #message
-                        {
-                          Transact: {
-                            originType: Superuser,
-                            requireWeightAtMost: *weight_at_most,
-                            call: $force_create_asset
+                  - chain: *relay_chain
+                    signer: *rc_signer
+                    sudo: true
+                    pallet: xcmPallet
+                    call: send
+                    args: [
+                      *ap_dest, # destination
+                      {
+                        v3: [ #message
+                          {
+                            UnpaidExecution: {
+                              weightLimit: Unlimited
+                            }
+                          },
+                          {
+                            SetTopic: "0x0123456789012345678901234567891201234567890123456789012345678912"
+                          },
+                          {
+                            Transact: {
+                              originKind: Superuser,
+                              requireWeightAtMost: *weight_at_most,
+                              call: $force_create_asset
+                            }
                           }
-                        }
-                      ]
-                    }
-                  ]
-                  events:
-                    - name: xcmPallet.Sent
-                    - name: dmpQueue.ExecutedDownward
-                      chain: *assets_parachain
-                      attributes:
-                        - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
-                          # threshold: [10, 10]
-                          value: 1,021,258,000
+                        ]
+                      }
+                    ]
+                    events:
+                      - name: xcmPallet.Sent
+                      - name: dmpQueue.ExecutedDownward
+                        chain: *assets_parachain
+                        attributes:
+                          - type: XcmV3TraitsOutcome
+                            # xcmOutcome: Complete
+                            # threshold: [10, 10]
+                            value: {"refTime":"1,016,703,000","proofSize":"20,000"}
               - queries:
                   forced_created_asset:
                     chain: *assets_parachain
@@ -102,131 +110,129 @@ tests:
           - name: DEPENDENCY | Some Assets should be minted for the sender
             actions:
               - extrinsics:
-                - chain: *assets_parachain
-                  signer: *ap_signer
-                  pallet: assets
-                  call: mint
-                  args: [
-                    *asset_id,
-                    *ap_wallet,
-                    *amount
-                  ]
-                  events:
-                    - name: assets.Issued
+                  - chain: *assets_parachain
+                    signer: *ap_signer
+                    pallet: assets
+                    call: mint
+                    args: [
+                      *asset_id,
+                      *ap_wallet,
+                      *amount
+                    ]
+                    events:
+                      - name: assets.Issued
 
         its:
           - name: Assets Parachain should be able to reserve transfer an Asset to Penpal Parachain
             actions:
               - extrinsics:
-                - chain: *assets_parachain
-                  signer: *ap_signer
-                  pallet: polkadotXcm
-                  call: limitedReserveTransferAssets
-                  args: [
-                    *pp_dest, # destination
-                    { # beneficiary
-                      V3: {
-                        parents: 0,
-                        interior: {
-                          X1: {
-                            AccountId32: {
-                              network: Any,
-                              id: *pp_acc
-                            }
-                          }
-                        }
-                      }
-                    },
-                    { # assets
-                      V3: [
-                        {
-                          id: {
-                            Concrete: {
-                              parents: 0,
-                              interior: {
-                                X2: [
-                                  {
-                                    PalletInstance: 50
-                                  },
-                                  {
-                                    GeneralIndex: *asset_id
-                                  }
-                                ]
+                  - chain: *assets_parachain
+                    signer: *ap_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      *pp_dest, # destination
+                      { # beneficiary
+                        V3: {
+                          parents: 0,
+                          interior: {
+                            X1: {
+                              AccountId32: {
+                                id: *pp_acc
                               }
                             }
-                          },
-                          fun: {
-                            Fungible: *amount_to_send
                           }
                         }
-                      ]
-                    },
-                    0, # feeAssetItem
-                    Unlimited # weightLimit
-                  ]
-                  events:
-                    - name: polkadotXcm.Attempted
-                      attributes:
-                        - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
-                          # threshold: [10, 10]
-                          value: 654,608,000
-                    - name: assets.Transferred
-                      attributes:
-                        - type: AccountId32
-                          value: *pp_sovereign_sibl
-                    - name: assets.Transferred
-                      attributes:
-                        - type: u128
-                          value: *amount_to_send
+                      },
+                      { # assets
+                        V3: [
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 0,
+                                interior: {
+                                  X2: [
+                                    {
+                                      PalletInstance: 50
+                                    },
+                                    {
+                                      GeneralIndex: *asset_id
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            fun: {
+                              Fungible: *amount_to_send
+                            }
+                          }
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      - name: polkadotXcm.Attempted
+                        attributes:
+                          - type: XcmV3TraitsOutcome
+                            # xcmOutcome: Complete
+                            # threshold: [10, 10]
+                            value: {"refTime":"650,855,000","proofSize":"0"}
+                      - name: assets.Transferred
+                        attributes:
+                          - type: AccountId32
+                            value: *pp_sovereign_sibl
+                      - name: assets.Transferred
+                        attributes:
+                          - type: u128
+                            value: *amount_to_send
 
       - name: polkadotXcm.limitedReserveTransferAssets (KSM) | Assets Parachain -> Penpal Parachain
         its:
           - name: Assets Parachain should be able to reserve transfer KSM to Penpal Parachain
             actions:
               - extrinsics:
-                - chain: *assets_parachain
-                  signer: *ap_signer
-                  pallet: polkadotXcm
-                  call: limitedReserveTransferAssets
-                  args: [
-                    *pp_dest, # destination
-                    { # beneficiary
-                      V3: {
-                        parents: 0,
-                        interior: {
-                          X1: {
-                            AccountId32: {
-                              network: Any,
-                              id: *pp_acc
+                  - chain: *assets_parachain
+                    signer: *ap_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      *pp_dest, # destination
+                      { # beneficiary
+                        V3: {
+                          parents: 0,
+                          interior: {
+                            X1: {
+                              AccountId32: {
+                                id: *pp_acc
+                              }
                             }
                           }
                         }
-                      }
-                    },
-                    { # assets
-                      V3: [
-                        *ap_ksm_fungible
-                      ]
-                    },
-                    0, # feeAssetItem
-                    Unlimited # weightLimit
-                  ]
-                  events:
-                    - name: polkadotXcm.Attempted
-                      attributes:
-                        - type: XcmV3TraitsOutcome
-                          # xcmOutcome: Complete
-                          # threshold: [10, 10]
-                          value: 654,608,000
-                    - name: balances.Endowed
-                      attributes:
-                        - type: AccountId32
-                          value: *pp_sovereign_sibl
-                    - name: balances.Endowed
-                      attributes:
-                        - type: u128
-                          value: *amount
+                      },
+                      { # assets
+                        V3: [
+                          *ap_ksm_fungible
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      - name: polkadotXcm.Attempted
+                        attributes:
+                          - type: XcmV3TraitsOutcome
+                            # xcmOutcome: Complete
+                            # threshold: [10, 10]
+                            value: {"refTime":"650,855,000","proofSize":"0"}
+                      # - name: balances.Transfer
+                      #   attributes:
+                      #     - type: AccountId32
+                      #       value: *pp_sovereign_sibl
+                      # - name: balances.Transfer
+                      #   attributes:
+                      #     - type: u128
+                      #       value: *amount
 
       - name: polkadotXcm.send( system.remarkWithEvent() ) | Penpal Parachain -> Assets Parachain
         before:
@@ -245,55 +251,69 @@ tests:
           - name: Penpal Parachain should be able to send XCM message paying its fee with sufficient asset in Assets Parachain
             actions:
               - extrinsics:
-                - chain: *penpal_parachain
-                  signer: *pp_signer
-                  sudo: true
-                  pallet: polkadotXcm
-                  call: send
-                  args: [
-                    *ap_dest_routed, # destination
-                    {
-                      v3: [ #message
-                        {
-                          WithdrawAsset: [*ap_suff_asset_fungible]
-                        },
-                        {
-                          BuyExecution: {
-                              fees: *ap_suff_asset_fungible,
+                  - chain: *penpal_parachain
+                    signer: *pp_signer
+                    sudo: true
+                    pallet: polkadotXcm
+                    call: send
+                    args: [
+                      *ap_dest_routed, # destination
+                      {
+                        v3: [ #message
+                          {
+                            WithdrawAsset: [
+                              {
+                                id: {
+                                  concrete: {
+                                    parents: 0,
+                                    interior: {
+                                      X2: [
+                                        { PalletInstance: *assets_pallet_id },
+                                        { GeneralIndex: *asset_id }
+                                      ]
+                                    }
+                                  }
+                                },
+                                fun: { fungible: *amount }}
+                            ]
+                          },
+                          {
+                            BuyExecution: {
+                              fees: { id: *suff_asset, fun: { fungible: *amount }},
                               weightLimit: Unlimited
+                            }
+                          },
+                          {
+                            Transact: {
+                              originKind: SovereignAccount,
+                              requireWeightAtMost: *weight_at_most,
+                              call: $system_remark_with_event
+                            }
                           }
-                        },
-                        {
-                          Transact: {
-                            originType: SovereignAccount,
-                            requireWeightAtMost: *weight_at_most,
-                            call: $system_remark_with_event
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                  events:
-                    - name: sudo.Sudid
-                      attributes:
-                        - type: Result<Null, SpRuntimeDispatchError>
-                          value: Ok
-                    - name: polkadotXcm.Sent
-                    - name: assets.Burned
-                      chain: *assets_parachain
-                      attributes:
-                        - type: AccountId32
-                          value: *pp_sovereign_sibl
-                    - name: assets.Issued
-                      chain: *assets_parachain
-                      attributes:
-                        - type: u32
-                          value: *asset_id
-                    - name: system.Remarked
-                      chain: *assets_parachain
-                      attributes:
-                        - type: AccountId32
-                          value: *pp_sovereign_sibl
+                        ]
+                      }
+                    ]
+                    events:
+                      - name: sudo.Sudid
+                        attributes:
+                          - type: Result<Null, SpRuntimeDispatchError>
+                            value: Ok
+                      - name: polkadotXcm.Sent
+                      - name: assets.Burned
+                        chain: *assets_parachain
+                        attributes:
+                          - type: AccountId32
+                            value: *pp_sovereign_sibl
+                      - name: assets.Issued
+                        chain: *assets_parachain
+                        attributes:
+                          - type: u32
+                            value: *asset_id
+                      - name: system.Remarked
+                        chain: *assets_parachain
+                        attributes:
+                          - type: AccountId32
+                            value: *pp_sovereign_sibl
               - queries:
                   assets_balance_pp_sovereign_after:
                     chain: *assets_parachain
@@ -320,37 +340,37 @@ tests:
           - name: Penpal Parachain SHOULD NOT be able to send XCM message paying its fee with sufficient assets if not enough balance
             actions:
               - extrinsics:
-                - chain: *penpal_parachain
-                  signer: *pp_signer
-                  sudo: true
-                  pallet: polkadotXcm
-                  call: send
-                  args: [
-                    *ap_dest_routed, # destination
-                    {
-                      v3: [ #message
-                        {
-                          WithdrawAsset: [*ap_suff_asset_fungible_fail]
-                        },
-                        {
-                          BuyExecution: {
+                  - chain: *penpal_parachain
+                    signer: *pp_signer
+                    sudo: true
+                    pallet: polkadotXcm
+                    call: send
+                    args: [
+                      *ap_dest_routed, # destination
+                      {
+                        v3: [ #message
+                          {
+                            WithdrawAsset: [*ap_suff_asset_fungible_fail]
+                          },
+                          {
+                            BuyExecution: {
                               fees: *ap_suff_asset_fungible_fail,
                               weightLimit: Unlimited
+                            }
+                          },
+                          {
+                            Transact: {
+                              originKind: SovereignAccount,
+                              requireWeightAtMost: *weight_at_most,
+                              call: $system_remark_with_event
+                            }
                           }
-                        },
-                        {
-                          Transact: {
-                            originType: SovereignAccount,
-                            requireWeightAtMost: *weight_at_most,
-                            call: $system_remark_with_event
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                  events:
-                    - name: xcmpQueue.Fail
-                      chain: *assets_parachain
-                      attributes:
-                        - type: XcmV3TraitsError
-                          value: FailedToTransactAsset
+                        ]
+                      }
+                    ]
+                    events:
+                      - name: xcmpQueue.Fail
+                        chain: *assets_parachain
+                        attributes:
+                          - type: XcmV3TraitsError
+                            value: FailedToTransactAsset

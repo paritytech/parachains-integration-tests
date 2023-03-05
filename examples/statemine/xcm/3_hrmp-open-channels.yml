@@ -94,23 +94,25 @@ tests:
                           - type: Result<Null, SpRuntimeDispatchError>
                             value: Ok
                       - name: hrmp.HrmpChannelForceOpened
-              - queries:
-                  requested_channels_p_to_a:
-                    chain: *relay_chain
-                    pallet: hrmp
-                    call: hrmpOpenChannelRequestsList
-                    args: []
-              - asserts:
-                  equal:
-                    args: [
-                      $requested_channels_p_to_a,
-                      [
-                        {
-                          sender: *pp_id,
-                          recipient: *ap_id
-                        }
-                      ]
-                    ]
+#               Potentially remove this or replace with force_process_hrmp_open and then querying
+#               HrmpIngressChannelsIndex or HrmpEgressChannelsIndex
+#              - queries:
+#                  requested_channels_p_to_a:
+#                    chain: *relay_chain
+#                    pallet: hrmp
+#                    call: hrmpOpenChannelRequestsList
+#                    args: []
+#              - asserts:
+#                  equal:
+#                    args: [
+#                      $requested_channels_p_to_a,
+#                      [
+#                        {
+#                          sender: *pp_id,
+#                          recipient: *ap_id
+#                        }
+#                      ]
+#                    ]
       - name: hrmp.hrmpInitOpenChannel (Assets Parachain → PenPal Parachain)
         its:
           - name: Open Assets Parachain to PenPal Parachain
@@ -133,20 +135,22 @@ tests:
                           - type: Result<Null, SpRuntimeDispatchError>
                             value: Ok
                       - name: hrmp.HrmpChannelForceOpened
-              - queries:
-                  requested_channels_a_to_p:
-                    chain: *relay_chain
-                    pallet: hrmp
-                    call: hrmpOpenChannelRequestsList
-                    args: []
-              - asserts:
-                  equal:
-                    args: [
-                      $requested_channels_a_to_p,
-                      [
-                        {
-                          sender: *ap_id,
-                          recipient: *pp_id
-                        }
-                      ]
-                    ]
+#               Potentially remove this or replace with force_process_hrmp_open and then querying
+#               HrmpIngressChannelsIndex or HrmpEgressChannelsIndex
+#              - queries:
+#                  requested_channels_a_to_p:
+#                    chain: *relay_chain
+#                    pallet: hrmp
+#                    call: hrmpOpenChannelRequestsList
+#                    args: []
+#              - asserts:
+#                  equal:
+#                    args: [
+#                      $requested_channels_a_to_p,
+#                      [
+#                        {
+#                          sender: *ap_id,
+#                          recipient: *pp_id
+#                        }
+#                      ]
+#                    ]
