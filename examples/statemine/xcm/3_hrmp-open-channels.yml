@@ -94,8 +94,10 @@ tests:
                           - type: Result<Null, SpRuntimeDispatchError>
                             value: Ok
                       - name: hrmp.HrmpChannelForceOpened
+#               This test is flaky, because it depends on openChannelRequest processing, which is
+#               happening every new session.
 #               Potentially remove this or replace with force_process_hrmp_open and then querying
-#               HrmpIngressChannelsIndex or HrmpEgressChannelsIndex
+#               HrmpIngressChannelsIndex or HrmpEgressChannelsIndex.
 #              - queries:
 #                  requested_channels_p_to_a:
 #                    chain: *relay_chain
@@ -135,6 +137,8 @@ tests:
                           - type: Result<Null, SpRuntimeDispatchError>
                             value: Ok
                       - name: hrmp.HrmpChannelForceOpened
+#               This test is flaky, because it depends on openChannelRequest processing, which is
+#               happening every new session.
 #               Potentially remove this or replace with force_process_hrmp_open and then querying
 #               HrmpIngressChannelsIndex or HrmpEgressChannelsIndex
 #              - queries:
