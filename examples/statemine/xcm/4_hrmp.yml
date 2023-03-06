@@ -1,4 +1,6 @@
 ---
+# Note: This tests depends on the 3_hrmp-open-channels.yml for opening channels, otherwise teleports aren't going to
+# work.
 settings:
   chains:
     relay_chain: &relay_chain
@@ -11,8 +13,9 @@ settings:
       paraId: &pp_id 2000
   variables:
     common:
-      amount: &amount 1000000000000
-      require_weight_at_most: &weight_at_most {refTime: 1000000000, proofSize: 0}
+      mint_amount: &mint_amount 1000000000000
+      amount: &amount 100000000000
+      require_weight_at_most: &weight_at_most {refTime: 1200000000, proofSize: 20000}
       amount_to_send: &amount_to_send 500000000000
     chains:
       relay_chain:
@@ -31,7 +34,7 @@ settings:
         suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
         suff_asset_fail: &suff_asset_fail { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: 3 } ] }}}
         suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *amount }}
-        suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: *weight_at_most }}
+        suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: 200000000000 }}
       penpal_parachain:
         sovereign_account: &pp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
         signer: &pp_signer //Alice
@@ -94,9 +97,9 @@ tests:
                         chain: *assets_parachain
                         attributes:
                           - type: XcmV3TraitsOutcome
-                            # xcmOutcome: Complete
+                            xcmOutcome: Complete
                             # threshold: [10, 10]
-                            value: {"refTime":"1,016,703,000","proofSize":"20,000"}
+                            value: {"refTime":"474,651,000","proofSize":"0"}
               - queries:
                   forced_created_asset:
                     chain: *assets_parachain
@@ -117,7 +120,7 @@ tests:
                     args: [
                       *asset_id,
                       *ap_wallet,
-                      *amount
+                      *mint_amount
                     ]
                     events:
                       - name: assets.Issued
@@ -153,7 +156,7 @@ tests:
                                 interior: {
                                   X2: [
                                     {
-                                      PalletInstance: 50
+                                      PalletInstance: *assets_pallet_id
                                     },
                                     {
                                       GeneralIndex: *asset_id
@@ -175,9 +178,9 @@ tests:
                       - name: polkadotXcm.Attempted
                         attributes:
                           - type: XcmV3TraitsOutcome
-                            # xcmOutcome: Complete
+                            xcmOutcome: Complete
                             # threshold: [10, 10]
-                            value: {"refTime":"650,855,000","proofSize":"0"}
+                            value: [{"refTime":"650,855,000","proofSize":"0"}]
                       - name: assets.Transferred
                         attributes:
                           - type: AccountId32
@@ -222,7 +225,7 @@ tests:
                       - name: polkadotXcm.Attempted
                         attributes:
                           - type: XcmV3TraitsOutcome
-                            # xcmOutcome: Complete
+                            xcmOutcome: Complete
                             # threshold: [10, 10]
                             value: {"refTime":"650,855,000","proofSize":"0"}
                       # - name: balances.Transfer
