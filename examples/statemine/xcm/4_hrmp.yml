@@ -285,7 +285,8 @@ tests:
                               fees: { id: *suff_asset, fun: { fungible: *amount }},
                               weightLimit: Unlimited
                             }
-                          }
+                          },
+#   This test currently requires feature=runtime-benchmarks to be enabled.
 #                          {
 #                            Transact: {
 #                              originKind: SovereignAccount,
@@ -312,6 +313,7 @@ tests:
                         attributes:
                           - type: u32
                             value: *asset_id
+#   This assertion currently requires feature=runtime-benchmarks to be enabled.
 #                      - name: system.Remarked
 #                        chain: *assets_parachain
 #                        attributes:
