@@ -233,14 +233,14 @@ tests:
                             xcmOutcome: Complete
                             # threshold: [10, 10]
                             value: {"refTime":"650,855,000","proofSize":"0"}
-                      # - name: balances.Transfer
-                      #   attributes:
-                      #     - type: AccountId32
-                      #       value: *pp_sovereign_sibl
-                      # - name: balances.Transfer
-                      #   attributes:
-                      #     - type: u128
-                      #       value: *amount
+                      - name: balances.Endowed
+                        attributes:
+                          - type: AccountId32
+                            value: *pp_sovereign_sibl
+                      - name: balances.Endowed
+                        attributes:
+                          - type: u128
+                            value: *amount
 
       - name: polkadotXcm.send( system.remarkWithEvent() ) | Penpal Parachain -> Assets Parachain
         before:
