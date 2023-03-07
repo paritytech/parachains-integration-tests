@@ -49,11 +49,13 @@ cumulus_based = true
     name = "collator3"
     ws_port = 9920
     command = "./bin/polkadot-parachain"
+    args = [ "-lxcm=trace" ]
 
     [[parachains.collators]]
     name = "collator4"
     ws_port = 9921
     command = "./bin/polkadot-parachain"
+    args = [ "-lxcm=trace" ]
 
 # [[hrmpChannels]]
 #   sender = 1000
