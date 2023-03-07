@@ -35,7 +35,7 @@ settings:
         ksm_fungible: &rc_ksm_fungible { id: *rc_ksm, fun: { fungible: *amount }}
       assets_parachain_account:
         sovereign_account: &ap_sovereign F7fq1jSNVTPfJmaHaXCMtatT1EZefCUsa7rRiQVNR5efcah
-        relay_chain_destination: &rc_dest { v1: { parents: 1, interior: { here: true }}}
+        relay_chain_destination: &rc_dest { v3: { parents: 1, interior: { here: true }}}
       penpal_parachain:
         sovereign_account: &pp_sovereign F7fq1jMZkfuCuoMTyiEVAP2DMpMt18WopgBqTJznLihLNbZ
         signer: &pp_signer //Alice
