@@ -50,11 +50,16 @@ settings:
         true, # isSufficient
         *asset_ed # minBalance
       ]
-    system_remark_with_event:
+    force_create_asset2:
       chain: *assets_parachain
-      pallet: system
-      call: remarkWithEvent
-      args: [ 0x0011 ]
+      pallet: assets
+      call: forceCreate
+      args: [
+        *asset_id,
+        { Id: *ap_wallet }, # owner
+        true, # isSufficient
+        *asset_ed # minBalance
+      ]
 
 tests:
   - name: HRMP
@@ -99,7 +104,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             # threshold: [10, 10]
-                            value: {"refTime":"474,651,000","proofSize":"0"}
+                            value: {"refTime":"1,216,703,000","proofSize":"20,000"}
               - queries:
                   forced_created_asset:
                     chain: *assets_parachain
@@ -287,13 +292,13 @@ tests:
                             }
                           },
 #   This test currently requires feature=runtime-benchmarks to be enabled.
-#                          {
-#                            Transact: {
-#                              originKind: SovereignAccount,
-#                              requireWeightAtMost: *weight_at_most,
-#                              call: $system_remark_with_event
-#                            }
-#                          }
+                         {
+                           Transact: {
+                             originKind: SovereignAccount,
+                             requireWeightAtMost: *weight_at_most,
+                             call: $force_create_asset2
+                           }
+                         }
                         ]
                       }
                     ]
@@ -313,12 +318,6 @@ tests:
                         attributes:
                           - type: u32
                             value: *asset_id
-#   This assertion currently requires feature=runtime-benchmarks to be enabled.
-#                      - name: system.Remarked
-#                        chain: *assets_parachain
-#                        attributes:
-#                          - type: AccountId32
-#                            value: *pp_sovereign_sibl
               - queries:
                   assets_balance_pp_sovereign_after:
                     chain: *assets_parachain
@@ -328,7 +327,14 @@ tests:
                       *asset_id,
                       *pp_sovereign_sibl
                     ]
-
+                  forced_created_asset2:
+                    chain: *assets_parachain
+                    pallet: assets
+                    call: asset
+                    args: [ 3 ]
+              - asserts:
+                  isSome:
+                    args: [ $forced_created_asset2 ]
           - name: Should reduce the assets balance of the Penpal Parachain's SovereignAccount in the Assets Parachain
             actions:
               - asserts:
@@ -367,7 +373,7 @@ tests:
                             Transact: {
                               originKind: SovereignAccount,
                               requireWeightAtMost: *weight_at_most,
-                              call: $system_remark_with_event
+                              call: $force_create_asset2
                             }
                           }
                         ]
