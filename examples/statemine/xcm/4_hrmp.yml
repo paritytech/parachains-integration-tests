@@ -33,7 +33,6 @@ settings:
         ksm_fungible: &ap_ksm_fungible { id: *ap_ksm, fun: { fungible: *amount }}
         suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
         suff_asset_fail: &suff_asset_fail { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: 3 } ] }}}
-        suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *amount }}
         suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: 200000000000 }}
       penpal_parachain:
         sovereign_account: &pp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS

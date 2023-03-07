@@ -31,7 +31,6 @@ settings:
         ksm_fungible: &ap_ksm_fungible { id: *ap_ksm, fun: { fungible: *amount }}
         suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
         suff_asset_fail: &suff_asset_fail { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: 3 } ] }}}
-        suff_asset_fungible: &ap_suff_asset_fungible { id: *suff_asset, fun: { fungible: *weight_at_most }}
         suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: 200000000000 }}
       penpal_parachain:
         sovereign_account: &pp_sovereign_sibl 13cKp89Msu7M2PiaCuuGr1BzAsD5V3vaVbDMs3YtjMZHdGwR
@@ -80,6 +79,9 @@ tests:
                             UnpaidExecution: {
                               weightLimit: Unlimited
                             }
+                          },
+                          {
+                            SetTopic: "0x0123456789012345678901234567891201234567890123456789012345678912"
                           },
                           {
                             Transact: {
@@ -289,7 +291,7 @@ tests:
                           },
                           {
                             Transact: {
-                              originKind: SovereignAccount,
+                              originType: SovereignAccount,
                               requireWeightAtMost: *weight_at_most,
                               call: $force_create_asset2
                             }
@@ -366,7 +368,7 @@ tests:
                           },
                           {
                             Transact: {
-                              originKind: SovereignAccount,
+                              originType: SovereignAccount,
                               requireWeightAtMost: *weight_at_most,
                               call: $force_create_asset2
                             }
