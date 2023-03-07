@@ -1,6 +1,6 @@
 [relaychain]
 default_command = "./bin/polkadot"
-default_args = [ "-lparachain=debug" ]
+default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "polkadot-local"
 
     [[relaychain.nodes]]
@@ -32,11 +32,14 @@ cumulus_based = true
     name = "collator1"
     ws_port = 9810
     command = "./bin/polkadot-parachain"
+    args = [ "-lxcm=trace" ]
 
     [[parachains.collators]]
     name = "collator2"
     ws_port = 9811
     command = "./bin/polkadot-parachain"
+    args = [ "-lxcm=trace" ]
+
 
 [[parachains]]
 id = 2000
