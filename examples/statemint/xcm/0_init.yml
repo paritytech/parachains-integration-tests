@@ -111,7 +111,7 @@ tests:
                     },
                     {
                       Transact: {
-                        originType: Superuser,
+                        originKind: Superuser,
                         requireWeightAtMost: *weight_at_most,
                         call: $ap_force_xcm_version
                       }
