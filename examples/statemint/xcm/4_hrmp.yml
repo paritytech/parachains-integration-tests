@@ -85,7 +85,7 @@ tests:
                           },
                           {
                             Transact: {
-                              originType: Superuser,
+                              originKind: Superuser,
                               requireWeightAtMost: *weight_at_most,
                               call: $force_create_asset
                             }
@@ -100,8 +100,8 @@ tests:
                         attributes:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
-#                            threshold: [10, 10]
-                            value: {"refTime":"476,674,000","proofSize":"0"}
+                            # threshold: [10, 10]
+                            value: {"refTime":"1,216,703,000","proofSize":"20,000"}
               - queries:
                   forced_created_asset:
                     chain: *assets_parachain
@@ -115,130 +115,129 @@ tests:
           - name: DEPENDENCY | Some Assets should be minted for the sender
             actions:
               - extrinsics:
-                - chain: *assets_parachain
-                  signer: *ap_signer
-                  pallet: assets
-                  call: mint
-                  args: [
-                    *asset_id,
-                    *ap_wallet,
-                    *mint_amount
-                  ]
-                  events:
-                    - name: assets.Issued
+                  - chain: *assets_parachain
+                    signer: *ap_signer
+                    pallet: assets
+                    call: mint
+                    args: [
+                      *asset_id,
+                      *ap_wallet,
+                      *mint_amount
+                    ]
+                    events:
+                      - name: assets.Issued
+
         its:
           - name: Assets Parachain should be able to reserve transfer an Asset to Penpal Parachain
             actions:
               - extrinsics:
-                - chain: *assets_parachain
-                  signer: *ap_signer
-                  pallet: polkadotXcm
-                  call: limitedReserveTransferAssets
-                  args: [
-                    *pp_dest, # destination
-                    { # beneficiary
-                      V3: {
-                        parents: 0,
-                        interior: {
-                          X1: {
-                            AccountId32: {
-                              network: Any,
-                              id: *pp_acc
-                            }
-                          }
-                        }
-                      }
-                    },
-                    { # assets
-                      V3: [
-                        {
-                          id: {
-                            Concrete: {
-                              parents: 0,
-                              interior: {
-                                X2: [
-                                  {
-                                    PalletInstance: 50
-                                  },
-                                  {
-                                    GeneralIndex: *asset_id
-                                  }
-                                ]
+                  - chain: *assets_parachain
+                    signer: *ap_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      *pp_dest, # destination
+                      { # beneficiary
+                        V3: {
+                          parents: 0,
+                          interior: {
+                            X1: {
+                              AccountId32: {
+                                id: *pp_acc
                               }
                             }
-                          },
-                          fun: {
-                            Fungible: *amount_to_send
                           }
                         }
-                      ]
-                    },
-                    0, # feeAssetItem
-                    Unlimited # weightLimit
-                  ]
-                  events:
-                    - name: polkadotXcm.Attempted
-                      attributes:
-                        - type: XcmV3TraitsOutcome
-                          xcmOutcome: Complete
-#                          threshold: [10, 10]
-                          value: {"refTime":"650,855,000","proofSize":"0"}
-                    - name: assets.Transferred
-                      attributes:
-                        - type: AccountId32
-                          value: *pp_sovereign_sibl
-                    - name: assets.Transferred
-                      attributes:
-                        - type: u128
-                          value: *amount_to_send
+                      },
+                      { # assets
+                        V3: [
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 0,
+                                interior: {
+                                  X2: [
+                                    {
+                                      PalletInstance: *assets_pallet_id
+                                    },
+                                    {
+                                      GeneralIndex: *asset_id
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            fun: {
+                              Fungible: *amount_to_send
+                            }
+                          }
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      - name: polkadotXcm.Attempted
+                        attributes:
+                          - type: XcmV3TraitsOutcome
+                            xcmOutcome: Complete
+                            # threshold: [10, 10]
+                            value: {"refTime":"650,855,000","proofSize":"0"}
+                      - name: assets.Transferred
+                        attributes:
+                          - type: AccountId32
+                            value: *pp_sovereign_sibl
+                      - name: assets.Transferred
+                        attributes:
+                          - type: u128
+                            value: *amount_to_send
 
       - name: polkadotXcm.limitedReserveTransferAssets (KSM) | Assets Parachain -> Penpal Parachain
         its:
           - name: Assets Parachain should be able to reserve transfer KSM to Penpal Parachain
             actions:
               - extrinsics:
-                - chain: *assets_parachain
-                  signer: *ap_signer
-                  pallet: polkadotXcm
-                  call: limitedReserveTransferAssets
-                  args: [
-                    *pp_dest, # destination
-                    { # beneficiary
-                      V3: {
-                        parents: 0,
-                        interior: {
-                          X1: {
-                            AccountId32: {
-                              network: Any,
-                              id: *pp_acc
+                  - chain: *assets_parachain
+                    signer: *ap_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      *pp_dest, # destination
+                      { # beneficiary
+                        V3: {
+                          parents: 0,
+                          interior: {
+                            X1: {
+                              AccountId32: {
+                                id: *pp_acc
+                              }
                             }
                           }
                         }
-                      }
-                    },
-                    { # assets
-                      V3: [
-                        *ap_ksm_fungible
-                      ]
-                    },
-                    0, # feeAssetItem
-                    Unlimited # weightLimit
-                  ]
-                  events:
-                    - name: polkadotXcm.Attempted
-                      attributes:
-                        - type: XcmV3TraitsOutcome
-                          xcmOutcome: Complete
-#                          threshold: [10, 10]
-                          value: {"refTime":"650,855,000","proofSize":"0"}
-                    - name: balances.Endowed
-                      attributes:
-                        - type: AccountId32
-                          value: *pp_sovereign_sibl
-                    - name: balances.Endowed
-                      attributes:
-                        - type: u128
-                          value: *amount
+                      },
+                      { # assets
+                        V3: [
+                          *ap_ksm_fungible
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      - name: polkadotXcm.Attempted
+                        attributes:
+                          - type: XcmV3TraitsOutcome
+                            xcmOutcome: Complete
+                            # threshold: [10, 10]
+                            value: {"refTime":"650,855,000","proofSize":"0"}
+                      - name: balances.Endowed
+                        attributes:
+                          - type: AccountId32
+                            value: *pp_sovereign_sibl
+                      - name: balances.Endowed
+                        attributes:
+                          - type: u128
+                            value: *amount
 
       - name: polkadotXcm.send( assets.forceCreateAsset ) | Penpal Parachain -> Assets Parachain
         before:
@@ -291,7 +290,7 @@ tests:
                           },
                           {
                             Transact: {
-                              originType: SovereignAccount,
+                              originKind: SovereignAccount,
                               requireWeightAtMost: *weight_at_most,
                               call: $force_create_asset2
                             }
@@ -368,7 +367,7 @@ tests:
                           },
                           {
                             Transact: {
-                              originType: SovereignAccount,
+                              originKind: SovereignAccount,
                               requireWeightAtMost: *weight_at_most,
                               call: $force_create_asset2
                             }
