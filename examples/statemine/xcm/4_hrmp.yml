@@ -242,7 +242,7 @@ tests:
                           - type: u128
                             value: *amount
 
-      - name: polkadotXcm.send( system.remarkWithEvent() ) | Penpal Parachain -> Assets Parachain
+      - name: polkadotXcm.send( assets.forceCreateAsset ) | Penpal Parachain -> Assets Parachain
         before:
           - name: Get the asset balance of the Penpal Parachain Sovereign account in Assets Parachain
             actions:
@@ -291,7 +291,6 @@ tests:
                               weightLimit: Unlimited
                             }
                           },
-#   This test currently requires feature=runtime-benchmarks to be enabled.
                          {
                            Transact: {
                              originKind: SovereignAccount,
