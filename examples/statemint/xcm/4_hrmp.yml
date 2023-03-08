@@ -47,15 +47,14 @@ settings:
         true, # isSufficient
         *asset_ed # minBalance
       ]
-    force_create_asset2:
+    transfer_asset:
       chain: *assets_parachain
       pallet: assets
-      call: forceCreate
+      call: transfer
       args: [
         *asset_id,
-        { Id: *ap_wallet }, # owner
-        true, # isSufficient
-        *asset_ed # minBalance
+        *ap_wallet, # owner
+        1
       ]
 
 tests:
@@ -101,7 +100,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             # threshold: [10, 10]
-                            value: {"refTime":"1,218,052,000","proofSize":"20,000"}
+                            value: {"refTime":"1,218,405,000","proofSize":"20,000"}
               - queries:
                   forced_created_asset:
                     chain: *assets_parachain
@@ -182,7 +181,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             # threshold: [10, 10]
-                            value: {"refTime":"651,652,000","proofSize":"0"}
+                            value: {"refTime":"655,521,000","proofSize":"0"}
                       - name: assets.Transferred
                         attributes:
                           - type: AccountId32
@@ -229,7 +228,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             # threshold: [10, 10]
-                            value: {"refTime":"650,855,000","proofSize":"0"}
+                            value: {"refTime":"655,521,000","proofSize":"0"}
                       - name: balances.Endowed
                         attributes:
                           - type: AccountId32
@@ -279,12 +278,12 @@ tests:
                                     }
                                   }
                                 },
-                                fun: { fungible: *amount }}
+                                fun: { fungible: *amount_to_send }}
                             ]
                           },
                           {
                             BuyExecution: {
-                              fees: { id: *suff_asset, fun: { fungible: *amount }},
+                              fees: { id: *suff_asset, fun: { fungible: *amount_to_send }},
                               weightLimit: Unlimited
                             }
                           },
@@ -292,7 +291,7 @@ tests:
                             Transact: {
                               originKind: SovereignAccount,
                               requireWeightAtMost: *weight_at_most,
-                              call: $force_create_asset2
+                              call: $transfer_asset
                             }
                           }
                         ]
@@ -369,7 +368,7 @@ tests:
                             Transact: {
                               originKind: SovereignAccount,
                               requireWeightAtMost: *weight_at_most,
-                              call: $force_create_asset2
+                              call: $transfer_asset
                             }
                           }
                         ]

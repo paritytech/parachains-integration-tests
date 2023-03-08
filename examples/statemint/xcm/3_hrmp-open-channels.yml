@@ -114,3 +114,19 @@ tests:
                           - type: Result<Null, SpRuntimeDispatchError>
                             value: Ok
                       - name: hrmp.HrmpChannelForceOpened
+      - name: hrmp.forceProcessHrmpOpen (make sure all the channels are open)
+        its:
+          - name: Make sure all the pending channels are open
+            actions:
+              - extrinsics:
+                    - chain: *relay_chain
+                      signer: *rc_signer
+                      sudo: true
+                      pallet: hrmp
+                      call: forceProcessHrmpOpen
+                      args: [ 2 ]
+                      events:
+                        - name: sudo.Sudid
+                          attributes:
+                            - type: Result<Null, SpRuntimeDispatchError>
+                              value: Ok
