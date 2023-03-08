@@ -101,7 +101,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             # threshold: [10, 10]
-                            value: {"refTime":"1,216,703,000","proofSize":"20,000"}
+                            value: {"refTime":"1,218,052,000","proofSize":"20,000"}
               - queries:
                   forced_created_asset:
                     chain: *assets_parachain
@@ -182,7 +182,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             # threshold: [10, 10]
-                            value: {"refTime":"650,855,000","proofSize":"0"}
+                            value: {"refTime":"651,652,000","proofSize":"0"}
                       - name: assets.Transferred
                         attributes:
                           - type: AccountId32

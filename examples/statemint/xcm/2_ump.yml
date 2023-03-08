@@ -64,7 +64,7 @@ tests:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
 #                          threshold: [10, 10]
-                          value: {"refTime":"475,948,000","proofSize":"0"}
+                          value: {"refTime":"1,010,970,000","proofSize":"0"}
 
           - name: Get the balances of the Assets Parachain's sender & Relay Chain's receiver
             actions:
