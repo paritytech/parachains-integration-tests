@@ -1,0 +1,87 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9700
+    statemint_parachain: &statemint_parachain
+      wsPort: 9810
+      paraId: &sp_id 1000
+  variables:
+    proposal_index: &proposal_index 0
+    chains:
+      accounts:
+        alice_signer: &alice_signer //Alice
+
+tests:
+  - name: Fellowship
+    describes:
+      - name: Set desired candidates on Statemint from Relay Chain OpenGov Staking track
+        its:
+          - name: Note preimage from xcm send set_desired_candidates call
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: preimage
+                  call: notePreimage
+                  args: [ # TODO expand
+                    "0x630001000100a10f03082f000006030208af2f821a060018150103000000",
+                  ]
+                  events:
+                    - name: preimage.Noted
+          - name: Submit a proposal to init the Fellowship
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: referenda
+                  call: submit
+                  args: [
+                    {
+                      "Origins": "StakingAdmin",
+                    },
+                    {
+                      "Lookup": { # TODO obtain the hash from the call
+                        "hash_": "0x177b5ef8508ff95261baf36c5ea15d94c83d81d3483e11d27534fd0890d1a187",
+                        "len": 30,
+                      },
+                    },
+                    {
+                      "After": 1, 
+                    },
+                  ]
+                  events:
+                    - name: referenda.Submitted
+          - name: Vote Aye
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: convictionVoting
+                  call: vote
+                  args: [
+                    *proposal_index,
+                    {
+                      "Standard": {
+                        "vote": {
+                          "aye": true,
+                          "conviction": "Locked1x",
+                        },
+                        "balance": 200000000000000,
+                      }
+                    },
+                  ] # TODO no event to catch
+          - name: Submit the decision deposit
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: referenda
+                  call: placeDecisionDeposit
+                  args: [
+                    *proposal_index,
+                  ]
+                  events:
+                    - name: referenda.DecisionDepositPlaced
+                    - name: collatorSelection.NewDesiredCandidates
+                      chain: *statemint_parachain

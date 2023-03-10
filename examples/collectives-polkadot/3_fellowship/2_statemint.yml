@@ -1,0 +1,84 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9700
+    collectives_parachain: &collectives_parachain
+      wsPort: 9710
+      paraId: &cp_id 1001
+    statemint_parachain: &statemint_parachain
+      wsPort: 9810
+      paraId: &sp_id 1000
+  variables:
+    fellows_proposal_index: &fellows_proposal_index 1
+    chains:
+      accounts:
+        alice_signer: &alice_signer //Alice
+
+tests:
+  - name: Fellowship
+    describes:
+      - name: The Fellowship suspend_xcm_execution for the xcmp_queue on Statemint
+        its:
+          - name: Note preimage from the xcm send call to suspend_xcm_execution
+            actions:
+              - extrinsics:
+                - chain: *collectives_parachain
+                  signer: *alice_signer
+                  pallet: preimage
+                  call: notePreimage
+                  args: [ # TODO expand # xcm send transact suspend_xcm_execution
+                    "0x1f0001010100a10f03082f00000603028c864700081e01",
+                  ]
+                  events:
+                    - name: preimage.Noted
+          - name: Submit a proposal to init the Fellowship
+            actions:
+              - extrinsics:
+                - chain: *collectives_parachain
+                  signer: *alice_signer
+                  pallet: fellowshipReferenda
+                  call: submit
+                  args: [
+                    {
+                      "FellowshipOrigins": "Fellows",
+                    },
+                    {
+                      "Lookup": { # TODO obtain from the call
+                        "hash_": "0x989ce9f587d89ef3274b85bf01306a56a64874e09cda5556ecfdb448a8dd82ec",
+                        "len": 23,
+                      },
+                    },
+                    {
+                      "After": 1, 
+                    },
+                  ]
+                  events:
+                    - name: fellowshipReferenda.Submitted
+          - name: Vote Aye
+            actions:
+              - extrinsics:
+                - chain: *collectives_parachain
+                  signer: *alice_signer
+                  pallet: fellowshipCollective
+                  call: vote
+                  args: [
+                    *fellows_proposal_index,
+                    true,
+                  ]
+                  events:
+                    - name: fellowshipCollective.Voted
+          - name: Submit the decision deposit
+            actions:
+              - extrinsics:
+                - chain: *collectives_parachain
+                  signer: *alice_signer
+                  pallet: fellowshipReferenda
+                  call: placeDecisionDeposit
+                  args: [
+                    *fellows_proposal_index,
+                  ]
+                  events:
+                    - name: fellowshipReferenda.DecisionDepositPlaced
+                    - name: xcmpQueue.Success
+                      chain: *statemint_parachain 

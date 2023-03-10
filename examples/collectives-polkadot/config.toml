@@ -1,5 +1,5 @@
 [relaychain]
-default_command = "./bin/polkadot-0929"
+default_command = "./bin/polkadot"
 default_args = [ "-lparachain=trace", "-lxcm=trace" ]
 chain = "polkadot-local"
 
@@ -24,10 +24,27 @@ cumulus_based = true
     [[parachains.collators]]
     name = "collator1"
     ws_port = 9710
-    command = "./bin/polkadot-parachain-9290"
+    command = "./bin/polkadot-parachain"
     args = ["-lxcm=trace"]
 
     [[parachains.collators]]
     name = "collator2"
-    command = "./bin/polkadot-parachain-9290"
+    command = "./bin/polkadot-parachain"
     args = ["-lxcm=trace"]
+
+
+[[parachains]]
+id = 1000
+chain = "statemint-local"
+cumulus_based = true
+
+    [[parachains.collators]]
+    name = "collator3"
+    ws_port = 9810
+    command = "./bin/polkadot-parachain"
+    args = ["-lxcm=trace", "-lruntime=trace"]
+
+    [[parachains.collators]]
+    name = "collator4"
+    command = "./bin/polkadot-parachain"
+    args = ["-lxcm=trace", "-lruntime=trace"]
