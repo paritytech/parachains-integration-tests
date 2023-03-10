@@ -3,7 +3,7 @@ Since the arrival of XCMP-Lite, communication between different consensus system
 
 This tool allows you to develop tests rapidly describing them in a YAML file. Behind the scenes, the YAML files are converted to [Mocha](https://mochajs.org/) tests with [Chai](https://www.chaijs.com/) assertions.
 
-It can work alongside with [Zombienet](https://github.com/paritytech/zombienet) and [Polkadot Launch](https://github.com/paritytech/polkadot-launch), or you can run your tests against the testnet of your choice.
+It can work alongside with [Zombienet](https://github.com/paritytech/zombienet) or you can run your tests against the testnet of your choice.
 
 Under the `./examples` folder, this repository contains integration tests for the _Common Good Parachains_. You can take them as examples of how to write tests with this tool.
 
@@ -12,6 +12,8 @@ Under the `./examples` folder, this repository contains integration tests for th
 - `node v17.6.0` or higher.
 ### Versioning
 - `v2.0.0` contains **BREAKING CHANGES**. Tests based on `^1.0.0` will stop working properly from `v2.0.0` onwards. Check the GitHub [release](https://github.com/paritytech/parachains-integration-tests/releases/tag/v2.0.0) for more info and how to migrate the tests.
+
+- `v2.3.0` contains **BREAKING CHANGES**. Polkadot Launch is not supported anymore.
 
 ### Installation
 It can be installed to be run in two different ways:
@@ -37,8 +39,6 @@ parachains-integration-tests -m <mode> -c <path> -t <path> -to <millisecons> -el
   - `test`: for running your tests (the checker will be autmatically run prior to the tests)
   - `zombienet`: only deploy a Zombienet network
   - `zombienet-test`: deploy a Zombienet testnet and run your tests against it
-  - `polkadot-launch`: only deploy a Polkadot Launch network
-  - `polkadot-launch-test`: deploy a Polkadot Launch testnet and run your tests against it
 - `-c`, `--config`: path to the Zombienet or Polkadot Launch config file.
 - `-t`, `--test`: path to the tests folder or to a single test yaml file. All files under the _path_ with a `yml` extension  will be run. To choose the order, is necessary to add an index in front of the file name. E.g: `0_my_test.yml`, `1_my_other_test.yml`
 - `-to`, `--timeout`: overrides the default Mocha tests timeout set to `300000`
