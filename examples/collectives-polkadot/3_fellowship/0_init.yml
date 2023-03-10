@@ -1,0 +1,87 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9700
+    collectives_parachain: &collectives_parachain
+      wsPort: 9710
+      paraId: &cp_id 1001
+  variables:
+    proposal_index: &proposal_index 1
+    chains:
+      accounts:
+        alice_signer: &alice_signer //Alice
+
+tests:
+  - name: Fellowship
+    describes:
+      - name: Init the Fellowship
+        its:
+          - name: Note preimage from init fellowship call
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: preimage
+                  call: notePreimage
+                  args: [ # TODO expand
+                    "0x630001000100a50f03082f000006030700863ba101821a06006d042802203c0000d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d3c0100d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d3c0100d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d3c00008eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a483c01008eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a483c000090b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe223c010090b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe223c0100d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+                  ]
+                  events:
+                    - name: preimage.Noted
+          - name: Submit a proposal to init the Fellowship
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: referenda
+                  call: submit
+                  args: [
+                    {
+                      "Origins": "FellowshipAdmin",
+                    },
+                    {
+                      "Lookup": { # TODO obtain from the call
+                        "hash_": "0xd04c7392424c1538f198b0414e01364084176d6c48af2f777eb9382a2974623f",
+                        "len": 310,
+                      },
+                    },
+                    {
+                      "After": 1, 
+                    },
+                  ]
+                  events:
+                    - name: referenda.Submitted
+          - name: Vote Aye
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: convictionVoting
+                  call: vote
+                  args: [
+                    *proposal_index,
+                    {
+                      "Standard": {
+                        "vote": {
+                          "aye": true,
+                          "conviction": "Locked1x",
+                        },
+                        "balance": 200000000000000,
+                      }
+                    },
+                  ] # TODO no event to catch
+          - name: Submit the decision deposit
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: referenda
+                  call: placeDecisionDeposit
+                  args: [
+                    *proposal_index,
+                  ]
+                  events:
+                    - name: referenda.DecisionDepositPlaced
+                    - name: fellowshipCollective.MemberAdded
+                      chain: *collectives_parachain

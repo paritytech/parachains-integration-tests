@@ -1,0 +1,457 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9700
+    collectives_parachain: &collectives_parachain
+      wsPort: 9710
+      paraId: &cp_id 1001
+    statemint_parachain: &statemint_parachain
+      wsPort: 9810
+      paraId: &sp_id 1000
+  variables:
+    chains:
+      accounts:
+        alice_signer: &alice_signer //Alice
+        cp_sovereign: &cp_sovereign 5Ec4AhPZwkVeRmswLWBsf7rxQ3cjzMKRWuVvffJ6Uuu89s1P
+        sp_sovereign: &sp_sovereign 5Ec4AhPZk8STuex8Wsi9TwDtJQxKqzPJRCH7348Xtcs9vZLJ
+  decodedCalls:
+    init_open_channel_with_sp:
+      chain: *relay_chain
+      pallet: hrmp
+      call: hrmpInitOpenChannel
+      args: [
+        *sp_id, # recipient
+        8, # proposedMaxCapacity
+        8192 # proposedMaxMessageSize
+      ]
+    init_open_channel_with_cp:
+      chain: *relay_chain
+      pallet: hrmp
+      call: hrmpInitOpenChannel
+      args: [
+        *cp_id, # recipient
+        8, # proposedMaxCapacity
+        8192 # proposedMaxMessageSize
+      ]
+    accept_init_open_request_from_cp:
+      chain: *relay_chain
+      pallet: hrmp
+      call: hrmpAcceptOpenChannel
+      args: [
+        *cp_id, # sender
+      ]
+    accept_init_open_request_from_sp:
+      chain: *relay_chain
+      pallet: hrmp
+      call: hrmpAcceptOpenChannel
+      args: [
+        *sp_id, # sender
+      ]
+    xcm_accept_init_open_request_from_cp:
+      chain: *statemint_parachain
+      pallet: polkadotXcm
+      call: send
+      args: [
+        { v3: { parents: 1, interior: { here: true }}}, # destination
+        {
+          v3: [ #message
+            {
+              WithdrawAsset: [
+                { 
+                  id: { concrete: { 0, interior: { here: true }}}, 
+                  fun: { fungible: 2000000000000 } # 2_000_000_000_000
+                }
+              ]
+            },
+            {
+              BuyExecution: {
+                  fees: { 
+                    id: { concrete: { 0, interior: { here: true }}}, 
+                    fun: { fungible: 2000000000000 } # 2_000_000_000_000
+                  },
+                  weightLimit: Unlimited
+              }
+            },
+            {
+              Transact: {
+                originKind: Native,
+                requireWeightAtMost: {
+                  refTime: 1000000000, # 1_000_000_000 
+                  proofSize: 400000, # 400_000
+                },
+                call: $accept_init_open_request_from_cp
+              }
+            }
+          ]
+        }
+      ]
+    xcm_accept_init_open_request_from_sp:
+      chain: *collectives_parachain
+      pallet: polkadotXcm
+      call: send
+      args: [
+        { v3: { parents: 1, interior: { here: true }}}, # destination
+        {
+          v3: [ #message
+            {
+              WithdrawAsset: [
+                { 
+                  id: { concrete: { 0, interior: { here: true }}}, 
+                  fun: { fungible: 2000000000000 } # 2_000_000_000_000
+                }
+              ]
+            },
+            {
+              BuyExecution: {
+                  fees: { 
+                    id: { concrete: { 0, interior: { here: true }}}, 
+                    fun: { fungible: 2000000000000 } # 2_000_000_000_000
+                  },
+                  weightLimit: Unlimited
+              }
+            },
+            {
+              Transact: {
+                originKind: Native,
+                requireWeightAtMost: {
+                  refTime: 1000000000, # 1_000_000_000 
+                  proofSize: 400000, # 400_000
+                },
+                call: $accept_init_open_request_from_sp
+              }
+            }
+          ]
+        }
+      ]
+    xcm_init_open_channel_with_sp:
+      chain: *collectives_parachain
+      pallet: polkadotXcm
+      call: send
+      args: [
+        { v3: { parents: 1, interior: { here: true }}}, # destination
+        {
+          v3: [ #message
+            {
+              WithdrawAsset: [
+                { 
+                  id: { concrete: { 0, interior: { here: true }}}, 
+                  fun: { fungible: 2000000000000 } # 2_000_000_000_000
+                }
+              ]
+            },
+            {
+              BuyExecution: {
+                  fees: { 
+                    id: { concrete: { 0, interior: { here: true }}}, 
+                    fun: { fungible: 2000000000000 } # 2_000_000_000_000
+                  },
+                  weightLimit: Unlimited
+              }
+            },
+            {
+              Transact: {
+                originKind: Native,
+                requireWeightAtMost: {
+                  refTime: 1000000000,
+                  proofSize: 400000,
+                },
+                call: $init_open_channel_with_sp
+              }
+            }
+          ]
+        }
+      ]
+    xcm_init_open_channel_with_cp:
+      chain: *statemint_parachain
+      pallet: polkadotXcm
+      call: send
+      args: [
+        { v3: { parents: 1, interior: { here: true }}}, # destination
+        {
+          v3: [ #message
+            {
+              WithdrawAsset: [
+                { 
+                  id: { concrete: { 0, interior: { here: true }}}, 
+                  fun: { fungible: 2000000000000 } # 2_000_000_000_000
+                }
+              ]
+            },
+            {
+              BuyExecution: {
+                  fees: { 
+                    id: { concrete: { 0, interior: { here: true }}}, 
+                    fun: { fungible: 2000000000000 } # 2_000_000_000_000
+                  },
+                  weightLimit: Unlimited
+              }
+            },
+            {
+              Transact: {
+                originKind: Native,
+                requireWeightAtMost: {
+                  refTime: 1000000000,
+                  proofSize: 400000,
+                },
+                call: $init_open_channel_with_cp
+              }
+            }
+          ]
+        }
+      ]
+
+tests:
+  - name: HRMP
+    beforeEach:
+      - name: DEPENDENCY | Collective Parachain Sovereign account in the Relay Chain needs to be funded
+        actions:
+          - extrinsics:
+            - chain: *relay_chain
+              signer: *alice_signer
+              pallet: balances
+              call: transfer
+              args: [
+                *cp_sovereign, # destination
+                2000000000000, # value 2_000_000_000_000
+              ]
+              events:
+                - name: balances.Transfer
+
+      - name: DEPENDENCY | Assets Parachain Sovereign account in the Relay Chain needs to be funded
+        actions:
+          - extrinsics:
+            - chain: *relay_chain
+              signer: *alice_signer
+              pallet: balances
+              call: transfer
+              args: [
+                *sp_sovereign, # destination
+                2000000000000, # value 2_000_000_000_000
+              ]
+              events:
+                - name: balances.Transfer
+    describes:
+      - name: hrmp.hrmpInitOpenChannel (Collectives Parachain → Statemint Parachain)
+        its:
+          - name: Collectives Parachain sends a request to the Relay Chain to open a channel with the Statemint Parachain
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  sudo: true
+                  pallet: xcmPallet
+                  call: send
+                  args: [
+                    { v3: { 0, interior: { x1: { parachain: *cp_id }}}}, # destination
+                    {
+                      v3: [ #message
+                        {
+                          UnpaidExecution: {
+                            weightLimit: { 
+                              limited: {
+                                refTime: 7000000000,
+                                proofSize: 1000000,
+                              },
+                            }
+                          }
+                        },
+                        {
+                          Transact: {
+                            originKind: Superuser,
+                            requireWeightAtMost: {
+                              refTime: 5000000000,
+                              proofSize: 700000,
+                            },
+                            call: $xcm_init_open_channel_with_sp
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                  events:
+                    - name: sudo.Sudid
+                      attributes:
+                        - type: Result<Null, SpRuntimeDispatchError>
+                          value: Ok
+                    - name: xcmPallet.Sent
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *collectives_parachain
+                      attributes:
+                        - type: XcmV3TraitsOutcome
+                          xcmOutcome: Complete
+                    - name: polkadotXcm.Sent
+                      chain: *collectives_parachain
+                    - name: ump.ExecutedUpward
+                      attributes:
+                        - type: XcmV3TraitsOutcome
+                          xcmOutcome: Complete
+                    - name: hrmp.OpenChannelRequested
+
+      - name: hrmp.hrmpAcceptOpenChannel (Statemint Parachain → Collectives Parachain)
+        its:
+          - name: Statemint Parachain sends a response to the Relay Chain accepting the Collectives Parachain's request for opening a HRMP channel
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  sudo: true
+                  pallet: xcmPallet
+                  call: send
+                  args: [
+                    { v3: { 0, interior: { x1: { parachain: *sp_id }}}}, # destination
+                    {
+                      v3: [ #message
+                        {
+                          UnpaidExecution: {
+                            weightLimit: { 
+                              limited: {
+                                refTime: 4000000000, # 4_000_000_000
+                                proofSize: 1000000, # 1_000_000
+                              },
+                            }
+                          }
+                        },
+                        {
+                          Transact: {
+                            originKind: Superuser,
+                            requireWeightAtMost: {
+                              refTime: 2000000000, # 2_000_000_000 
+                              proofSize: 700000, # 700_000
+                            },
+                            call: $xcm_accept_init_open_request_from_cp
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                  events:
+                    - name: sudo.Sudid
+                      attributes:
+                        - type: Result<Null, SpRuntimeDispatchError>
+                          value: Ok
+                    - name: xcmPallet.Sent
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *statemint_parachain
+                      attributes:
+                        - type: XcmV3TraitsOutcome
+                          xcmOutcome: Complete
+                    - name: polkadotXcm.Sent
+                      chain: *statemint_parachain
+                    - name: ump.ExecutedUpward
+                      attributes:
+                        - type: XcmV3TraitsOutcome
+                          xcmOutcome: Complete
+                    - name: hrmp.OpenChannelAccepted
+
+      - name: hrmp.hrmpInitOpenChannel (Statemint Parachain → Collectives Parachain)
+        its:
+          - name: Statemint Parachain sends a request to the Relay Chain to open a channel with a Collectives Parachain
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  sudo: true
+                  pallet: xcmPallet
+                  call: send
+                  args: [
+                    { v3: { 0, interior: { x1: { parachain: *sp_id }}}}, # destination
+                    {
+                      v3: [ #message
+                        {
+                          UnpaidExecution: {
+                            weightLimit: { 
+                              limited: {
+                                refTime: 7000000000,
+                                proofSize: 1000000,
+                              },
+                            }
+                          }
+                        },
+                        {
+                          Transact: {
+                            originKind: Superuser,
+                            requireWeightAtMost: {
+                              refTime: 5000000000,
+                              proofSize: 700000,
+                            },
+                            call: $xcm_init_open_channel_with_cp
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                  events:
+                    - name: sudo.Sudid
+                      attributes:
+                        - type: Result<Null, SpRuntimeDispatchError>
+                          value: Ok
+                    - name: xcmPallet.Sent
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *statemint_parachain
+                      attributes:
+                        - type: XcmV3TraitsOutcome
+                          xcmOutcome: Complete
+                    - name: polkadotXcm.Sent
+                      chain: *statemint_parachain
+                    - name: ump.ExecutedUpward
+                      attributes:
+                        - type: XcmV3TraitsOutcome
+                          xcmOutcome: Complete
+                    - name: hrmp.OpenChannelRequested
+
+      - name: hrmp.hrmpAcceptOpenChannel (Collectives Parachain → Statemint Parachain)
+        its:
+          - name: Collectives Parachain sends a response to the Relay Chain accepting the Statemint Parachain's request for opening a HRMP channel
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  sudo: true
+                  pallet: xcmPallet
+                  call: send
+                  args: [
+                    { v3: { 0, interior: { x1: { parachain: *cp_id }}}}, # destination
+                    {
+                      v3: [ #message
+                        {
+                          UnpaidExecution: {
+                            weightLimit: { 
+                              limited: {
+                                refTime: 7000000000, # 7_000_000_000
+                                proofSize: 1000000, # 1_000_000
+                              },
+                            }
+                          }
+                        },
+                        {
+                          Transact: {
+                            originKind: Superuser,
+                            requireWeightAtMost: {
+                              refTime: 5000000000, # 5_000_000_000
+                              proofSize: 700000, # 700_000
+                            },
+                            call: $xcm_accept_init_open_request_from_sp
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                  events:
+                    - name: sudo.Sudid
+                      attributes:
+                        - type: Result<Null, SpRuntimeDispatchError>
+                          value: Ok
+                    - name: xcmPallet.Sent
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *collectives_parachain
+                      attributes:
+                        - type: XcmV3TraitsOutcome
+                          xcmOutcome: Complete
+                    - name: polkadotXcm.Sent
+                      chain: *collectives_parachain
+                    - name: ump.ExecutedUpward
+                      attributes:
+                        - type: XcmV3TraitsOutcome
+                          xcmOutcome: Complete
+                    - name: hrmp.OpenChannelAccepted

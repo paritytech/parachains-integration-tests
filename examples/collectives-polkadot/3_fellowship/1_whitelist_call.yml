@@ -1,0 +1,93 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9700
+    collectives_parachain: &collectives_parachain
+      wsPort: 9710
+      paraId: &cp_id 1001
+  variables:
+    fellows_proposal_index: &fellows_proposal_index 0
+    chains:
+      accounts:
+        alice_signer: &alice_signer //Alice
+
+tests:
+  - name: Fellowship
+    describes:
+      - name: The Fellowship white list the call
+        its:
+          - name: Note preimage from the whitelist call on the Relay Chain
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: preimage
+                  call: notePreimage
+                  args: [ # TODO expand # remark
+                    "0x00000410",
+                  ]
+                  events:
+                    - name: preimage.Noted
+          - name: Note preimage from the xcm send call to white list the call above
+            actions:
+              - extrinsics:
+                - chain: *collectives_parachain
+                  signer: *alice_signer
+                  pallet: preimage
+                  call: notePreimage
+                  args: [ # TODO expand # xcm send transact whitelist call
+                    "0x1f0001010003082f00000603029435778238010088170033a3d7b655b228835da723d91ad96fa0f34d5e37ea923a2e1684cee5358fbc2c",
+                  ]
+                  events:
+                    - name: preimage.Noted
+          - name: Submit a proposal to init the Fellowship
+            actions:
+              - extrinsics:
+                - chain: *collectives_parachain
+                  signer: *alice_signer
+                  pallet: fellowshipReferenda
+                  call: submit
+                  args: [
+                    {
+                      "FellowshipOrigins": "Fellows",
+                    },
+                    {
+                      "Lookup": { # TODO obtain from the call
+                        "hash_": "0xf6b4af973936f4f6577fe7e82c4a1a55644e4f4416d6f77af907c7cac0473f7e",
+                        "len": 55,
+                      },
+                    },
+                    {
+                      "After": 1, 
+                    },
+                  ]
+                  events:
+                    - name: fellowshipReferenda.Submitted
+          - name: Vote Aye
+            actions:
+              - extrinsics:
+                - chain: *collectives_parachain
+                  signer: *alice_signer
+                  pallet: fellowshipCollective
+                  call: vote
+                  args: [
+                    *fellows_proposal_index,
+                    true,
+                  ]
+                  events:
+                    - name: fellowshipCollective.Voted
+          - name: Submit the decision deposit
+            actions:
+              - extrinsics:
+                - chain: *collectives_parachain
+                  signer: *alice_signer
+                  pallet: fellowshipReferenda
+                  call: placeDecisionDeposit
+                  args: [
+                    *fellows_proposal_index,
+                  ]
+                  events:
+                    - name: fellowshipReferenda.DecisionDepositPlaced
+                    - name: whitelist.CallWhitelisted
+                      chain: *relay_chain
