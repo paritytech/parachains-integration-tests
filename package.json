@@ -1,6 +1,6 @@
 {
   "name": "@parity/parachains-integration-tests",
-  "version": "2.3.0",
+  "version": "2.3.4",
   "main": "index.js",
   "author": "Ignacio Palacios Santos <ignacio.palacios.santos@gmail.com>",
   "license": "MIT",
