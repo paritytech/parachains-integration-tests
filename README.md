@@ -5,7 +5,7 @@ This tool allows you to develop tests rapidly describing them in a YAML file. Be
 
 It can work alongside with [Zombienet](https://github.com/paritytech/zombienet) or you can run your tests against the testnet of your choice.
 
-Under the `./examples` folder, this repository contains integration tests for the _Common Good Parachains_. You can take them as examples of how to write tests with this tool.
+Under the `./examples` folder, this repository contains integration tests for the _System Parachains_. You can take them as examples of how to write tests with this tool.
 
 ## Set Up
 ### Requirements
@@ -19,6 +19,8 @@ Under the `./examples` folder, this repository contains integration tests for th
 It can be installed to be run in two different ways:
 - Installing the npm package globally
   ```
+  yarn global add ts-node
+
   yarn global add @parity/parachains-integration-tests
   ```
 - From the repository
