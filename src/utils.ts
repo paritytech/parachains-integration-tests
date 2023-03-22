@@ -307,10 +307,25 @@ export const parseThreshold = (
 };
 
 export const withinThreshold = (
-  value: string | number,
+  value: string | number | object,
   data: string,
   threshold: [number, number]
 ): boolean => {
-  let range = parseThreshold(adaptUnit(value).replace(/,/g, ''), threshold);
-  return withinRange(range, data);
+  if (isNumeric(value.toLocaleString())) {
+    let range = parseThreshold(adaptUnit(value).replace(/,/g, ''), threshold);
+    return withinRange(range, data);
+  } else if (typeof value === 'string') {
+    return value === data;
+  } else { // object
+    let expected = eval(data);
+    for (let [key, val] of Object.entries(value)) {
+      console.log(key, val, expected[key], threshold, typeof val);
+      if (!withinThreshold(val, expected[key], threshold)) { return false; }
+    }
+    return true;
+  }
 };
+
+const isNumeric = (val: string) : boolean => {
+   return val.trim().length > 0 && !isNaN(Number(val.replace(/,/g, '')));
+}
