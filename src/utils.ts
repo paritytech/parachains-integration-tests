@@ -284,7 +284,7 @@ export const buildRangeFromThreshold = (
   let lowerLimit =
     Number(valueInt) * (Number(BigInt(threshold[0])) / Number(BigInt(100)));
   let upperLimit =
-    Number(valueInt) * (Number(BigInt(threshold[0])) / Number(BigInt(100)));
+    Number(valueInt) * (Number(BigInt(threshold[1])) / Number(BigInt(100)));
 
   lowerLimit = Math.round(valueInt - lowerLimit);
   upperLimit = Math.round(valueInt + upperLimit);
@@ -319,7 +319,6 @@ export const withinThreshold = (
   } else { // object
     let expected = eval(data);
     for (let [key, val] of Object.entries(value)) {
-      console.log(key, val, expected[key], threshold, typeof val);
       if (!withinThreshold(val, expected[key], threshold)) { return false; }
     }
     return true;
@@ -327,5 +326,5 @@ export const withinThreshold = (
 };
 
 const isNumeric = (val: string) : boolean => {
-   return val.trim().length > 0 && !isNaN(Number(val.replace(/,/g, '')));
+  return val.trim().length > 0 && !isNaN(Number(val.replace(/,/g, '')));
 }
