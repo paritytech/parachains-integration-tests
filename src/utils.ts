@@ -284,7 +284,7 @@ export const buildRangeFromThreshold = (
   let lowerLimit =
     Number(valueInt) * (Number(BigInt(threshold[0])) / Number(BigInt(100)));
   let upperLimit =
-    Number(valueInt) * (Number(BigInt(threshold[0])) / Number(BigInt(100)));
+    Number(valueInt) * (Number(BigInt(threshold[1])) / Number(BigInt(100)));
 
   lowerLimit = Math.round(valueInt - lowerLimit);
   upperLimit = Math.round(valueInt + upperLimit);
@@ -307,10 +307,24 @@ export const parseThreshold = (
 };
 
 export const withinThreshold = (
-  value: string | number,
+  value: string | number | object,
   data: string,
   threshold: [number, number]
 ): boolean => {
-  let range = parseThreshold(adaptUnit(value).replace(/,/g, ''), threshold);
-  return withinRange(range, data);
+  if (isNumeric(value.toLocaleString())) {
+    let range = parseThreshold(adaptUnit(value).replace(/,/g, ''), threshold);
+    return withinRange(range, data);
+  } else if (typeof value === 'string') {
+    return value === data;
+  } else { // object
+    let expected = eval(data);
+    for (let [key, val] of Object.entries(value)) {
+      if (!withinThreshold(val, expected[key], threshold)) { return false; }
+    }
+    return true;
+  }
 };
+
+const isNumeric = (val: string) : boolean => {
+  return val.trim().length > 0 && !isNaN(Number(val.replace(/,/g, '')));
+}

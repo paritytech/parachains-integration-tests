@@ -77,7 +77,7 @@ tests:
                       attributes:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
-#                          threshold: [10, 10]
+                          threshold: [10, 10]
                           value: {"refTime":"1,010,970,000","proofSize":"0"}
               - queries:
                   balance_rc_sender_after:
@@ -154,7 +154,7 @@ tests:
                       attributes:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
-#                          threshold: [10, 10]
+                          threshold: [10, 10]
                           value: {"refTime":"1,015,234,000","proofSize":"200,000"}
               - queries:
                   forced_created_asset:
