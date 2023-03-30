@@ -102,7 +102,7 @@ tests:
                         attributes:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
-                            # threshold: [10, 10]
+                            threshold: [10, 10]
                             value: {"refTime":"1,216,703,000","proofSize":"20,000"}
               - queries:
                   forced_created_asset:
@@ -183,8 +183,8 @@ tests:
                         attributes:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
-                            # threshold: [10, 10]
-                            value: {"refTime":"650,855,000","proofSize":"0"}
+                            threshold: [10, 10]
+                            value: {"refTime":"650,855,000","proofSize":"17,970"}
                       - name: assets.Transferred
                         attributes:
                           - type: AccountId32
@@ -230,8 +230,8 @@ tests:
                         attributes:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
-                            # threshold: [10, 10]
-                            value: {"refTime":"650,855,000","proofSize":"0"}
+                            threshold: [10, 10]
+                            value: {"refTime":"650,855,000","proofSize":"17,970"}
                       - name: balances.Endowed
                         attributes:
                           - type: AccountId32
