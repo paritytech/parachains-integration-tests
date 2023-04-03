@@ -18,15 +18,15 @@ settings:
     chains:
       relay_chain:
         signer: &rc_signer //Alice
-        assets_parachain_destination: &ap_dest { v3: { 0, interior: { x1: { parachain: *ap_id }}}}
-        assets_parachain_dest_routed: &ap_dest_routed { v3: { parents: 1, interior: { x1: { parachain: *ap_id } }}}
+        assets_parachain_destination: &ap_dest { v2: { 0, interior: { x1: { parachain: *ap_id }}}}
+        assets_parachain_dest_routed: &ap_dest_routed { v2: { parents: 1, interior: { x1: { parachain: *ap_id } }}}
       assets_parachain_account:
         signer: &ap_signer //Alice
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         asset_id: &asset_id 2
         assets_pallet_id: &assets_pallet_id 50
         asset_min_balance: &asset_ed 1000
-        penpal_parachain_destination: &pp_dest { v3: { parents: 1, interior: { x1: { parachain: *pp_id } }}}
+        penpal_parachain_destination: &pp_dest { v2: { parents: 1, interior: { x1: { parachain: *pp_id } }}}
         ksm: &ap_ksm { concrete: { parents: 1, interior: { here: true }}}
         ksm_fungible: &ap_ksm_fungible { id: *ap_ksm, fun: { fungible: *amount }}
         suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
@@ -73,15 +73,15 @@ tests:
                     args: [
                       *ap_dest, # destination
                       {
-                        v3: [ #message
-                          {
-                            UnpaidExecution: {
-                              weightLimit: Unlimited
-                            }
-                          },
-                          {
-                            SetTopic: "0x0123456789012345678901234567891201234567890123456789012345678912"
-                          },
+                        v2: [ #message
+                          # {
+                          #   UnpaidExecution: {
+                          #     weightLimit: Unlimited
+                          #   }
+                          # },
+                          # {
+                          #   SetTopic: "0x0123456789012345678901234567891201234567890123456789012345678912"
+                          # },
                           {
                             Transact: {
                               originKind: Superuser,
@@ -263,7 +263,7 @@ tests:
                     args: [
                       *ap_dest_routed, # destination
                       {
-                        v3: [ #message
+                        v2: [ #message
                           {
                             WithdrawAsset: [
                               {
@@ -354,7 +354,7 @@ tests:
                     args: [
                       *ap_dest_routed, # destination
                       {
-                        v3: [ #message
+                        v2: [ #message
                           {
                             WithdrawAsset: [*ap_suff_asset_fungible_fail]
                           },

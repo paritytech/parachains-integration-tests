@@ -29,12 +29,12 @@ settings:
     chains:
       relay_chain:
         signer: &rc_signer //Alice
-        assets_parachain_destination: &ap_dest { v3: { 0, interior: { x1: { parachain: *ap_id }}}}
+        assets_parachain_destination: &ap_dest { v2: { 0, interior: { x1: { parachain: *ap_id }}}}
         ksm: &rc_ksm { concrete: { 0, interior: { here: true }}}
         ksm_fungible: &rc_ksm_fungible { id: *rc_ksm, fun: { fungible: *amount }}
       assets_parachain_account:
         sovereign_account: &ap_sovereign 5Ec4AhPZk8STuex8Wsi9TwDtJQxKqzPJRCH7348Xtcs9vZLJ
-        relay_chain_destination: &rc_dest { v3: { parents: 1, interior: { here: true }}}
+        relay_chain_destination: &rc_dest { v2: { parents: 1, interior: { here: true }}}
       penpal_parachain:
         sovereign_account: &pp_sovereign F7fq1jMZkfuCuoMTyiEVAP2DMpMt18WopgBqTJznLihLNbZ
         signer: &pp_signer //Alice
