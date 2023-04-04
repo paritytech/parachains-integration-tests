@@ -63,7 +63,7 @@ tests:
                       attributes:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
-                          # threshold: [10, 10]
+                          threshold: [10, 10]
                           value: {"refTime":"1,010,034,000","proofSize":"0"}
 
           - name: Get the balances of the Assets Parachain's sender & Relay Chain's receiver
@@ -99,8 +99,8 @@ tests:
                       attributes:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
-                          # threshold: [10, 10]
-                          value: {"refTime":"345,357,000","proofSize":"0"}
+                          threshold: [10, 10]
+                          value: {"refTime":"345,357,000","proofSize":"3,593"}
                     - name: ump.ExecutedUpward
                       chain: *relay_chain
                       attributes:
