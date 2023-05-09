@@ -64,7 +64,7 @@ tests:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
                           threshold: [10, 10]
-                          value: {"refTime":"164,142,000","proofSize":"0"}
+                          value: {"refTime":"162,909,000","proofSize":"0"}
 
           - name: Get the balances of the Assets Parachain's sender & Relay Chain's receiver
             actions:
@@ -101,13 +101,13 @@ tests:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
                           threshold: [10, 10]
-                          value: {"refTime":"345,611,000","proofSize":"3,593"}
+                          value: {"refTime":"533,283,000","proofSize":"7,096"}
                     - name: ump.ExecutedUpward
                       chain: *relay_chain
                       attributes:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
-                          value: {"refTime":"4,000,000,000","proofSize":"262,144"}
+                          value: {"refTime":"4,000,000,000","proofSize":"0"}
               - queries:
                   balance_ap_sender_after:
                     chain: *assets_parachain

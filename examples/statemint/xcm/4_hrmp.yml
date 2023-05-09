@@ -47,14 +47,15 @@ settings:
         true, # isSufficient
         *asset_ed # minBalance
       ]
-    transfer_asset:
+    force_create_asset2:
       chain: *assets_parachain
       pallet: assets
-      call: transfer
+      call: forceCreate
       args: [
         *asset_id,
-        *ap_wallet, # owner
-        1
+        { Id: *ap_wallet }, # owner
+        true, # isSufficient
+        *asset_ed # minBalance
       ]
 
 tests:
@@ -181,7 +182,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             threshold: [10, 10]
-                            value: {"refTime":"655,521,000","proofSize":"17,785"}
+                            value: {"refTime":"673,627,000","proofSize":"6,196"}
                       - name: assets.Transferred
                         attributes:
                           - type: AccountId32
@@ -228,7 +229,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             threshold: [10, 10]
-                            value: {"refTime":"655,521,000","proofSize":"17,785"}
+                            value: {"refTime":"673,627,000","proofSize":"6,196"}
                       - name: balances.Endowed
                         attributes:
                           - type: AccountId32
@@ -291,7 +292,25 @@ tests:
                             Transact: {
                               originKind: SovereignAccount,
                               requireWeightAtMost: *weight_at_most,
-                              call: $transfer_asset
+                              call: $force_create_asset2
+                            }
+                          },
+                          {
+                            RefundSurplus
+                          },
+                          {
+                            DepositAsset: {
+                              assets: { Wild: All },
+                              beneficiary: {
+                                parents: 0,
+                                interior: {
+                                  X1: {
+                                    AccountId32: {
+                                        network: , # None
+                                        id: *pp_acc
+                                      }
+                                  }
+                                }}
                             }
                           }
                         ]
@@ -368,7 +387,7 @@ tests:
                             Transact: {
                               originKind: SovereignAccount,
                               requireWeightAtMost: *weight_at_most,
-                              call: $transfer_asset
+                              call: $force_create_asset2
                             }
                           }
                         ]
