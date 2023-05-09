@@ -101,7 +101,7 @@ tests:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
                           threshold: [10, 10]
-                          value: {"refTime":"543,527,000","proofSize":"14,677"}
+                          value: {"refTime":"539,494,000","proofSize":"7,133"}
                     - name: ump.ExecutedUpward
                       chain: *relay_chain
                       attributes:

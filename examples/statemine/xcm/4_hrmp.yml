@@ -184,7 +184,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             threshold: [10, 10]
-                            value: {"refTime":"650,855,000","proofSize":"17,970"}
+                            value: {"refTime":"679,150,000","proofSize":"6,196"}
                       - name: assets.Transferred
                         attributes:
                           - type: AccountId32
@@ -231,7 +231,7 @@ tests:
                           - type: XcmV3TraitsOutcome
                             xcmOutcome: Complete
                             threshold: [10, 10]
-                            value: {"refTime":"650,855,000","proofSize":"17,970"}
+                            value: {"refTime":"679,150,000","proofSize":"6,196"}
                       - name: balances.Endowed
                         attributes:
                           - type: AccountId32
@@ -290,13 +290,31 @@ tests:
                               weightLimit: Unlimited
                             }
                           },
-                         {
-                           Transact: {
-                             originKind: SovereignAccount,
-                             requireWeightAtMost: *weight_at_most,
-                             call: $force_create_asset2
-                           }
-                         }
+                          {
+                            Transact: {
+                              originKind: SovereignAccount,
+                              requireWeightAtMost: *weight_at_most,
+                              call: $force_create_asset2
+                            }
+                          },
+                          {
+                            RefundSurplus
+                          },
+                          {
+                            DepositAsset: {
+                              assets: { Wild: All },
+                              beneficiary: {
+                                parents: 0,
+                                interior: {
+                                  X1: {
+                                    AccountId32: {
+                                        network: , # None
+                                        id: *pp_acc
+                                      }
+                                  }
+                                }}
+                            }
+                          }
                         ]
                       }
                     ]
