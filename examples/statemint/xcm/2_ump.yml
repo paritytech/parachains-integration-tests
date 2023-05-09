@@ -57,14 +57,14 @@ tests:
                       attributes:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
-                          value: {"refTime":"2,000,000,000","proofSize":"131,072"}
+                          value: {"refTime":"3,000,000,000","proofSize":"0"}
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       attributes:
                         - type: XcmV3TraitsOutcome
                           xcmOutcome: Complete
                           threshold: [10, 10]
-                          value: {"refTime":"1,010,970,000","proofSize":"0"}
+                          value: {"refTime":"164,142,000","proofSize":"0"}
 
           - name: Get the balances of the Assets Parachain's sender & Relay Chain's receiver
             actions:
