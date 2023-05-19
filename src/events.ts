@@ -14,6 +14,7 @@ import {
   withinThreshold,
   parseRange,
   updateLastBlocks,
+  findObject,
 } from './utils';
 
 const messageBuilder = (context, event: EventResult): string => {
@@ -36,6 +37,8 @@ const messageBuilder = (context, event: EventResult): string => {
         resultMessage = `\n\n   ✔️  Expected Result: ${resultJson}`;
       } else {
         resultMessage = `\n\n   ✖️  Expected Result: ${resultJson} | Received Result: ${recordJson}`;
+        resultMessage += event.threshold ? `\n\t-> NOT WITHIN THRESHOLD [${JSON.stringify(event.threshold)}]` : ''
+
       }
       event.ok &&= isExpectedResult;
     }
@@ -94,7 +97,7 @@ const messageBuilder = (context, event: EventResult): string => {
                 let received = `Received Attribute: '${keyValue}${gap}${typeValue}' : ${dataJson}`;
                 let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`;
                 let thresholdMsg = `${
-                  threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''
+                  threshold ? `\n\t-> NOT WITHIN THRESHOLD [${JSON.stringify(threshold)}]` : ''
                 }`;
                 hasValues += `\n\n   ✖️  ${expected} | ${received} ${rangeMsg}${thresholdMsg}`;
               }
@@ -114,6 +117,13 @@ const messageBuilder = (context, event: EventResult): string => {
   return `${isOk} EVENT: (${chainContext}) '${name}' ${isReceived}${resultMessage}${xcmOutcomeMessage}${hasValues}\n`;
 };
 
+const isStrict = (event: Event): boolean => {
+  if (event.strict == undefined && event.threshold != undefined) {
+    return false
+  }
+  return event.strict
+}
+
 const eventsResultsBuilder = (
   extrinsicChain: Chain,
   events: Event[]
@@ -131,7 +141,7 @@ const eventsResultsBuilder = (
         ok: true,
         data: [],
         message: '',
-        strict: event.strict == undefined ? true : event.strict,
+        strict: isStrict(event),
       },
     };
     if (!eventsResultsObject[extendedEvent.name]) {
@@ -283,13 +293,32 @@ const isTheBestExpectedEvent = (
 };
 
 const isExpectedEventResult = (event: EventResult): boolean => {
-  const { result, record, strict } = event;
+  const { result, record, strict, threshold } = event;
 
-  if (strict) {
-    return _.isEqual(record, adaptUnit(result));
-  } else {
-    return _.isMatch(record, adaptUnit(result));
+  if (result) {
+    if (strict) {
+      return _.isEqual(record, adaptUnit(result));
+    } else if (threshold) {
+      let within = withinThreshold(result, record, threshold);
+
+      if (!within) {
+        return within
+      } else {
+        for (const key in threshold) {
+          let recordObject = findObject(record, key)
+          let resultObject = findObject(result, key)
+
+          resultObject[key] = recordObject[key]
+        }
+        event.threshold = undefined
+        return _.isMatch(record, adaptUnit(result));
+      }
+    } else {
+      return _.isMatch(record, adaptUnit(result));
+    }
   }
+
+  return false
 };
 
 const isExpectedEventAttribute = (
