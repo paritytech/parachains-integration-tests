@@ -268,7 +268,7 @@ export const withinRange = (value: string, data: string): boolean => {
 
 export const buildRangeFromThreshold = (
   value: string,
-  threshold: [number, number]
+  threshold: [number, number] | object
 ): string => {
   let valueInt: number;
 
@@ -294,7 +294,7 @@ export const buildRangeFromThreshold = (
 
 export const parseThreshold = (
   value: string,
-  threshold: [number, number]
+  threshold: [number, number] | object
 ): string => {
   if (threshold[0] >= 0 && threshold[1] >= 0) {
     return buildRangeFromThreshold(value, threshold);
@@ -306,25 +306,69 @@ export const parseThreshold = (
   }
 };
 
-export const withinThreshold = (
-  value: string | number | object,
-  data: string,
-  threshold: [number, number]
-): boolean => {
-  if (isNumeric(value.toLocaleString())) {
-    let range = parseThreshold(adaptUnit(value).replace(/,/g, ''), threshold);
-    return withinRange(range, data);
-  } else if (typeof value === 'string') {
-    return value === data;
-  } else { // object
-    let expected = eval(data);
-    for (let [key, val] of Object.entries(value)) {
-      if (!withinThreshold(val, expected[key], threshold)) { return false; }
+export const findObject = (entireObj, keyToFind): object => {
+  let foundObj;
+  JSON.stringify(entireObj, (_, nestedValue) => {
+    if (nestedValue && nestedValue[keyToFind] !== undefined) {
+      foundObj = nestedValue;
     }
-    return true;
-  }
-};
+    return nestedValue;
+  });
 
-const isNumeric = (val: string) : boolean => {
-  return val.trim().length > 0 && !isNaN(Number(val.replace(/,/g, '')));
+  return foundObj
 }
+
+export const findKey = (entireObj, keyToFind): number | string => {
+  let foundObj;
+  JSON.stringify(entireObj, (_, nestedValue) => {
+    if (nestedValue && nestedValue[keyToFind] !== undefined) {
+      foundObj = nestedValue;
+    }
+    return nestedValue;
+  });
+  if (foundObj !== undefined) {
+    return foundObj[keyToFind];
+  } else {
+    console.log(
+      `\n⛔ ERROR: Assessing threshold -> '${keyToFind}' not found in object '${JSON.stringify(entireObj)}'`
+    );
+    process.exit(1)
+  }
+}
+
+export const withinThreshold = (
+  received: string | number | object,
+  expected: string | number | object,
+  threshold: [number, number] | object
+): boolean => {
+  if (typeof received === 'object' && (typeof threshold !== 'object' || Array.isArray(threshold))) {
+    console.log(
+      `\n⛔ ERROR: invalid Threshold value format '[${threshold}]'. It should be an object defining threshold for each field that should be evaluated`
+    );
+    process.exit(1);
+  } else if (typeof received === 'object' && typeof threshold === 'object') {
+    let within = true;
+
+    for (const key in threshold) {
+      let receivedValue = findKey(received, key)
+      let expectedValue = findKey(expected, key)
+      let thresholdValue = threshold[key]
+
+      if (receivedValue !== undefined && expectedValue !== undefined) {
+        let isWithin = withinThreshold(receivedValue, expectedValue, thresholdValue)
+        within &&= isWithin
+      } else {
+        console.log(
+          `\n⛔ ERROR: Expected '${key}' to evaluate threshold has not been found either in the received result '${JSON.stringify(received)}' or the expected result '${JSON.stringify(expected)}'`
+        );
+        process.exit(1);
+      }
+    }
+
+    return within
+  } else if ((typeof expected === 'number' || typeof expected === 'string') && Array.isArray(threshold)) {
+    let range = parseThreshold(adaptUnit(expected).replace(/,/g, ''), threshold);
+    return withinRange(range, adaptUnit(received).replace(/,/g, ''));
+  }
+  return false
+};

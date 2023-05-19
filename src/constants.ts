@@ -169,6 +169,7 @@ export const INTERFACE: { [key: string]: Interface } = {
       remote: false,
       timeout: false,
       result: false,
+      threshold: false,
       strict: false,
       attributes: false,
     },
@@ -209,7 +210,8 @@ export const INTERFACE: { [key: string]: Interface } = {
     type: 'boolean',
   },
   threshold: {
-    instance: YAMLSeq,
+    // instance: YAMLSeq,
+    type: 'any',
   },
   value: {
     type: 'any',
