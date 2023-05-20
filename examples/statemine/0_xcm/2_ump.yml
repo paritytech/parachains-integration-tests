@@ -57,11 +57,13 @@ tests:
                   events:
                     - name: xcmPallet.Attempted
                       threshold: *weight_threshold
-                      result: [{ Complete: { refTime: "761,173,000", proofSize: 0 }}]
+                      result: [{ Complete: { refTime: '761,173,000', proofSize: 0 }}]
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       threshold: *weight_threshold
-                      result: [{ outcome: { Complete: { refTime: 162,379,000, proofSize: 0 }}}]
+                      result: {
+                        outcome: { Complete: { refTime: '166,944,000', proofSize: 0 }}
+                      }
 
           - name: Get the balances of the Assets Parachain's sender & Relay Chain's receiver
             actions:
@@ -94,11 +96,11 @@ tests:
                   events:
                     - name: polkadotXcm.Attempted
                       threshold: *weight_threshold
-                      result: [{ Complete: { refTime: "539,494,000", proofSize: 0 }}]
+                      result: [{ Complete: { refTime: '539,494,000', proofSize: '7,133' }}]
                     - name: ump.ExecutedUpward
                       chain: *relay_chain
                       threshold: *weight_threshold
-                      result: [{ outcome: { Complete: { refTime: "298,716,000", proofSize: 0 }}}]
+                      result: [{ Complete: { refTime: '298,716,000', proofSize: 0 }}]
               - queries:
                   balance_ap_sender_after:
                     chain: *assets_parachain
@@ -168,9 +170,7 @@ tests:
                   ]
                   events:
                     - name: system.ExtrinsicFailed
-                      attributes:
-                        - type: SpRuntimeDispatchError
-                          value: BadOrigin
+                      result: { dispatchError: BadOrigin }
 
       - name: polkadotXcm.limitedReserveTransferAssets
         its:
@@ -190,7 +190,4 @@ tests:
                   ]
                   events:
                     - name: polkadotXcm.Attempted
-                      attributes:
-                        - type: XcmV3TraitsOutcome
-                          xcmOutcome: Error
-                          value: Barrier
+                      result: [{ Error: Barrier }]

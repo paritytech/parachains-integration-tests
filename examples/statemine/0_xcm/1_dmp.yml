@@ -46,13 +46,11 @@ tests:
             actions:
               - queries:
                   balance_rc_sender_before:
-                    delay: 0
                     chain: *relay_chain
                     pallet: system
                     call: account
                     args: [ *rc_wallet ]
                   balance_ap_receiver_before:
-                    delay: 0
                     chain: *assets_parachain
                     pallet: system
                     call: account
@@ -75,12 +73,13 @@ tests:
                   events:
                     - name: xcmPallet.Attempted
                       threshold: *weight_threshold
-                      result: [{ Complete: { refTime: "764,772,000", proofSize: 0 }}]
+                      result: [{ Complete: { refTime: '764,772,000', proofSize: 0 }}]
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       threshold: *weight_threshold
                       result: {
-                        outcome: { Complete: { refTime: "162,379,000", proofSize: 0 }}
+                        # outcome: { Complete: { refTime: '479,246,000', proofSize: '3,540' }}
+                        outcome: { Complete: { refTime: '166,944,000', proofSize: 0 }}
                       }
               - queries:
                   balance_rc_sender_after:
@@ -156,7 +155,7 @@ tests:
                       chain: *assets_parachain
                       threshold: *weight_threshold
                       result: {
-                        outcome: { Complete: { refTime: "1,014,103,000", proofSize: "200,000" }}
+                        outcome: { Complete: { refTime: '1,014,103,000', proofSize: '200,000' }}
                       }
               - queries:
                   forced_created_asset:
@@ -220,12 +219,17 @@ tests:
                   events:
                     - name: xcmPallet.Attempted
                       threshold: *weight_threshold
-                      result: [{ Complete: { refTime: "750,645,000", proofSize: 0 }}]
+                      result: [{ Complete: { refTime: '750,645,000', proofSize: 0 }}]
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       threshold: *weight_threshold
                       result: {
-                        outcome: { a: 1, Incomplete: [{ refTime: "1,000,000,000", proofSize: 0 }, UntrustedReserveLocation] }
+                        outcome: {
+                            Incomplete: [
+                              { refTime: '1,000,000,000', proofSize: 0 },
+                              UntrustedReserveLocation
+                            ]
+                          }
                       }
               - queries:
                   balance_rc_sender_after:

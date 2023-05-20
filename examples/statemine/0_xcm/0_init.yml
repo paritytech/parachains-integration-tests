@@ -116,6 +116,12 @@ tests:
                 - name: sudo.Sudid
                   result: { sudoResult: Ok }
                 - name: xcmPallet.Sent
+                - name: dmpQueue.ExecutedDownward
+                  chain: *assets_parachain
+                  threshold: *weight_threshold
+                  result: {
+                    outcome: { Complete: { refTime: '1,019,210,000', proofSize: '200,000' }} # After first run
+                  }
                 - name: polkadotXcm.SupportedVersionChanged
                   chain: *assets_parachain
                   result: [{ parents: 1, interior: Here }, *xcm_version ]
