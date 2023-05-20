@@ -120,7 +120,7 @@ tests:
                   chain: *assets_parachain
                   threshold: *weight_threshold
                   result: {
-                    outcome: { Complete: { refTime: '1,019,210,000', proofSize: '200,000' }} # After first run
+                    outcome: { Complete: { refTime: '1,019,210,000', proofSize: '200,000' }}
                   }
                 - name: polkadotXcm.SupportedVersionChanged
                   chain: *assets_parachain
