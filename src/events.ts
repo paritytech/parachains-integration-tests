@@ -292,6 +292,22 @@ const isTheBestExpectedEvent = (
   return false;
 };
 
+const nonStrictMatch = (result: any, record: any): boolean => {
+  if (Array.isArray(record) && Array.isArray(result) && record.length !== result.length) {
+    let matchesNum = 0;
+    for (let recordItem of record) {
+      for (let resultItem of result) {
+        if (_.isMatch(recordItem, adaptUnit(resultItem))) {
+          matchesNum += 1
+        }
+      }
+    }
+    return matchesNum === result.length
+  } else {
+    return _.isMatch(record, adaptUnit(result));
+  }
+}
+
 const isExpectedEventResult = (event: EventResult): boolean => {
   const { result, record, strict, threshold } = event;
 
@@ -307,14 +323,13 @@ const isExpectedEventResult = (event: EventResult): boolean => {
         for (const key in threshold) {
           let recordObject = findObject(record, key)
           let resultObject = findObject(result, key)
-
           resultObject[key] = recordObject[key]
         }
         event.threshold = undefined
-        return _.isMatch(record, adaptUnit(result));
+        return nonStrictMatch(result, record)
       }
     } else {
-      return _.isMatch(record, adaptUnit(result));
+      return nonStrictMatch(result, record)
     }
   }
 
