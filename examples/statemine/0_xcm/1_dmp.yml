@@ -78,7 +78,6 @@ tests:
                       chain: *assets_parachain
                       threshold: *weight_threshold
                       result: {
-                        # outcome: { Complete: { refTime: '479,246,000', proofSize: '3,540' }}
                         outcome: { Complete: { refTime: '166,944,000', proofSize: 0 }}
                       }
               - queries:

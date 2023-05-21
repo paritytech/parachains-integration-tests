@@ -22,6 +22,7 @@ export function killAll() {
   for (const key of Object.keys(p)) {
     p[key].kill();
   }
+  process.exit(0)
 }
 
 const spawnZombienet = (options) => {
