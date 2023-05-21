@@ -9,7 +9,7 @@ settings:
   variables:
     common:
       weight_threshold:  &weight_threshold { refTime: [10, 10], proofSize: [10, 10] }
-    chains:  
+    chains:
       relay_chain:
         signer: &rc_signer //Alice
         wallet: &rc_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
@@ -78,7 +78,6 @@ tests:
                       chain: *assets_parachain
                       threshold: *weight_threshold
                       result: {
-                        # outcome: { Complete: { refTime: '479,246,000', proofSize: '3,540' }}
                         outcome: { Complete: { refTime: '166,944,000', proofSize: 0 }}
                       }
               - queries:
