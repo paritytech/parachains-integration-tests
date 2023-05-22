@@ -10,10 +10,10 @@ const listenToEvents = async (context, events): Promise<any[]> => {
   return new Promise(async (resolve, reject) => {
     let dummyChain: Chain = {
       wsPort: 0,
-    }
-    await eventListenerBuilder(context, dummyChain, events, resolve, reject)
-  })
-}
+    };
+    await eventListenerBuilder(context, dummyChain, events, resolve, reject);
+  });
+};
 
 export const customBuilder = async (context, custom: Custom) => {
   const { path, args, events } = custom;
@@ -34,7 +34,7 @@ export const customBuilder = async (context, custom: Custom) => {
     let eventsResult: EventResult[] = [];
 
     if (events) {
-      eventsResult = await listenToEvents(context, events)
+      eventsResult = await listenToEvents(context, events);
     }
 
     addConsoleGroup(2);
