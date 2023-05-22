@@ -32,7 +32,8 @@ const rightFormat = (
 ): { is: boolean; format: string | undefined } => {
   const { type, instance } = interfaceValue;
 
-  value = value?.value || value?.value === false ? value.value : value;
+  value =
+    value?.value !== undefined || value?.value === false ? value.value : value;
 
   if (type) {
     return { is: typeof value === type || type === 'any', format: type };

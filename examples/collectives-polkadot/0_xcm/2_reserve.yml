@@ -7,11 +7,11 @@ settings:
       wsPort: 9710
       paraId: &cp_id 1001
   variables:
+    weight_threshold:  &weight_threshold { refTime: [10, 10], proofSize: [10, 10] }
     chains:
       accounts:
         alice_signer: &alice_signer //Alice
         alice_account32: &alice_acc32 '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
-        alice_ss58: &acc_alice_ss58 '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5'
 
 tests:
   - name: Reserve assets from Relay Chain to Collectives Parachain fails
@@ -26,49 +26,28 @@ tests:
               args: [
                 { v3: { 0, interior: { x1: { parachain: *cp_id }}}}, # destination
                 { v3: { parents: 0, interior: { x1: { accountId32: { id: *alice_acc32 }}}}}, # beneficiary
-                { 
-                  v3: [ 
-                    { 
-                      id: { concrete: { 0, interior: { here: true }}}, 
+                {
+                  v3: [
+                    {
+                      id: { concrete: { 0, interior: { here: true }}},
                       fun: { fungible: 20000000000000 } # 20_000_000_000_000
                     }
-                  ] 
+                  ]
                 }, # assets
                 0, # feeAssetItem
               ]
               events:
                 - name: xcmPallet.Attempted
-                  chain: *relay_chain
-                  attributes:
-                    - type: XcmV3TraitsOutcome
-                      xcmOutcome: Complete
+                  threshold: *weight_threshold
+                  result: [{ Complete: { refTime: '2,000,000,000', proofSize: 0 }}]
                 - name: dmpQueue.ExecutedDownward
                   chain: *collectives_parachain
-                  attributes:
-                    - type: XcmV3TraitsOutcome
-                      xcmOutcome: Incomplete
-
-      # Fails with the message - "RpcError: 1010: Invalid Transaction: Transaction would exhaust the block limits"
-      # Because of the u64::MAX weight set fot the extrinsic to disable it.
-      # The test tool does not allow to assert such a fail. 
-
-      # - name: Reserve assets from Collectives Parachain to Relay Chain fails
-      #   actions:
-      #     - extrinsics:
-      #       - chain: *collectives_parachain
-      #         signer: *alice_signer
-      #         pallet: polkadotXcm
-      #         call: reserveTransferAssets
-      #         args: [
-      #           { v3: { parents: 1, interior: { here: true }}}, # destination
-      #           { v3: { parents: 0, interior: { x1: { accountId32: { id: *alice_acc32 }}}}}, # beneficiary
-      #           {
-      #             v3: [ 
-      #               { 
-      #                 id: { concrete: { parents: 1, interior: { here: true }}}, 
-      #                 fun: { fungible: 10000000000000 } # 10_000_000_000_000
-      #               }
-      #             ] 
-      #           }, # assets
-      #           0, # feeAssetItem
-      #         ]
+                  threshold: *weight_threshold
+                  result: {
+                    outcome: {
+                        Incomplete: [
+                          { refTime: '1,000,000,000', proofSize: 0 },
+                          UntrustedReserveLocation
+                        ]
+                      }
+                  }
