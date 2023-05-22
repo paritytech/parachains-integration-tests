@@ -315,8 +315,8 @@ export const findObject = (entireObj, keyToFind): object => {
     return nestedValue;
   });
 
-  return foundObj
-}
+  return foundObj;
+};
 
 export const findKey = (entireObj, keyToFind): number | string => {
   let foundObj;
@@ -330,18 +330,23 @@ export const findKey = (entireObj, keyToFind): number | string => {
     return foundObj[keyToFind];
   } else {
     console.log(
-      `\n⛔ ERROR: Assessing threshold -> '${keyToFind}' not found in object '${JSON.stringify(entireObj)}'`
+      `\n⛔ ERROR: Assessing threshold -> '${keyToFind}' not found in object '${JSON.stringify(
+        entireObj
+      )}'`
     );
-    process.exit(1)
+    process.exit(1);
   }
-}
+};
 
 export const withinThreshold = (
   received: string | number | object,
   expected: string | number | object,
   threshold: [number, number] | object
 ): boolean => {
-  if (typeof received === 'object' && (typeof threshold !== 'object' || Array.isArray(threshold))) {
+  if (
+    typeof received === 'object' &&
+    (typeof threshold !== 'object' || Array.isArray(threshold))
+  ) {
     console.log(
       `\n⛔ ERROR: invalid Threshold value format '[${threshold}]'. It should be an object defining threshold for each field that should be evaluated`
     );
@@ -350,25 +355,37 @@ export const withinThreshold = (
     let within = true;
 
     for (const key in threshold) {
-      let receivedValue = findKey(received, key)
-      let expectedValue = findKey(expected, key)
-      let thresholdValue = threshold[key]
+      let receivedValue = findKey(received, key);
+      let expectedValue = findKey(expected, key);
+      let thresholdValue = threshold[key];
 
       if (receivedValue !== undefined && expectedValue !== undefined) {
-        let isWithin = withinThreshold(receivedValue, expectedValue, thresholdValue)
-        within &&= isWithin
+        let isWithin = withinThreshold(
+          receivedValue,
+          expectedValue,
+          thresholdValue
+        );
+        within &&= isWithin;
       } else {
         console.log(
-          `\n⛔ ERROR: Expected '${key}' to evaluate threshold has not been found either in the received result '${JSON.stringify(received)}' or the expected result '${JSON.stringify(expected)}'`
+          `\n⛔ ERROR: Expected '${key}' to evaluate threshold has not been found either in the received result '${JSON.stringify(
+            received
+          )}' or the expected result '${JSON.stringify(expected)}'`
         );
         process.exit(1);
       }
     }
 
-    return within
-  } else if ((typeof expected === 'number' || typeof expected === 'string') && Array.isArray(threshold)) {
-    let range = parseThreshold(adaptUnit(expected).replace(/,/g, ''), threshold);
+    return within;
+  } else if (
+    (typeof expected === 'number' || typeof expected === 'string') &&
+    Array.isArray(threshold)
+  ) {
+    let range = parseThreshold(
+      adaptUnit(expected).replace(/,/g, ''),
+      threshold
+    );
     return withinRange(range, adaptUnit(received).replace(/,/g, ''));
   }
-  return false
+  return false;
 };

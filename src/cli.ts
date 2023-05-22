@@ -22,7 +22,7 @@ export function killAll() {
   for (const key of Object.keys(p)) {
     p[key].kill();
   }
-  process.exit(0)
+  process.exit(0);
 }
 
 const spawnZombienet = (options) => {
@@ -115,12 +115,7 @@ program
   )
   .addOption(
     new Option('-m, --mode <mode>', 'mode to run')
-      .choices([
-        'test',
-        'zombienet',
-        'zombienet-test',
-        'checker',
-      ])
+      .choices(['test', 'zombienet', 'zombienet-test', 'checker'])
       .makeOptionMandatory()
   )
   .addOption(new Option('-c, --config <path>', 'path to zombienet config file'))
