@@ -6,7 +6,7 @@ export const sendQuery = async (context, key: string, query: Query) => {
   const { chain, delay, pallet, call, args } = query;
   let api = providers[chain.wsPort].api;
   let parsedArgs = parseArgs(context, args);
-  await sleep(delay ? delay : context.actionDelay);
+  await sleep(delay !== undefined ? delay : context.actionDelay);
   let result = await api.query[pallet][call](...parsedArgs);
   return result;
 };
