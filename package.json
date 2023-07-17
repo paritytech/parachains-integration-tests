@@ -1,6 +1,6 @@
 {
   "name": "@parity/parachains-integration-tests",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "main": "index.js",
   "author": "Ignacio Palacios Santos <ignacio.palacios.santos@gmail.com>",
   "license": "MIT",
@@ -22,7 +22,7 @@
     "lint:write": "prettier --write ."
   },
   "dependencies": {
-    "@zombienet/cli": "1.3.52",
+    "@zombienet/cli": "1.3.63",
     "@types/chai": "^4.2.22",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.7.10",
