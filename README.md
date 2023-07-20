@@ -5,11 +5,11 @@ This tool allows you to develop tests rapidly describing them in a YAML file. Be
 
 It can work alongside with [Zombienet](https://github.com/paritytech/zombienet) or you can run your tests against the testnet of your choice.
 
-Under the `./examples` folder, this repository contains integration tests for the _Common Good Parachains_. You can take them as examples of how to write tests with this tool.
+Under the `./examples` folder, this repository contains integration tests for the _System Parachains_. You can take them as examples of how to write tests with this tool.
 
 ## Set Up
 ### Requirements
-- `node v17.6.0` or higher.
+- `node v18` or higher.
 ### Versioning
 - `v2.0.0` contains **BREAKING CHANGES**. Tests based on `^1.0.0` will stop working properly from `v2.0.0` onwards. Check the GitHub [release](https://github.com/paritytech/parachains-integration-tests/releases/tag/v2.0.0) for more info and how to migrate the tests.
 
@@ -19,6 +19,8 @@ Under the `./examples` folder, this repository contains integration tests for th
 It can be installed to be run in two different ways:
 - Installing the npm package globally
   ```
+  yarn global add ts-node
+
   yarn global add @parity/parachains-integration-tests
   ```
 - From the repository
@@ -442,12 +444,13 @@ There are two different and compatible ways (you can apply both at the same time
     result: { from: ..., to: ..., amount: ... }
     ```
 
-  Setting `strict: false` allows to check if `result` is just contained in the event result instead of expecting a perfect match. For a _Tuple_ it means that the provided array is a subset (array items exist & order and index matter) of the event result array. For a _Struct_ it means that the provided object is also a subset (keys/values exist) of the event result object.
+  `strict` is set to `false` by default. It allows to check if `result` is just contained in the event result instead of expecting a perfect match. For a _Tuple_ it means that the provided array is a subset (array items exist & order and index matter) of the event result array. For a _Struct_ it means that the provided object is also a subset (keys/values exist) of the event result object.
 - `attributes`: Event's attributes must be identified either by `type`, `key` or both. When the event is defined in the _runtime_ as a _Tuple_, the only way to identify the attributes is by their `type`. Be aware that in that case the order you declare the `attributes` in the test matters. That is because there could be multiple attributes with the same `type` in the _Tuple_. However, if the event is defined as a _Struct_, its attributes can be also identified by their `key`.
 
   By setting `isRange: true` you are letting know to the tool that the expected value should be within the range defined in the `value` attribute. The expected `value`'s format is: `<lower_limit>..<upper_limit>`.
 
   In addition, a `threshold` attribute can be used to define an upper and lower limit the `value` attribute should be within. It is expecting a percentage value. E.g: `threshold: [10, 20]` means that the `value` can be 10% lower and 20% higher.
+  It can be used either for an `attribute` `value` or a `event` `result`. For assessing a `result` treshold should be an object where its keys are the fields to be assessed from `result`. Example below checking `Weight` values `ref_time` and `proof_size`.
 
   For obvious reason, `isRange` and `threshold` can not be used at the same time. These features are especially useful when checking variables that often change such as _Weights_.
 
@@ -501,14 +504,11 @@ tests: # Describe[]
                       value: Ok
                 - name: xcmPallet.Sent
                 - name: dmpQueue.ExecutedDownward
-                  chain: *parachain
-                  result: { outcome: { Complete: '2,000,000,000' }}
-                  strict: false
-                  attributes: # Attribute[]
-                    - type: XcmV2TraitsOutcome
-                      xcmOutcome: Complete
-                      threshold: [10, 20] # value can be 10% lower and 20% higher
-                      value: 2,000,000,000
+                  chain: *collectives_parachain
+                  threshold: { refTime: [10, 10], proofSize: [10, 10] }
+                  result: {
+                    outcome: { Complete: { refTime: '3,000,000,000', proofSize: '1,000,000' }}
+                  }
                 - name: polkadotXcm.Sent
                   chain: *parachain
                 - name: ump.ExecutedUpward
@@ -532,6 +532,7 @@ interface Event {
   result?: object; // Either {..} or [..]
   strict: boolean;
   attributes?: Attribute[];
+  threshold?: any;
 }
 ```
 

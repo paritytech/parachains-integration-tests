@@ -4,7 +4,11 @@ import { EventResult, Rpc } from './interfaces';
 import { addConsoleGroup, addConsoleGroupEnd, parseArgs, sleep } from './utils';
 import { eventListenerBuilder } from './events';
 
-export const sendRpc = async (context, key: string, rpc: Rpc): Promise<any[]> => {
+export const sendRpc = async (
+  context,
+  key: string,
+  rpc: Rpc
+): Promise<any[]> => {
   return new Promise(async (resolve, reject) => {
     let providers = context.providers;
     const { events, chain, delay, method, call, args } = rpc;
@@ -14,12 +18,12 @@ export const sendRpc = async (context, key: string, rpc: Rpc): Promise<any[]> =>
     context.variables[`\$${key}`] = await api.rpc[method][call](...parsedArgs);
 
     if (events) {
-      await eventListenerBuilder(context, chain, events, resolve, reject)
+      await eventListenerBuilder(context, chain, events, resolve, reject);
     } else {
       let eventsResults: EventResult[] = [];
-      resolve(eventsResults)
+      resolve(eventsResults);
     }
-  })
+  });
 };
 
 export const rpcsBuilder = async (context, rpcs: { [key: string]: Rpc }) => {

@@ -1,12 +1,13 @@
 [relaychain]
 default_command = "./bin/polkadot"
-default_args = [ "-lparachain=debug" ]
+default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "polkadot-local"
 
     [[relaychain.nodes]]
     name = "alice"
     ws_port = 9800
     validator = true
+    args = ["--state-cache-size=0"]
 
     [[relaychain.nodes]]
     name = "bob"
@@ -32,11 +33,14 @@ cumulus_based = true
     name = "collator1"
     ws_port = 9810
     command = "./bin/polkadot-parachain"
+    args = [ "-lxcm=trace", "--state-cache-size=0" ]
 
     [[parachains.collators]]
     name = "collator2"
     ws_port = 9811
     command = "./bin/polkadot-parachain"
+    args = [ "-lxcm=trace" ]
+
 
 [[parachains]]
 id = 2000
@@ -47,11 +51,13 @@ cumulus_based = true
     name = "collator3"
     ws_port = 9820
     command = "./bin/polkadot-parachain"
+    args = [ "-lxcm=trace", "--state-cache-size=0" ]
 
     [[parachains.collators]]
     name = "collator4"
     ws_port = 9821
     command = "./bin/polkadot-parachain"
+    args = [ "-lxcm=trace" ]
 
 # [[hrmpChannels]]
 #   sender = 1000

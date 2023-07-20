@@ -14,6 +14,7 @@ import {
   withinThreshold,
   parseRange,
   updateLastBlocks,
+  findObject,
 } from './utils';
 
 const messageBuilder = (context, event: EventResult): string => {
@@ -36,6 +37,9 @@ const messageBuilder = (context, event: EventResult): string => {
         resultMessage = `\n\n   ✔️  Expected Result: ${resultJson}`;
       } else {
         resultMessage = `\n\n   ✖️  Expected Result: ${resultJson} | Received Result: ${recordJson}`;
+        resultMessage += event.threshold
+          ? `\n\t-> NOT WITHIN THRESHOLD [${JSON.stringify(event.threshold)}]`
+          : '';
       }
       event.ok &&= isExpectedResult;
     }
@@ -94,7 +98,11 @@ const messageBuilder = (context, event: EventResult): string => {
                 let received = `Received Attribute: '${keyValue}${gap}${typeValue}' : ${dataJson}`;
                 let rangeMsg = `${isRange ? '-> NOT WITHIN RANGE' : ''}`;
                 let thresholdMsg = `${
-                  threshold ? `-> NOT WITHIN THRESHOLD [${threshold}]` : ''
+                  threshold
+                    ? `\n\t-> NOT WITHIN THRESHOLD [${JSON.stringify(
+                        threshold
+                      )}]`
+                    : ''
                 }`;
                 hasValues += `\n\n   ✖️  ${expected} | ${received} ${rangeMsg}${thresholdMsg}`;
               }
@@ -114,6 +122,13 @@ const messageBuilder = (context, event: EventResult): string => {
   return `${isOk} EVENT: (${chainContext}) '${name}' ${isReceived}${resultMessage}${xcmOutcomeMessage}${hasValues}\n`;
 };
 
+const isStrict = (event: Event): boolean => {
+  if (event.strict == undefined && event.threshold != undefined) {
+    return false;
+  }
+  return event.strict;
+};
+
 const eventsResultsBuilder = (
   extrinsicChain: Chain,
   events: Event[]
@@ -131,7 +146,7 @@ const eventsResultsBuilder = (
         ok: true,
         data: [],
         message: '',
-        strict: event.strict == undefined ? true : event.strict,
+        strict: isStrict(event),
       },
     };
     if (!eventsResultsObject[extendedEvent.name]) {
@@ -282,14 +297,52 @@ const isTheBestExpectedEvent = (
   return false;
 };
 
-const isExpectedEventResult = (event: EventResult): boolean => {
-  const { result, record, strict } = event;
-
-  if (strict) {
-    return _.isEqual(record, adaptUnit(result));
+const nonStrictMatch = (result: any, record: any): boolean => {
+  if (
+    Array.isArray(record) &&
+    Array.isArray(result) &&
+    record.length !== result.length
+  ) {
+    let matchesNum = 0;
+    for (let recordItem of record) {
+      for (let resultItem of result) {
+        if (_.isMatch(recordItem, adaptUnit(resultItem))) {
+          matchesNum += 1;
+        }
+      }
+    }
+    return matchesNum === result.length;
   } else {
     return _.isMatch(record, adaptUnit(result));
   }
+};
+
+const isExpectedEventResult = (event: EventResult): boolean => {
+  const { result, record, strict, threshold } = event;
+
+  if (result) {
+    if (strict) {
+      return _.isEqual(record, adaptUnit(result));
+    } else if (threshold) {
+      let within = withinThreshold(result, record, threshold);
+
+      if (!within) {
+        return within;
+      } else {
+        for (const key in threshold) {
+          let recordObject = findObject(record, key);
+          let resultObject = findObject(result, key);
+          resultObject[key] = recordObject[key];
+        }
+        event.threshold = undefined;
+        return nonStrictMatch(result, record);
+      }
+    } else {
+      return nonStrictMatch(result, record);
+    }
+  }
+
+  return false;
 };
 
 const isExpectedEventAttribute = (
@@ -320,7 +373,10 @@ const eventDataBuilder = (data: any, typeDef: any, key: string): EventData => {
     value: data,
   };
 
-  if (typeDef.lookupName === 'XcmV2TraitsOutcome' || typeDef.lookupName === 'XcmV3TraitsOutcome') {
+  if (
+    typeDef.lookupName === 'XcmV2TraitsOutcome' ||
+    typeDef.lookupName === 'XcmV3TraitsOutcome'
+  ) {
     if (data['Complete']) {
       eventData.xcmOutcome = XcmOutcome.Complete;
       eventData.value = data['Complete'];
@@ -391,7 +447,13 @@ const updateEventResult = (
   return event;
 };
 
-export const eventListenerBuilder = async (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) => {
+export const eventListenerBuilder = async (
+  context,
+  extrinsicChain: Chain,
+  expectedEvents: Event[],
+  resolve,
+  reject
+) => {
   try {
     let initialEventsResults: EventResultsObject = eventsResultsBuilder(
       extrinsicChain,
@@ -436,12 +498,18 @@ export const eventListenerBuilder = async (context, extrinsicChain: Chain, expec
     addConsoleGroupEnd(2);
     reject(e);
   }
-}
+};
 
 export const eventsHandler =
   (context, extrinsicChain: Chain, expectedEvents: Event[], resolve, reject) =>
   async ({ events = [], status }) => {
     if (status.isReady) {
-      await eventListenerBuilder(context, extrinsicChain, expectedEvents, resolve, reject)
+      await eventListenerBuilder(
+        context,
+        extrinsicChain,
+        expectedEvents,
+        resolve,
+        reject
+      );
     }
   };
