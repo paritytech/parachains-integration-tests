@@ -6,7 +6,7 @@ settings:
     collectives_parachain: &collectives_parachain
       wsPort: 9710
       paraId: &cp_id 1001
-    statemint_parachain: &statemint_parachain
+    assethub_parachain: &assethub_parachain
       wsPort: 9810
       paraId: &sp_id 1000
   variables:
@@ -18,7 +18,7 @@ settings:
 tests:
   - name: Fellowship
     describes:
-      - name: The Fellowship suspend_xcm_execution for the xcmp_queue on Statemint
+      - name: The Fellowship resume xcm execution for the xcmp queue on AssetHub
         its:
           - name: Note preimage from the xcm send call to suspend_xcm_execution
             actions:
@@ -27,12 +27,12 @@ tests:
                   signer: *alice_signer
                   pallet: preimage
                   call: notePreimage
-                  args: [ # TODO expand # xcm send transact suspend_xcm_execution
-                    "0x1f0001010100a10f03082f00000603028c864700081e01",
+                  args: [ # TODO expand # xcm send transact resume_xcm_execution
+                    "0x1f0001010100a10f03082f00000603028c864700081e02",
                   ]
                   events:
                     - name: preimage.Noted
-          - name: Submit a proposal to init the Fellowship
+          - name: Submit a proposal to resume xcm execution on AssetHub
             actions:
               - extrinsics:
                 - chain: *collectives_parachain
@@ -45,7 +45,7 @@ tests:
                     },
                     {
                       "Lookup": { # TODO obtain from the call
-                        "hash_": "0x989ce9f587d89ef3274b85bf01306a56a64874e09cda5556ecfdb448a8dd82ec",
+                        "hash_": "0x769d7b98a563d9192acf006a25518f9e487c04c204754c954cc0637acc0a5c2f",
                         "len": 23,
                       },
                     },
@@ -81,4 +81,4 @@ tests:
                   events:
                     - name: fellowshipReferenda.DecisionDepositPlaced
                     - name: xcmpQueue.Success
-                      chain: *statemint_parachain 
+                      chain: *assethub_parachain 

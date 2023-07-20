@@ -41,7 +41,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
-          - name: Submit a proposal to init the Fellowship
+          - name: Submit a proposal to while list the call
             actions:
               - extrinsics:
                 - chain: *collectives_parachain

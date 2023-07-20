@@ -138,11 +138,12 @@ tests:
                     - type: u128
                       key: amount
                       value: 10000000000000 # amount received and withdrawn from registry account
-                - name: ump.ExecutedUpward
+                - name: messageQueue.Processed
                   chain: *relay_chain
                   attributes:
-                    - type: XcmV3TraitsOutcome
-                      xcmOutcome: Complete
+                    - type: bool
+                      key: success
+                      value: true
           - queries:
               balance_rc_alice_3:
                 chain: *relay_chain
