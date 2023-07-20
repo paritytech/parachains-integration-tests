@@ -3,7 +3,7 @@ settings:
   chains:
     relay_chain: &relay_chain
       wsPort: 9700
-    statemint_parachain: &statemint_parachain
+    assethub_parachain: &assethub_parachain
       wsPort: 9810
       paraId: &sp_id 1000
   variables:
@@ -11,11 +11,12 @@ settings:
     chains:
       accounts:
         alice_signer: &alice_signer //Alice
+        bob_signer: &bob_signer //Bob
 
 tests:
-  - name: Fellowship
+  - name: OpenGov
     describes:
-      - name: Set desired candidates on Statemint from Relay Chain OpenGov Staking track
+      - name: Set desired candidates on AssetHub from Relay Chain OpenGov Staking track
         its:
           - name: Note preimage from xcm send set_desired_candidates call
             actions:
@@ -29,7 +30,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
-          - name: Submit a proposal to init the Fellowship
+          - name: Submit a proposal to set desired candidates
             actions:
               - extrinsics:
                 - chain: *relay_chain
@@ -52,11 +53,30 @@ tests:
                   ]
                   events:
                     - name: referenda.Submitted
-          - name: Vote Aye
+          - name: Alice Vote Aye
             actions:
               - extrinsics:
                 - chain: *relay_chain
                   signer: *alice_signer
+                  pallet: convictionVoting
+                  call: vote
+                  args: [
+                    *proposal_index,
+                    {
+                      "Standard": {
+                        "vote": {
+                          "aye": true,
+                          "conviction": "Locked1x",
+                        },
+                        "balance": 200000000000000,
+                      }
+                    },
+                  ] # TODO no event to catch
+          - name: Bob Vote Aye
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *bob_signer
                   pallet: convictionVoting
                   call: vote
                   args: [
@@ -84,4 +104,4 @@ tests:
                   events:
                     - name: referenda.DecisionDepositPlaced
                     - name: collatorSelection.NewDesiredCandidates
-                      chain: *statemint_parachain
+                      chain: *assethub_parachain

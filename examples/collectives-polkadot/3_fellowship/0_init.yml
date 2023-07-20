@@ -11,6 +11,9 @@ settings:
     chains:
       accounts:
         alice_signer: &alice_signer //Alice
+        bob_signer: &bob_signer //Bob
+
+# original call "0x630001000100a50f03082f000006030700863ba101821a060045022802103f04d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d3f05d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d01003f05d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d02003f05d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d0300"
 
 tests:
   - name: Fellowship
@@ -25,7 +28,7 @@ tests:
                   pallet: preimage
                   call: notePreimage
                   args: [ # TODO expand
-                    "0x630001000100a50f03082f000006030700863ba101821a06006d042802203c0000d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d3c0100d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d3c0100d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d3c00008eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a483c01008eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a483c000090b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe223c010090b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe223c0100d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+                    "0x630001000100a50f03142f0000060303002f6859419c883f04d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d060303002f6859419c903f05d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d0100060303002f6859419c903f05d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d0200060303002f6859419c903f05d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d0300"
                   ]
                   events:
                     - name: preimage.Noted
@@ -42,8 +45,8 @@ tests:
                     },
                     {
                       "Lookup": { # TODO obtain from the call
-                        "hash_": "0xd04c7392424c1538f198b0414e01364084176d6c48af2f777eb9382a2974623f",
-                        "len": 310,
+                        "hash_": "0xfe5e8dfe00aabb6cd7a824593a89006a9a3440479158380ccae37c058f8298e3",
+                        "len": 195, # old 172
                       },
                     },
                     {
@@ -52,7 +55,7 @@ tests:
                   ]
                   events:
                     - name: referenda.Submitted
-          - name: Vote Aye
+          - name: Alice Vote Aye
             actions:
               - extrinsics:
                 - chain: *relay_chain
@@ -70,7 +73,26 @@ tests:
                         "balance": 200000000000000,
                       }
                     },
-                  ] # TODO no event to catch
+                  ] # TODO no Aye event to catch
+          - name: Bob Vote Aye
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *bob_signer
+                  pallet: convictionVoting
+                  call: vote
+                  args: [
+                    *proposal_index,
+                    {
+                      "Standard": {
+                        "vote": {
+                          "aye": true,
+                          "conviction": "Locked1x",
+                        },
+                        "balance": 200000000000000,
+                      }
+                    },
+                  ] # TODO no Aye event to catch
           - name: Submit the decision deposit
             actions:
               - extrinsics:

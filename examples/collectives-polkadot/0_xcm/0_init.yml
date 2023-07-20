@@ -6,7 +6,7 @@ settings:
     collectives_parachain: &collectives_parachain
       wsPort: 9710
       paraId: &cp_id 1001
-    statemint_parachain: &statemint_parachain
+    assethub_parachain: &assethub_parachain
       wsPort: 9810
       paraId: &sp_id 1000
   variables:
@@ -107,7 +107,7 @@ tests:
                   attributes:
                     - type: XcmV3TraitsOutcome
                       xcmOutcome: Complete
-          - extrinsics: # Relay Chain sets supported version for Statemint Parachain
+          - extrinsics: # Relay Chain sets supported version for AssetHub Parachain
             - chain: *relay_chain
               sudo: true
               signer: *alice_signer
@@ -133,7 +133,7 @@ tests:
                   attributes:
                     - type: u32
                       value: *xcm_version
-          - extrinsics: # Statemint Parachain sets supported version for Relay Chain through it
+          - extrinsics: # AssetHub Parachain sets supported version for Relay Chain through it
             - chain: *relay_chain
               signer: *alice_signer
               sudo: true
@@ -173,12 +173,12 @@ tests:
                       value: Ok
                 - name: xcmPallet.Sent
                 - name: polkadotXcm.SupportedVersionChanged
-                  chain: *statemint_parachain
+                  chain: *assethub_parachain
                   attributes:
                     - type: u32
                       value: *xcm_version
                 - name: dmpQueue.ExecutedDownward
-                  chain: *statemint_parachain
+                  chain: *assethub_parachain
                   attributes:
                     - type: XcmV3TraitsOutcome
                       xcmOutcome: Complete

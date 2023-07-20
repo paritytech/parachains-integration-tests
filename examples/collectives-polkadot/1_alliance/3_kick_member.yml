@@ -163,6 +163,11 @@ tests:
                   attributes:
                     - type: XcmV3TraitsOutcome
                       xcmOutcome: Complete
+                - name: messageQueue.Processed
+                  attributes:
+                    - type: bool
+                      key: success
+                      value: true
 
           - queries:
               balance_rc_treasury_after:
