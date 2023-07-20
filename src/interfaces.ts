@@ -78,6 +78,7 @@ export interface Event {
   attributes?: Attribute[];
   result?: object;
   strict: boolean;
+  threshold?: any;
 }
 
 export interface EventData {
@@ -104,7 +105,7 @@ export interface Attribute {
   type?: string;
   key?: string;
   isRange?: boolean;
-  threshold?: [number, number];
+  threshold?: any;
   value?: any;
   xcmOutcome?: XcmOutcome; // only for 'XcmV2TraitsOutcome' type
 }

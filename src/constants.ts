@@ -3,7 +3,9 @@ import { Interface } from './interfaces';
 
 export const DEFAULT_TIMEOUT = 300000;
 export const DEFAULT_EVENT_LISTENER_TIMEOUT = 200000;
-export const DEFAULT_ACTION_DELAY = 40000;
+// export const DEFAULT_EVENT_LISTENER_TIMEOUT = 40000;
+// export const DEFAULT_ACTION_DELAY = 40000;
+export const DEFAULT_ACTION_DELAY = 0;
 export const REGISTERED_ASSERTIONS = [
   'custom',
   'equal',
@@ -169,6 +171,7 @@ export const INTERFACE: { [key: string]: Interface } = {
       remote: false,
       timeout: false,
       result: false,
+      threshold: false,
       strict: false,
       attributes: false,
     },
@@ -209,7 +212,8 @@ export const INTERFACE: { [key: string]: Interface } = {
     type: 'boolean',
   },
   threshold: {
-    instance: YAMLSeq,
+    // instance: YAMLSeq,
+    type: 'any',
   },
   value: {
     type: 'any',
