@@ -25,7 +25,7 @@ cumulus_based = true
     name = "collator1"
     ws_port = 9710
     command = "./bin/polkadot-parachain"
-    args = ["-lxcm=trace"]
+    args = ["-lxcm=trace",  "--state-cache-size=0"]
 
     [[parachains.collators]]
     name = "collator2"
