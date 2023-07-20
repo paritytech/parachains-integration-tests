@@ -8,12 +8,47 @@ settings:
       paraId: &cp_id 1001
     assethub_parachain: &assethub_parachain
       wsPort: 9810
-      paraId: &sp_id 1000
+      paraId: &ap_id 1000
   variables:
     fellows_proposal_index: &fellows_proposal_index 1
     chains:
       accounts:
         alice_signer: &alice_signer //Alice
+
+  decodedCalls:
+    xcmp_resume_execution_ap:
+      chain: *assethub_parachain
+      encode: true
+      pallet: xcmpQueue
+      call: resumeXcmExecution
+      args: []
+    send_xcmp_resume_execution_cp:
+      chain: *collectives_parachain
+      encode: false
+      pallet: polkadotXcm
+      call: send
+      args: [
+        { v3: { parents: 1, interior: { x1: { parachain: *ap_id }}}}, # destination
+        {
+          v3: [ #message
+            {
+              UnpaidExecution: {
+                weightLimit: Unlimited
+              }
+            },
+            {
+              Transact: {
+                originKind: Xcm,
+                requireWeightAtMost: {
+                  refTime: 300000000, # 300_000_000
+                  proofSize: 10000, # 10_000
+                },
+                call: $xcmp_resume_execution_ap
+              }
+            }
+          ]
+        }
+      ]
 
 tests:
   - name: Fellowship
@@ -27,8 +62,8 @@ tests:
                   signer: *alice_signer
                   pallet: preimage
                   call: notePreimage
-                  args: [ # TODO expand # xcm send transact resume_xcm_execution
-                    "0x1f0001010100a10f03082f00000603028c864700081e02",
+                  args: [
+                    $send_xcmp_resume_execution_cp
                   ]
                   events:
                     - name: preimage.Noted
@@ -44,9 +79,9 @@ tests:
                       "FellowshipOrigins": "Fellows",
                     },
                     {
-                      "Lookup": { # TODO obtain from the call
-                        "hash_": "0x769d7b98a563d9192acf006a25518f9e487c04c204754c954cc0637acc0a5c2f",
-                        "len": 23,
+                      "Lookup": { # TODO obtain from the call https://github.com/paritytech/parachains-integration-tests/issues/103
+                        "hash_": "0x4ccf32184998e75cc58b835bfbda4f208d0186b424b80e1d8bc9da52e6e968bf",
+                        "len": 24,
                       },
                     },
                     {

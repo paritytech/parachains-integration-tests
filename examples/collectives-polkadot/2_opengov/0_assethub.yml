@@ -5,14 +5,49 @@ settings:
       wsPort: 9700
     assethub_parachain: &assethub_parachain
       wsPort: 9810
-      paraId: &sp_id 1000
+      paraId: &ap_id 1000
   variables:
     proposal_index: &proposal_index 0
     chains:
       accounts:
         alice_signer: &alice_signer //Alice
         bob_signer: &bob_signer //Bob
-
+  decodedCalls:
+    set_candidates_ap:
+      chain: *assethub_parachain
+      encode: true
+      pallet: collatorSelection
+      call: setDesiredCandidates
+      args: [
+        3
+      ]
+    send_set_candidates_rc:
+      chain: *relay_chain
+      encode: false
+      pallet: xcmPallet
+      call: send
+      args: [
+        { v3: { parents: 0, interior: { x1: { parachain: *ap_id }}}}, # destination
+        {
+          v3: [ #message
+            {
+              UnpaidExecution: {
+                weightLimit: Unlimited
+              }
+            },
+            {
+              Transact: {
+                originKind: Xcm,
+                requireWeightAtMost: {
+                  refTime: 200000000, # 200_000_000
+                  proofSize: 100000, # 100_000
+                },
+                call: $set_candidates_ap
+              }
+            }
+          ]
+        }
+      ]
 tests:
   - name: OpenGov
     describes:
@@ -25,8 +60,8 @@ tests:
                   signer: *alice_signer
                   pallet: preimage
                   call: notePreimage
-                  args: [ # TODO expand
-                    "0x630001000100a10f03082f000006030208af2f821a060018150103000000",
+                  args: [
+                    $send_set_candidates_rc
                   ]
                   events:
                     - name: preimage.Noted
@@ -42,8 +77,8 @@ tests:
                       "Origins": "StakingAdmin",
                     },
                     {
-                      "Lookup": { # TODO obtain the hash from the call
-                        "hash_": "0x177b5ef8508ff95261baf36c5ea15d94c83d81d3483e11d27534fd0890d1a187",
+                      "Lookup": { # TODO obtain the hash from the call https://github.com/paritytech/parachains-integration-tests/issues/103
+                        "hash_": "0x8588260df093b0c758428d1e23ceea678d4f9392ee9c1c9e062b1cf3da7e9b6b",
                         "len": 30,
                       },
                     },
