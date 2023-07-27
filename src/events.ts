@@ -35,7 +35,7 @@ const messageBuilder = (context, event: EventResult): string => {
       let isExpectedResult = isExpectedEventResult(context, event);
 
       if (isExpectedResult) {
-        resultMessage = `\n\n   ✔️  Expected Result: ${resultJson} | Received Result: ${recordJson}`;
+        resultMessage = `\n\n   ✔️  Expected Result: ${resultJson}`;
       } else {
         resultMessage = `\n\n   ✖️  Expected Result: ${resultJson} | Received Result: ${recordJson}`;
         resultMessage += event.threshold
