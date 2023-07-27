@@ -65,6 +65,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
+                      result: {hash_: $send_set_candidates_rc.hash }
           - name: Submit a proposal to set desired candidates
             actions:
               - extrinsics:
@@ -77,9 +78,9 @@ tests:
                       "Origins": "StakingAdmin",
                     },
                     {
-                      "Lookup": { # TODO obtain the hash from the call https://github.com/paritytech/parachains-integration-tests/issues/103
-                        "hash_": "0x8588260df093b0c758428d1e23ceea678d4f9392ee9c1c9e062b1cf3da7e9b6b",
-                        "len": 30,
+                      "Lookup": {
+                        "hash_": $send_set_candidates_rc.hash,
+                        "len": $send_set_candidates_rc.len,
                       },
                     },
                     {
@@ -88,6 +89,10 @@ tests:
                   ]
                   events:
                     - name: referenda.Submitted
+                      result: { 
+                        index: *proposal_index,
+                        proposal: { Lookup: { hash_: $send_set_candidates_rc.hash, len: $send_set_candidates_rc.len }}
+                      }
           - name: Alice Vote Aye
             actions:
               - extrinsics:
@@ -138,5 +143,7 @@ tests:
                   ]
                   events:
                     - name: referenda.DecisionDepositPlaced
+                      result: { index: *proposal_index }
                     - name: collatorSelection.NewDesiredCandidates
                       chain: *assethub_parachain
+                      result: { desiredCandidates: 3 }

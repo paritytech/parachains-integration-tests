@@ -58,14 +58,10 @@ tests:
               events:
                 - name: xcmPallet.Attempted
                   chain: *relay_chain
-                  attributes:
-                    - type: XcmV3TraitsOutcome
-                      xcmOutcome: Complete
+                  result: { outcome: { Complete: {} } }
                 - name: dmpQueue.ExecutedDownward
                   chain: *collectives_parachain
-                  attributes:
-                    - type: XcmV3TraitsOutcome
-                      xcmOutcome: Complete
+                  result: { outcome: { Complete: {} } }
           - queries:
               balance_rc_alice_2:
                 chain: *relay_chain
@@ -121,29 +117,12 @@ tests:
               ]
               events:
                 - name: balances.Withdraw
-                  attributes:
-                    - type: AccountId32
-                      key: who
-                      value: *acc_alice_ss58
-                    - type: u128
-                      key: amount
-                      value: 10000000000000
+                  result: { who: *acc_alice_ss58, amount: 10000000000000 }
                 - name: polkadotXcm.Attempted
-                  attributes:
-                    - type: XcmV3TraitsOutcome
-                      xcmOutcome: Complete
-                - name: balances.Withdraw
-                  chain: *relay_chain
-                  attributes:
-                    - type: u128
-                      key: amount
-                      value: 10000000000000 # amount received and withdrawn from registry account
+                  result: { outcome: { Complete: {} } }
                 - name: messageQueue.Processed
                   chain: *relay_chain
-                  attributes:
-                    - type: bool
-                      key: success
-                      value: true
+                  result: { origin: { Ump: { Para: *cp_id } }, success: true}
           - queries:
               balance_rc_alice_3:
                 chain: *relay_chain
