@@ -67,7 +67,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
-                      result: {hash_: $_hash__send_xcmp_resume_execution_cp}
+                      result: {hash_: $send_xcmp_resume_execution_cp.hash }
           - name: Submit a proposal to resume xcm execution on AssetHub
             actions:
               - extrinsics:
@@ -81,8 +81,8 @@ tests:
                     },
                     {
                       "Lookup": {
-                        "hash_": $_hash__send_xcmp_resume_execution_cp,
-                        "len": $_len__send_xcmp_resume_execution_cp,
+                        "hash_": $send_xcmp_resume_execution_cp.hash,
+                        "len": $send_xcmp_resume_execution_cp.len,
                       },
                     },
                     {
@@ -93,7 +93,7 @@ tests:
                     - name: fellowshipReferenda.Submitted
                       result: {
                         index: 1,
-                        proposal: {Lookup: {hash_: $_hash__send_xcmp_resume_execution_cp, len: $_len__send_xcmp_resume_execution_cp}}
+                        proposal: {Lookup: {hash_: $send_xcmp_resume_execution_cp.hash, len: $send_xcmp_resume_execution_cp.len}}
                       }
           - name: Vote Aye
             actions:
