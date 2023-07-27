@@ -15,6 +15,7 @@ import {
   parseRange,
   updateLastBlocks,
   findObject,
+  parseArgs,
 } from './utils';
 
 const messageBuilder = (context, event: EventResult): string => {
@@ -29,9 +30,9 @@ const messageBuilder = (context, event: EventResult): string => {
 
   if (received) {
     if (result) {
-      let resultJson = JSON.stringify(result);
+      let resultJson = JSON.stringify(parseArgs(context, result));
       let recordJson = JSON.stringify(record);
-      let isExpectedResult = isExpectedEventResult(event);
+      let isExpectedResult = isExpectedEventResult(context, event);
 
       if (isExpectedResult) {
         resultMessage = `\n\n   ✔️  Expected Result: ${resultJson}`;
@@ -187,6 +188,7 @@ const eventListener = (
             if (
               name === `${section}.${method}` &&
               isTheBestExpectedEvent(
+                context,
                 record,
                 event,
                 allEvents[`${section}.${method}`]
@@ -247,6 +249,7 @@ const assessEvent = (event: EventResult): number => {
 };
 
 const isTheBestExpectedEvent = (
+  context,
   record,
   event: Readonly<EventResult>,
   similarEvents: EventResult[]
@@ -261,7 +264,7 @@ const isTheBestExpectedEvent = (
 
   // Check whether event is expected based on result/attributes
   if (result) {
-    if (isExpectedEventResult(clone)) {
+    if (isExpectedEventResult(context, clone)) {
       return true;
     } else {
       if (similarEvents.length > 1) {
@@ -269,7 +272,7 @@ const isTheBestExpectedEvent = (
           if (similarEvent.chain.wsPort === event.chain.wsPort) {
             let clone = _.cloneDeep(similarEvent);
             updateEventResult(true, record, clone);
-            if (isExpectedEventResult(clone)) {
+            if (isExpectedEventResult(context, clone)) {
               return false;
             }
           }
@@ -317,28 +320,29 @@ const nonStrictMatch = (result: any, record: any): boolean => {
   }
 };
 
-const isExpectedEventResult = (event: EventResult): boolean => {
+const isExpectedEventResult = (context, event: EventResult): boolean => {
   const { result, record, strict, threshold } = event;
 
   if (result) {
+    const parsedResult = parseArgs(context, result);
     if (strict) {
-      return _.isEqual(record, adaptUnit(result));
+      return _.isEqual(record, adaptUnit(parsedResult));
     } else if (threshold) {
-      let within = withinThreshold(result, record, threshold);
+      let within = withinThreshold(parsedResult, record, threshold);
 
       if (!within) {
         return within;
       } else {
         for (const key in threshold) {
           let recordObject = findObject(record, key);
-          let resultObject = findObject(result, key);
+          let resultObject = findObject(parsedResult, key);
           resultObject[key] = recordObject[key];
         }
         event.threshold = undefined;
-        return nonStrictMatch(result, record);
+        return nonStrictMatch(parsedResult, record);
       }
     } else {
-      return nonStrictMatch(result, record);
+      return nonStrictMatch(parsedResult, record);
     }
   }
 
