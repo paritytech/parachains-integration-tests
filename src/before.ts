@@ -61,17 +61,13 @@ export const beforeBuildDecodedCalls = (decodedCalls) => {
     if (decodedCalls) {
       Object.keys(decodedCalls).forEach((key) => {
         if (!this.variables[`\$${key}`]) {
-          if (decodedCalls[key].encode === false) {
-            this.variables[`\$${key}`] = buildEncodedCallHex(
-              this,
-              decodedCalls[key]
-            );
-          } else {
-            this.variables[`\$${key}`] = buildEncodedCall(
-              this,
-              decodedCalls[key]
-            );
-          }
+          const { encoded, hash, len } = 
+            decodedCalls[key].encode === false ? 
+              buildEncodedCallHex(this, decodedCalls[key]) :
+              buildEncodedCall(this, decodedCalls[key]);
+          this.variables[`\$${key}`] = encoded;
+          this.variables[`\$_hash__${key}`] = hash;
+          this.variables[`\$_len__${key}`] = len;
         } else {
           console.log(
             `\n⛔ ERROR: the key $'${key}' can not be reassigned for decoded calls`
