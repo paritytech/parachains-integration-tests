@@ -77,12 +77,16 @@ export const stripEncodingDetails = (extrinsic: Uint8Array): Uint8Array => {
 
 export const buildEncodedCall = (context, decodedCall: Extrinsic) => {
   let dispatchable = buildDispatchable(context, decodedCall);
-  return u8aToHex(compactAddLength(stripEncodingDetails(dispatchable.toU8a())));
+  let dispatchableU8a = compactAddLength(stripEncodingDetails(dispatchable.toU8a()));
+  let hash = dispatchable.registry.hash(dispatchableU8a).toHex();
+  return { encoded: u8aToHex(dispatchableU8a), hash: hash, len: dispatchableU8a.length};
 };
 
 export const buildEncodedCallHex = (context, decodedCall: Extrinsic) => {
   let dispatchable = buildDispatchable(context, decodedCall);
-  return u8aToHex(stripEncodingDetails(dispatchable.toU8a()));
+  let dispatchableU8a = stripEncodingDetails(dispatchable.toU8a());
+  let hash = dispatchable.registry.hash(dispatchableU8a).toHex();
+  return { encoded: u8aToHex(dispatchableU8a), hash: hash, len: dispatchableU8a.length};
 };
 
 export const buildDispatchable = (context, extrinsic: Extrinsic) => {
