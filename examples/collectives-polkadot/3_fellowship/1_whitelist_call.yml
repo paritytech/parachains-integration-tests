@@ -26,7 +26,7 @@ settings:
       pallet: whitelist
       call: whitelistCall
       args: [
-        $_hash__remark_rc
+        $remark_rc.hash
       ]
     send_whitelist_remark_cp:
       chain: *collectives_parachain
@@ -73,7 +73,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
-                      result: { hash_: $_hash__remark_rc }
+                      result: { hash_: $remark_rc.hash }
           - name: Note preimage from the xcm send call to white list the call above
             actions:
               - extrinsics:
@@ -86,7 +86,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
-                      result: { hash_: $_hash__send_whitelist_remark_cp }
+                      result: { hash_: $send_whitelist_remark_cp.hash }
           - name: Submit a proposal to while list the call
             actions:
               - extrinsics:
@@ -100,8 +100,8 @@ tests:
                     },
                     {
                       "Lookup": { # TODO obtain from the call https://github.com/paritytech/parachains-integration-tests/issues/103
-                        "hash_": $_hash__send_whitelist_remark_cp,
-                        "len": $_len__send_whitelist_remark_cp,
+                        "hash_": $send_whitelist_remark_cp.hash,
+                        "len": $send_whitelist_remark_cp.len,
                       },
                     },
                     {
@@ -112,7 +112,7 @@ tests:
                     - name: fellowshipReferenda.Submitted
                       result: { 
                         index: *fellows_proposal_index,
-                        proposal: { Lookup: { hash_: $_hash__send_whitelist_remark_cp, len: $_len__send_whitelist_remark_cp}}
+                        proposal: { Lookup: { hash_: $send_whitelist_remark_cp.hash, len: $send_whitelist_remark_cp.len}}
                       }
           - name: Vote Aye
             actions:
@@ -143,4 +143,4 @@ tests:
                       result: {index: *fellows_proposal_index}
                     - name: whitelist.CallWhitelisted
                       chain: *relay_chain
-                      result: { callHash: $_hash__remark_rc }
+                      result: { callHash: $remark_rc.hash }

@@ -125,7 +125,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
-                      result: { hash_: $_hash__send_init_fellowship_rc }
+                      result: { hash_: $send_init_fellowship_rc.hash }
           - name: Submit a proposal to init the Fellowship
             actions:
               - extrinsics:
@@ -139,8 +139,8 @@ tests:
                     },
                     {
                       "Lookup": {
-                        "hash_": $_hash__send_init_fellowship_rc,
-                        "len": $_len__send_init_fellowship_rc,
+                        "hash_": $send_init_fellowship_rc.hash,
+                        "len": $send_init_fellowship_rc.len,
                       },
                     },
                     {
@@ -151,7 +151,7 @@ tests:
                     - name: referenda.Submitted
                       result: { 
                         index: *proposal_index, 
-                        proposal: { Lookup: { hash_: $_hash__send_init_fellowship_rc, len: $_len__send_init_fellowship_rc }}
+                        proposal: { Lookup: { hash_: $send_init_fellowship_rc.hash, len: $send_init_fellowship_rc.len }}
                       }
           - name: Alice Vote Aye
             actions:

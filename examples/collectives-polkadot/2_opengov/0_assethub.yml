@@ -65,7 +65,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
-                      result: {hash_: $_hash__send_set_candidates_rc }
+                      result: {hash_: $send_set_candidates_rc.hash }
           - name: Submit a proposal to set desired candidates
             actions:
               - extrinsics:
@@ -79,8 +79,8 @@ tests:
                     },
                     {
                       "Lookup": {
-                        "hash_": $_hash__send_set_candidates_rc,
-                        "len": $_len__send_set_candidates_rc,
+                        "hash_": $send_set_candidates_rc.hash,
+                        "len": $send_set_candidates_rc.len,
                       },
                     },
                     {
@@ -91,7 +91,7 @@ tests:
                     - name: referenda.Submitted
                       result: { 
                         index: *proposal_index,
-                        proposal: { Lookup: { hash_: $_hash__send_set_candidates_rc, len: $_len__send_set_candidates_rc }}
+                        proposal: { Lookup: { hash_: $send_set_candidates_rc.hash, len: $send_set_candidates_rc.len }}
                       }
           - name: Alice Vote Aye
             actions:
