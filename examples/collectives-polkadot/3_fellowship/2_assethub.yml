@@ -67,6 +67,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
+                      result: {hash_: $_hash__send_xcmp_resume_execution_cp}
           - name: Submit a proposal to resume xcm execution on AssetHub
             actions:
               - extrinsics:
@@ -79,9 +80,9 @@ tests:
                       "FellowshipOrigins": "Fellows",
                     },
                     {
-                      "Lookup": { # TODO obtain from the call https://github.com/paritytech/parachains-integration-tests/issues/103
-                        "hash_": "0x4ccf32184998e75cc58b835bfbda4f208d0186b424b80e1d8bc9da52e6e968bf",
-                        "len": 24,
+                      "Lookup": {
+                        "hash_": $_hash__send_xcmp_resume_execution_cp,
+                        "len": $_len__send_xcmp_resume_execution_cp,
                       },
                     },
                     {
@@ -90,6 +91,10 @@ tests:
                   ]
                   events:
                     - name: fellowshipReferenda.Submitted
+                      result: {
+                        index: 1,
+                        proposal: {Lookup: {hash_: $_hash__send_xcmp_resume_execution_cp, len: $_len__send_xcmp_resume_execution_cp}}
+                      }
           - name: Vote Aye
             actions:
               - extrinsics:
@@ -103,6 +108,7 @@ tests:
                   ]
                   events:
                     - name: fellowshipCollective.Voted
+                      result: { poll: *fellows_proposal_index, vote: { Aye: 1 } }
           - name: Submit the decision deposit
             actions:
               - extrinsics:
@@ -115,5 +121,6 @@ tests:
                   ]
                   events:
                     - name: fellowshipReferenda.DecisionDepositPlaced
+                      result: {index: *fellows_proposal_index}
                     - name: xcmpQueue.Success
                       chain: *assethub_parachain 

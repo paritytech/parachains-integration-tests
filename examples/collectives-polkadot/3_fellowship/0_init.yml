@@ -13,6 +13,7 @@ settings:
         alice_signer: &alice_signer //Alice
         bob_signer: &bob_signer //Bob
         alice_account32: &acc_alice_acc32 '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
+        alice_ss58: &acc_alice_ss58 '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5'
   decodedCalls:
     fellowship_induct_alice_cp:
       chain: *collectives_parachain
@@ -124,6 +125,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
+                      result: { hash_: $_hash__send_init_fellowship_rc }
           - name: Submit a proposal to init the Fellowship
             actions:
               - extrinsics:
@@ -136,9 +138,9 @@ tests:
                       "Origins": "FellowshipAdmin",
                     },
                     {
-                      "Lookup": { # TODO obtain from the call https://github.com/paritytech/parachains-integration-tests/issues/103
-                        "hash_": "0xe8b797454c5c6da3862c793ea73a415e7f8e6ad14336daba99d647d21555a6e9",
-                        "len": 195, # old 172
+                      "Lookup": {
+                        "hash_": $_hash__send_init_fellowship_rc,
+                        "len": $_len__send_init_fellowship_rc,
                       },
                     },
                     {
@@ -147,6 +149,10 @@ tests:
                   ]
                   events:
                     - name: referenda.Submitted
+                      result: { 
+                        index: *proposal_index, 
+                        proposal: { Lookup: { hash_: $_hash__send_init_fellowship_rc, len: $_len__send_init_fellowship_rc }}
+                      }
           - name: Alice Vote Aye
             actions:
               - extrinsics:
@@ -197,5 +203,7 @@ tests:
                   ]
                   events:
                     - name: referenda.DecisionDepositPlaced
+                      result: { index: *proposal_index }
                     - name: fellowshipCollective.MemberAdded
                       chain: *collectives_parachain
+                      result: { who: *acc_alice_ss58 }
