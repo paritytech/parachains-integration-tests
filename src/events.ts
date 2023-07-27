@@ -124,7 +124,7 @@ const messageBuilder = (context, event: EventResult): string => {
 };
 
 const isStrict = (event: Event): boolean => {
-  if (event.strict == undefined || event.threshold != undefined) {
+  if (event.strict == undefined && event.threshold != undefined) {
     return false;
   }
   return event.strict;
