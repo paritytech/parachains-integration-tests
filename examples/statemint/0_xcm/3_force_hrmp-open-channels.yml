@@ -42,7 +42,7 @@ tests:
             - chain: *relay_chain
               signer: *rc_signer
               pallet: balances
-              call: transfer
+              call: transferAllowDeath
               args: [
                 *pp_sovereign, # destination
                 *amount, # value
@@ -56,7 +56,7 @@ tests:
             - chain: *relay_chain
               signer: *rc_signer
               pallet: balances
-              call: transfer
+              call: transferAllowDeath
               args: [
                 *ap_sovereign, # destination
                 *amount, # value
