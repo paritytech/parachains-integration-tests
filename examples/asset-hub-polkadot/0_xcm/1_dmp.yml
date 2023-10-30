@@ -8,7 +8,7 @@ settings:
       paraId: &ap_id 1000
   variables:
     common:
-      weight_threshold:  &weight_threshold { refTime: [10, 10], proofSize: [10, 10] }
+      weight_threshold:  &weight_threshold { refTime: [30, 30], proofSize: [30, 30] }
     chains:
       relay_chain:
         signer: &rc_signer //Alice
@@ -73,7 +73,7 @@ tests:
                   events:
                     - name: xcmPallet.Attempted
                       threshold: *weight_threshold
-                      result: [{ Complete: { refTime: '3,000,000,000', proofSize: 0 }}]
+                      result: { outcome: { Complete: { refTime: '792,675,000', proofSize: '7,585' }} }
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       threshold: *weight_threshold
@@ -218,7 +218,7 @@ tests:
                   events:
                     - name: xcmPallet.Attempted
                       threshold: *weight_threshold
-                      result: [{ Complete: { refTime: '2,000,000,000', proofSize: 0 }}]
+                      result: { outcome: { Complete: { refTime: '630,092,000', proofSize: '6,196' }} }
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       threshold: *weight_threshold

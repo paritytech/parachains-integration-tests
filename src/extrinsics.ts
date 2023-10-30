@@ -25,7 +25,7 @@ export const sendExtrinsic = async (
 
       let encodedCallHex = buildEncodedCallHex(context, extrinsic);
       let chainName = providers[chain.wsPort].name;
-      console.log(`\n🧬 ENCODED CALL: (${chainName}) | '${encodedCallHex}'`);
+      console.log(`\n🧬 ENCODED CALL: (${chainName}) | '${encodedCallHex.encoded}'`);
 
       let dispatchable = buildDispatchable(context, extrinsic);
       console.log(

@@ -2,30 +2,35 @@
 default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "polkadot-local"
+chain_spec_path = "./bin/polkadot-local-with-asset-chains-raw.json"
 
     [[relaychain.nodes]]
     name = "alice"
     ws_port = 9800
     validator = true
-    args = ["--state-cache-size=0"]
+    args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "bob"
     ws_port = 9801
     validator = true
+    args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "charlie"
     ws_port = 9802
     validator = true
+    args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "dave"
     ws_port = 9803
     validator = true
+    args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
 [[parachains]]
 id = 1000
+# chain = "asset-hub-polkadot-local"
 chain = "statemint-local"
 cumulus_based = true
 

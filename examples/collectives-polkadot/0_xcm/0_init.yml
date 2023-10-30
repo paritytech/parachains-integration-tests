@@ -10,7 +10,9 @@ settings:
       wsPort: 9810
       paraId: &sp_id 1000
   variables:
-    xcm_version: &xcm_version '3'
+    common:
+      require_weight_at_most: &weight_at_most {refTime: 1000000000, proofSize: 200000}
+      xcm_version: &xcm_version '3'
     chains:
       accounts:
         alice_signer: &alice_signer //Alice
@@ -77,10 +79,7 @@ tests:
                     {
                       Transact: {
                         originKind: Superuser,
-                        requireWeightAtMost: {
-                          refTime: 200000000, # 200_000_000 
-                          proofSize: 0,
-                        },
+                        requireWeightAtMost: *weight_at_most,
                         call: $ap_force_xcm_version
                       }
                     }

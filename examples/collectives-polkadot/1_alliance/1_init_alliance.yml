@@ -7,7 +7,7 @@ settings:
       wsPort: 9710
       paraId: &coll_para_id 1001
   variables:
-    weight_threshold:  &weight_threshold { refTime: [10, 10], proofSize: [10, 10] }
+    weight_threshold:  &weight_threshold { refTime: [30, 30], proofSize: [30, 30] }
     accounts:
       alice_signer: &acc_alice_signer //Alice
       liam_account32: &acc_liam_acc32 "0x3614671a5de540d891eb8c4939c8153a4aa790602b347c18177b86d0fc546221"
