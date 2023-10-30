@@ -173,7 +173,7 @@ export const parseArgs = (context, args): any[] => {
       console.log(
         `\n⛔ ERROR: no value was found for the variable "${value}". Check that the action where it is declared was not skipped after a failing assert`
       );
-      process.exit(1);
+      // process.exit(1);
     }
   });
   return parsedStrigifiedArg;

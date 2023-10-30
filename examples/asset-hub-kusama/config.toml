@@ -2,30 +2,36 @@
 default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "kusama-local"
+chain_spec_path = "./bin/kusama-local-with-chains-raw.json"
+# chain_spec_command = "../runtimes/target/release/chain-spec-generator"
 
     [[relaychain.nodes]]
     name = "alice"
     ws_port = 9900
     validator = true
-    args = ["--state-cache-size=0"]
+    args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "bob"
     ws_port = 9901
     validator = true
+    args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "charlie"
     ws_port = 9902
     validator = true
+    args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "dave"
     ws_port = 9903
     validator = true
+    args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
 [[parachains]]
 id = 1000
+# chain = "asset-hub-kusama-local"
 chain = "statemine-local"
 cumulus_based = true
 
@@ -58,13 +64,13 @@ cumulus_based = true
     command = "./bin/polkadot-parachain"
     args = [ "-lxcm=trace" ]
 
-# [[hrmpChannels]]
+# [[hrmp_channels]]
 #   sender = 1000
 #   recipient = 2000
 #   maxCapacity = 8
 #   maxMessageSize = 8192
 
-# [[hrmpChannels]]
+# [[hrmp_channels]]
 #   sender = 2000
 #   recipient = 1000
 #   maxCapacity = 8
