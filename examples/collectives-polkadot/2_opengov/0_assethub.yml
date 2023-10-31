@@ -7,6 +7,8 @@ settings:
       wsPort: 9810
       paraId: &ap_id 1000
   variables:
+    common:
+      require_weight_at_most: &weight_at_most {refTime: 100000000000, proofSize: 200000 }
     proposal_index: &proposal_index 0
     chains:
       accounts:
@@ -38,10 +40,7 @@ settings:
             {
               Transact: {
                 originKind: Xcm,
-                requireWeightAtMost: {
-                  refTime: 200000000, # 200_000_000
-                  proofSize: 100000, # 100_000
-                },
+                requireWeightAtMost: *weight_at_most,
                 call: $set_candidates_ap
               }
             }
@@ -84,12 +83,12 @@ tests:
                       },
                     },
                     {
-                      "After": 1, 
+                      "After": 1,
                     },
                   ]
                   events:
                     - name: referenda.Submitted
-                      result: { 
+                      result: {
                         index: *proposal_index,
                         proposal: { Lookup: { hash_: $send_set_candidates_rc.hash, len: $send_set_candidates_rc.len }}
                       }
