@@ -22,19 +22,20 @@ tests:
             - chain: *relay_chain
               signer: *alice_signer
               pallet: xcmPallet
-              call: reserveTransferAssets
+              call: limitedReserveTransferAssets
               args: [
                 { v3: { 0, interior: { x1: { parachain: *cp_id }}}}, # destination
                 { v3: { parents: 0, interior: { x1: { accountId32: { id: *alice_acc32 }}}}}, # beneficiary
-                { 
-                  v3: [ 
-                    { 
-                      id: { concrete: { 0, interior: { here: true }}}, 
+                {
+                  v3: [
+                    {
+                      id: { concrete: { 0, interior: { here: true }}},
                       fun: { fungible: 20000000000000 } # 20_000_000_000_000
                     }
-                  ] 
+                  ]
                 }, # assets
                 0, # feeAssetItem
+                { unlimited: true } # weightLimit
               ]
               events:
                 - name: xcmPallet.Attempted
@@ -46,7 +47,7 @@ tests:
 
       # Fails with the message - "RpcError: 1010: Invalid Transaction: Transaction would exhaust the block limits"
       # Because of the u64::MAX weight set fot the extrinsic to disable it.
-      # The test tool does not allow to assert such a fail. 
+      # The test tool does not allow to assert such a fail.
 
       # - name: Reserve assets from Collectives Parachain to Relay Chain fails
       #   actions:
@@ -59,12 +60,12 @@ tests:
       #           { v3: { parents: 1, interior: { here: true }}}, # destination
       #           { v3: { parents: 0, interior: { x1: { accountId32: { id: *alice_acc32 }}}}}, # beneficiary
       #           {
-      #             v3: [ 
-      #               { 
-      #                 id: { concrete: { parents: 1, interior: { here: true }}}, 
+      #             v3: [
+      #               {
+      #                 id: { concrete: { parents: 1, interior: { here: true }}},
       #                 fun: { fungible: 10000000000000 } # 10_000_000_000_000
       #               }
-      #             ] 
+      #             ]
       #           }, # assets
       #           0, # feeAssetItem
       #         ]

@@ -3,7 +3,6 @@ default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "kusama-local"
 chain_spec_path = "./bin/kusama-local-with-chains-raw.json"
-# chain_spec_command = "../runtimes/target/release/chain-spec-generator"
 
     [[relaychain.nodes]]
     name = "alice"
