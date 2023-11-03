@@ -136,8 +136,8 @@ tests:
                   chain: *collectives_parachain
                   result: { outcome: { Complete: {}}}
                 # Failing because it is using a not limited teleport when slashing
-                # - name: messageQueue.Processed
-                #   result: { origin: { Ump: { Para: *cp_id }}, success: true }
+                - name: messageQueue.Processed
+                  result: { origin: { Ump: { Para: *cp_id }}, success: true }
 
           - queries:
               balance_rc_treasury_after:

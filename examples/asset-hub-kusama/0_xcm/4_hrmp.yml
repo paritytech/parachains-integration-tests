@@ -182,7 +182,8 @@ tests:
                     events:
                       - name: polkadotXcm.Attempted
                         threshold: *weight_threshold
-                        result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
+                        # result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
+                        result: { outcome: { Complete: { refTime: '631,531,000', proofSize: '7,186' }} }
                       - name: assets.Transferred
                         result: {
                           assetId: *asset_id,
@@ -225,7 +226,8 @@ tests:
                     events:
                       - name: polkadotXcm.Attempted
                         threshold: *weight_threshold
-                        result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
+                        # result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
+                        result: { outcome: { Complete: { refTime: '631,531,000', proofSize: '7,186' }} }
                       - name: balances.Endowed
                         result: {
                           account: *pp_sovereign_sibl,

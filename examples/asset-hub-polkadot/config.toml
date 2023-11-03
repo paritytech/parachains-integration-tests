@@ -2,7 +2,7 @@
 default_command = "./bin/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "polkadot-local"
-chain_spec_path = "./bin/polkadot-local-with-asset-chains-raw.json"
+chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 
     [[relaychain.nodes]]
     name = "alice"
@@ -30,8 +30,8 @@ chain_spec_path = "./bin/polkadot-local-with-asset-chains-raw.json"
 
 [[parachains]]
 id = 1000
-# chain = "asset-hub-polkadot-local"
-chain = "statemint-local"
+chain = "asset-hub-polkadot-local"
+chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 cumulus_based = true
 
     [[parachains.collators]]
@@ -44,7 +44,7 @@ cumulus_based = true
     name = "collator2"
     ws_port = 9811
     command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace" ]
+    args = [ "-lxcm=trace", "--state-cache-size=0"]
 
 
 [[parachains]]
@@ -62,15 +62,15 @@ cumulus_based = true
     name = "collator4"
     ws_port = 9821
     command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace" ]
+    args = [ "-lxcm=trace", "--state-cache-size=0"]
 
-# [[hrmpChannels]]
+# [[hrmp_channels]]
 #   sender = 1000
 #   recipient = 2000
 #   maxCapacity = 8
 #   maxMessageSize = 8192
 
-# [[hrmpChannels]]
+# [[hrmp_channels]]
 #   sender = 2000
 #   recipient = 1000
 #   maxCapacity = 8

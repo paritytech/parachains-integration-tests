@@ -97,7 +97,8 @@ tests:
                   events:
                     - name: polkadotXcm.Attempted
                       threshold: *weight_threshold
-                      result: [{ Complete: { refTime: '533,283,000', proofSize: '7,096' }}]
+                      # result: [{ Complete: { refTime: '533,283,000', proofSize: '7,096' }}]
+                      result: { outcome: { Complete: { refTime: '539,494,000', proofSize: '7,133' }} }
                     - name: paraInclusion.UpwardMessagesReceived
                       chain: *relay_chain
                       result: { from: *ap_id }
@@ -200,4 +201,5 @@ tests:
                   ]
                   events:
                     - name: polkadotXcm.Attempted
-                      result: [{ Error: Barrier }]
+                      # result: [{ Error: Barrier }]
+                      result: { outcome: { Error: Barrier } }
