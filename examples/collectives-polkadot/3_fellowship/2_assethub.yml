@@ -76,16 +76,16 @@ tests:
                   call: submit
                   args: [
                     {
-                      "FellowshipOrigins": "Fellows",
+                      FellowshipOrigins: Fellows,
                     },
                     {
-                      "Lookup": {
-                        "hash_": $send_xcmp_resume_execution_cp.hash,
-                        "len": $send_xcmp_resume_execution_cp.len,
+                      Lookup: {
+                        hash_: $send_xcmp_resume_execution_cp.hash,
+                        len: $send_xcmp_resume_execution_cp.len,
                       },
                     },
                     {
-                      "After": 1,
+                      After: 1,
                     },
                   ]
                   events:

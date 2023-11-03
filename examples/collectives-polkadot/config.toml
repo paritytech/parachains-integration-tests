@@ -6,7 +6,7 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 
     [[relaychain.nodes]]
     name = "alice"
-    ws_port = 9700
+    ws_port = 9900
     validator = true
     args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
@@ -28,7 +28,7 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "collator1"
-    ws_port = 9710
+    ws_port = 9910
     command = "./bin/polkadot-parachain"
     args = ["-lxcm=trace",  "--state-cache-size=0"]
 
@@ -46,7 +46,7 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "collator3"
-    ws_port = 9810
+    ws_port = 9910
     command = "./bin/polkadot-parachain"
     args = ["-lxcm=trace", "--state-cache-size=0"]
 
