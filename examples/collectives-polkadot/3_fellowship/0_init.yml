@@ -125,16 +125,16 @@ tests:
                   call: submit
                   args: [
                     {
-                      "Origins": "FellowshipAdmin",
+                      Origins: FellowshipAdmin,
                     },
                     {
-                      "Lookup": {
-                        "hash_": $send_init_fellowship_rc.hash,
-                        "len": $send_init_fellowship_rc.len,
+                      Lookup: {
+                        hash_: $send_init_fellowship_rc.hash,
+                        len: $send_init_fellowship_rc.len,
                       },
                     },
                     {
-                      "After": 1,
+                      After: 1,
                     },
                   ]
                   events:
@@ -153,12 +153,12 @@ tests:
                   args: [
                     *proposal_index,
                     {
-                      "Standard": {
-                        "vote": {
-                          "aye": true,
-                          "conviction": "Locked1x",
+                      Standard: {
+                        vote: {
+                          aye: true,
+                          conviction: Locked1x,
                         },
-                        "balance": 200000000000000,
+                        balance: 200000000000000,
                       }
                     },
                   ] # TODO no Aye event to catch
@@ -172,12 +172,12 @@ tests:
                   args: [
                     *proposal_index,
                     {
-                      "Standard": {
-                        "vote": {
-                          "aye": true,
-                          "conviction": "Locked1x",
+                      Standard: {
+                        vote: {
+                          aye: true,
+                          conviction: Locked1x,
                         },
-                        "balance": 200000000000000,
+                        balance: 200000000000000,
                       }
                     },
                   ] # TODO no Aye event to catch

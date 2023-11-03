@@ -12,26 +12,23 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 
     [[relaychain.nodes]]
     name = "bob"
-    ws_port = 9901
     validator = true
     args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "charlie"
-    ws_port = 9902
     validator = true
     args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
     [[relaychain.nodes]]
     name = "dave"
-    ws_port = 9903
     validator = true
     args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
 [[parachains]]
 id = 1000
 chain = "asset-hub-kusama-local"
-chain_spec_command = "./bin/chain-spec-generator --chain {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 cumulus_based = true
 
     [[parachains.collators]]
@@ -42,7 +39,6 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "collator2"
-    ws_port = 9911
     command = "./bin/polkadot-parachain"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
@@ -59,7 +55,6 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "collator4"
-    ws_port = 9921
     command = "./bin/polkadot-parachain"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
