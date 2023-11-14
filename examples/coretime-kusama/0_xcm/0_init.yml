@@ -5,7 +5,7 @@ settings:
       wsPort: 9900
     coretime_parachain: &coretime_parachain
       wsPort: 9910
-      paraId: &cp_id 1000
+      paraId: &cp_id 1005
   variables:
     common:
       xcm_version: &xcm_version 3
