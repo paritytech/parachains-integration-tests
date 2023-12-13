@@ -62,7 +62,7 @@ tests:
                       chain: *assets_parachain
                       threshold: *weight_threshold
                       result: {
-                        outcome: { Complete: { refTime: '166,944,000', proofSize: 0 }}
+                        outcome: { Complete: { refTime: '166,944,000', proofSize: '3,593' }}
                       }
 
           - name: Get the balances of the Assets Parachain's sender & Relay Chain's receiver
