@@ -23,7 +23,7 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 [[parachains]]
 id = 1001
 chain = "collectives-polkadot-local"
-chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./bin/v1.1.0/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 cumulus_based = true
 
     [[parachains.collators]]
@@ -41,7 +41,7 @@ cumulus_based = true
 [[parachains]]
 id = 1000
 chain = "asset-hub-polkadot-local"
-chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./bin/v1.1.0/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 cumulus_based = true
 
     [[parachains.collators]]

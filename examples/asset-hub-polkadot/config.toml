@@ -28,7 +28,7 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 [[parachains]]
 id = 1000
 chain = "asset-hub-polkadot-local"
-chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./bin/v1.1.0/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 cumulus_based = true
 
     [[parachains.collators]]
@@ -51,12 +51,12 @@ cumulus_based = true
     [[parachains.collators]]
     name = "collator3"
     ws_port = 9920
-    command = "./bin/polkadot-parachain"
+    command = "./bin/polkadot-parachain-old"
     args = [ "-lxcm=trace", "--state-cache-size=0" ]
 
     [[parachains.collators]]
     name = "collator4"
-    command = "./bin/polkadot-parachain"
+    command = "./bin/polkadot-parachain-old"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
 # [[hrmp_channels]]
