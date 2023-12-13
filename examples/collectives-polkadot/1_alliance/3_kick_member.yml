@@ -2,17 +2,19 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9700
+      wsPort: 9900
     collectives_parachain: &collectives_parachain
-      wsPort: 9710
+      wsPort: 9910
       paraId: &cp_id 1001
   variables:
     common:
       require_weight_at_most: &weight_at_most {refTime: 100000000000, proofSize: 200000 }
     init_teleport_amount: &init_teleport_amount 20000000000000 # 20_000_000_000_000
+    fees_amount: &fees_amount 10000000000 # 10_000_000_000_000
     accounts:
       alice_signer: &acc_alice_signer //Alice
       treasury_account32: &acc_treasury_acc32 '0x6d6f646c70792f74727372790000000000000000000000000000000000000000'
+      alliance_pallet_account: &alliance_pallet_acc 13UVJyLnbVp6r4JgFxb88FAvQBL5WCdE2FU8uzyCJCHkDhx1
       alice_account32: &acc_alice_acc32 '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
       alice_ss58: &acc_alice_ss58 '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5'
   decodedCalls:
@@ -50,6 +52,19 @@ tests:
                 - name: dmpQueue.ExecutedDownward
                   chain: *collectives_parachain
                   result: { outcome: { Complete: {}}}
+      - name: DEPENDENCY | Alliance Pallet account needs to be funded to pay the fees when initiating a Teleport (slashing) after kicking a member
+        actions:
+          - extrinsics:
+              - chain: *collectives_parachain
+                signer: *acc_alice_signer
+                pallet: balances
+                call: transferAllowDeath
+                args: [
+                  *alliance_pallet_acc, # destination
+                  *fees_amount, # value
+                ]
+                events:
+                  - name: balances.Transfer
       - name: Get the balances of the Relay Chain's treasury & Collectives parachain's future alliance member
         actions:
           - queries:

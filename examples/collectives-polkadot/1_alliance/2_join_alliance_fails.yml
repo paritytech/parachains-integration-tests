@@ -2,22 +2,39 @@
 settings:
   chains:
     relay_chain:
-      wsPort: 9700
+      wsPort: 9900
     collectives_parachain: &collectives_parachain
-      wsPort: 9710
+      wsPort: 9910
       paraId: 1001
   variables:
+    amount: &amount 10000000000
     accounts:
-      liam_signer: &acc_liam_signer //Liam
+      alice_signer: &alice_signer //Alice
+      liam_signer: &liam_signer //Liam
+      liam_acc: &liam_acc 12DueWMGgJQER3EkBoiYgHeimKSwKvCUveRA3ttDmKd4DUzg
 
 tests:
   - name: Liam fails to join an the Alliance, Liam is already a member.
+    beforeEach:
+      - name: DEPENDENCY | Liam needs to be funded
+        actions:
+          - extrinsics:
+              - chain: *collectives_parachain
+                signer: *alice_signer
+                pallet: balances
+                call: transferAllowDeath
+                args: [
+                  *liam_acc, # destination
+                  *amount, # value
+                ]
+                events:
+                  - name: balances.Transfer
     its:
       - name: Alice joins alliance
         actions:
-          - extrinsics: # Relay Chain sets supported version for Asset Parachain
+          - extrinsics:
             - chain: *collectives_parachain
-              signer: *acc_liam_signer
+              signer: *liam_signer
               pallet: alliance
               call: joinAlliance
               args: []

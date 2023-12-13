@@ -46,7 +46,7 @@ cumulus_based = true
 
     [[parachains.collators]]
     name = "collator3"
-    ws_port = 9910
+    ws_port = 9920
     command = "./bin/polkadot-parachain"
     args = ["-lxcm=trace", "--state-cache-size=0"]
 

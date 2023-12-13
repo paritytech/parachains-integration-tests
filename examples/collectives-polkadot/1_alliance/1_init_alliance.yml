@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9700
+      wsPort: 9900
     collectives_parachain: &collectives_parachain
-      wsPort: 9710
+      wsPort: 9910
       paraId: &coll_para_id 1001
   variables:
     common:

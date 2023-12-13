@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9800
+      wsPort: 9900
     assets_parachain: &assets_parachain
-      wsPort: 9810
+      wsPort: 9910
       paraId: &ap_id 1000
   variables:
     common:
@@ -62,7 +62,7 @@ tests:
                       chain: *assets_parachain
                       threshold: *weight_threshold
                       result: {
-                        outcome: { Complete: { refTime: '166,944,000', proofSize: 0 }}
+                        outcome: { Complete: { refTime: '166,944,000', proofSize: '3,593' }}
                       }
 
           - name: Get the balances of the Assets Parachain's sender & Relay Chain's receiver

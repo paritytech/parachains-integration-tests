@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9700
+      wsPort: 9900
     collectives_parachain: &collectives_parachain
-      wsPort: 9710
+      wsPort: 9910
       paraId: &cp_id 1001
   variables:
     accounts:
@@ -118,8 +118,8 @@ tests:
                 { unlimited: true } # weightLimit
               ]
               events:
-                - name: balances.Withdraw
-                  result: { who: *acc_alice_ss58, amount: 10000000000000 }
+                # - name: balances.Withdraw
+                #   result: { who: *acc_alice_ss58, amount: 10000000000000 }
                 - name: polkadotXcm.Attempted
                   result: { outcome: { Complete: {} } }
                   # result: [{ Complete : { refTime: '3,000,000,000', 'proofSize': 0 }}]

@@ -2,12 +2,12 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9700
+      wsPort: 9900
     collectives_parachain: &collectives_parachain
-      wsPort: 9710
+      wsPort: 9910
       paraId: &cp_id 1001
     assethub_parachain: &assethub_parachain
-      wsPort: 9810
+      wsPort: 9920
       paraId: &sp_id 1000
   variables:
     chains:
@@ -37,7 +37,12 @@ tests:
                   ]
                   events:
                     - name: hrmp.HrmpChannelForceOpened
-                      result: [*cp_id, *sp_id, *hrmp_proposed_max_capacity, *hrmp_proposed_max_message_size]
+                      result: {
+                        sender: *cp_id,
+                        recipient: *sp_id,
+                        proposedMaxCapacity: *hrmp_proposed_max_capacity,
+                        proposedMaxMessageSize: *hrmp_proposed_max_message_size
+                      }
       - name: Force Open HRMP Channel From AssetHub Parachain → Collectives Parachain
         its:
           - name: Alice calls hrmp.forceOpenHrmpChannel
@@ -56,4 +61,9 @@ tests:
                   ]
                   events:
                     - name: hrmp.HrmpChannelForceOpened
-                      result: [*sp_id, *cp_id, *hrmp_proposed_max_capacity, *hrmp_proposed_max_message_size]
+                      result: {
+                        sender: *sp_id,
+                        recipient: *cp_id,
+                        proposedMaxCapacity: *hrmp_proposed_max_capacity,
+                        proposedMaxMessageSize: *hrmp_proposed_max_message_size
+                      }
