@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9900
+      wsPort: 8002
     assethub_parachain: &assethub_parachain
-      wsPort: 9920
+      wsPort: 8001
       paraId: &ap_id 1000
   variables:
     common:
@@ -126,7 +126,7 @@ tests:
                           aye: true,
                           conviction: Locked1x,
                         },
-                        "balance": 200000000000000,
+                        balance: 200000000000000,
                       }
                     },
                   ] # TODO no event to catch
@@ -137,6 +137,7 @@ tests:
                   signer: *alice_signer
                   pallet: referenda
                   call: placeDecisionDeposit
+                  delay: 10000 # Needed to add a delay because Choptsticks somehow is not able to trigger the event otherwise
                   args: [
                     *proposal_index,
                   ]

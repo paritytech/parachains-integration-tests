@@ -2,12 +2,12 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9900
+      wsPort: 8002
     collectives_parachain: &collectives_parachain
-      wsPort: 9910
+      wsPort: 8001
       paraId: &cp_id 1001
     assethub_parachain: &assethub_parachain
-      wsPort: 9920
+      wsPort: 8000
       paraId: &sp_id 1000
   variables:
     common:
@@ -52,8 +52,8 @@ tests:
                 *xcm_version
               ]
               events:
-                - name: sudo.Sudid
-                  result: { sudoResult: Ok }
+                # - name: sudo.Sudid
+                #   result: { sudoResult: Ok }
                 - name: xcmPallet.SupportedVersionChanged
                   result: { location: { parents: 0, interior: { X1: { Parachain: *cp_id } } }, version: *xcm_version }
           - extrinsics: # Collectives Parachain sets supported version for Relay Chain through it
@@ -82,8 +82,8 @@ tests:
                 }
               ]
               events:
-                - name: sudo.Sudid
-                  result: { sudoResult: Ok }
+                # - name: sudo.Sudid
+                #   result: { sudoResult: Ok }
                 - name: xcmPallet.Sent
                 - name: polkadotXcm.SupportedVersionChanged
                   chain: *collectives_parachain
@@ -110,8 +110,8 @@ tests:
                 *xcm_version
               ]
               events:
-                - name: sudo.Sudid
-                  result: { sudoResult: Ok }
+                # - name: sudo.Sudid
+                #   result: { sudoResult: Ok }
                 - name: xcmPallet.SupportedVersionChanged
                   result: { location: { parents: 0, interior: { X1: { Parachain: *sp_id } } }, version: *xcm_version }
           - extrinsics: # AssetHub Parachain sets supported version for Relay Chain through it
@@ -140,8 +140,8 @@ tests:
                 }
               ]
               events:
-                - name: sudo.Sudid
-                  result: { sudoResult: Ok }
+                # - name: sudo.Sudid
+                #   result: { sudoResult: Ok }
                 - name: xcmPallet.Sent
                 - name: polkadotXcm.SupportedVersionChanged
                   chain: *assethub_parachain

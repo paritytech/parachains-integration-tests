@@ -480,15 +480,6 @@ export const eventListenerBuilder = async (
       finalEventsResults.push(event);
     }
 
-    // initialEventsResults.forEach((eventResult) => {
-    //   const { received } = eventResult;
-    //   if (!received) {
-    //     finalEventsResults.push(
-    //       updateEventResult(received, undefined, eventResult)
-    //     );
-    //   }
-    // });
-
     finalEventsResults = finalEventsResults.map((result) => {
       let message = messageBuilder(context, result);
       return { ...result, message };

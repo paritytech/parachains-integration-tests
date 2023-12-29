@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9900
+      wsPort: 8002
     collectives_parachain: &collectives_parachain
-      wsPort: 9910
+      wsPort: 8001
       paraId: &coll_para_id 1001
   variables:
     common:
@@ -95,8 +95,8 @@ tests:
                 }
               ]
               events:
-                - name: sudo.Sudid
-                  result: { sudoResult: Ok }
+                # - name: sudo.Sudid
+                #   result: { sudoResult: Ok }
                 - name: xcmPallet.Sent
                   result: { origin: { parents: 0, interior: Here }, destination: { parents: 0, interior: { X1: { Parachain: *coll_para_id }}}}
                 - name: alliance.MembersInitialized
@@ -139,8 +139,8 @@ tests:
                 # issue - https://github.com/paritytech/polkadot/issues/4623
                 # Next test with a disband call will fail, if this call does not fail,
                 # since a witness data from a disband call will be invalid.
-                - name: sudo.Sudid
-                  result: { sudoResult: Ok }
+                # - name: sudo.Sudid
+                #   result: { sudoResult: Ok }
                 - name: xcmPallet.Sent
                   result: { origin: { parents: 0, interior: Here }, destination: { parents: 0, interior: { X1: { Parachain: *coll_para_id }}}}
                 - name: dmpQueue.ExecutedDownward
@@ -177,8 +177,8 @@ tests:
                 }
               ]
               events:
-                - name: sudo.Sudid
-                  result: { sudoResult: Ok }
+                # - name: sudo.Sudid
+                #   result: { sudoResult: Ok }
                 - name: xcmPallet.Sent
                   result: { origin: { parents: 0, interior: Here }, destination: { parents: 0, interior: { X1: { Parachain: *coll_para_id }}}}
                 - name: alliance.AllianceDisbanded
@@ -217,8 +217,8 @@ tests:
                 }
               ]
               events:
-                - name: sudo.Sudid
-                  result: { sudoResult: Ok }
+                # - name: sudo.Sudid
+                #   result: { sudoResult: Ok }
                 - name: xcmPallet.Sent
                   result: { origin: { parents: 0, interior: Here }, destination: { parents: 0, interior: { X1: { Parachain: *coll_para_id }}}}
                 - name: alliance.MembersInitialized

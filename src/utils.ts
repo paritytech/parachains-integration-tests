@@ -99,7 +99,7 @@ export const buildDispatchable = (context, extrinsic: Extrinsic) => {
 
   let dispatchable = api.tx[pallet][call](...parsedArgs);
 
-  if (sudo === true) {
+  if (sudo === true && api.tx.sudo !== undefined) {
     dispatchable = api.tx.sudo.sudo(dispatchable);
   }
   return dispatchable;

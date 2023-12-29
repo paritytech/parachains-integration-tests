@@ -30,13 +30,14 @@ export async function getApiConnection(connectionDetails: any) {
 
   const configs = await getConfigs(apiPromise);
 
-  return { api: apiPromise, isApiReady: true, configs };
+  return { api: apiPromise, provider, isApiReady: true, configs };
 }
 
 export async function getConnections(chainsConnection): Promise<Connection> {
   const {
     configs: chainConfigs,
     api: chainApiPromise,
+    provider,
     isApiReady: chainApiReady,
   } = await getApiConnection(chainsConnection);
 
@@ -46,6 +47,7 @@ export async function getConnections(chainsConnection): Promise<Connection> {
     name: chainName,
     configs: chainConfigs,
     api: chainApiPromise,
+    provider,
     isApiReady: chainApiReady,
     subscriptions: {},
     lastBlock: '0',
@@ -60,7 +62,7 @@ const getInfo = (chain: Chain, types: ApiOptions['types']) => {
 
   return {
     hasher,
-    provider: new WsProvider(`${ws}:${wsPort}`),
+    provider: new WsProvider(`${ws}:${wsPort}`, undefined, undefined, 60000000),
     types,
   };
 };

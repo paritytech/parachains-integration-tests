@@ -153,6 +153,7 @@ export interface Connection {
   name: string;
   configs: ChainConfigs;
   api: any;
+  provider: any,
   isApiReady: boolean;
   subscriptions: object;
   lastBlock: string;

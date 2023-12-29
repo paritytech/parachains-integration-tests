@@ -1,12 +1,12 @@
 [relaychain]
 default_command = "./bin/polkadot"
-default_args = [ "-lparachain=debug", "-lxcm=trace" ]
+default_args = [ "-lparachain=trace", "-lxcm=trace" ]
 chain = "polkadot-local"
 chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 
     [[relaychain.nodes]]
     name = "alice"
-    ws_port = 9900
+    ws_port = 8002
     validator = true
     args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
@@ -20,10 +20,23 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
     validator = true
     args = ["--state-cache-size=0", "--disable-worker-version-check"]
 
-    [[relaychain.nodes]]
-    name = "dave"
-    validator = true
-    args = ["--state-cache-size=0", "--disable-worker-version-check"]
+[[parachains]]
+id = 1001
+chain = "collectives-polkadot-local"
+chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+cumulus_based = true
+
+    [[parachains.collators]]
+    name = "collator1"
+    ws_port = 8001
+    command = "./bin/polkadot-parachain"
+    args = ["-lxcm=trace",  "--state-cache-size=0"]
+
+    [[parachains.collators]]
+    name = "collator2"
+    command = "./bin/polkadot-parachain"
+    args = ["-lxcm=trace", "--state-cache-size=0"]
+
 
 [[parachains]]
 id = 1000
@@ -32,41 +45,24 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 cumulus_based = true
 
     [[parachains.collators]]
-    name = "collator1"
-    ws_port = 9910
-    command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0" ]
-
-    [[parachains.collators]]
-    name = "collator2"
-    command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
-
-
-[[parachains]]
-id = 2000
-chain = "penpal-polkadot-2000"
-cumulus_based = true
-
-    [[parachains.collators]]
     name = "collator3"
-    ws_port = 9920
+    ws_port = 8000
     command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0" ]
+    args = ["-lxcm=trace", "--state-cache-size=0"]
 
     [[parachains.collators]]
     name = "collator4"
     command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+    args = ["-lxcm=trace", "--state-cache-size=0"]
 
 # [[hrmp_channels]]
-#   sender = 1000
-#   recipient = 2000
+#   sender = 1001
+#   recipient = 1000
 #   maxCapacity = 8
 #   maxMessageSize = 8192
 
 # [[hrmp_channels]]
-#   sender = 2000
-#   recipient = 1000
+#   sender = 1000
+#   recipient = 1001
 #   maxCapacity = 8
 #   maxMessageSize = 8192

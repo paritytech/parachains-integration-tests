@@ -1,5 +1,7 @@
 const chai = require('chai');
 var should = require('chai').should();
+import { blake2AsHex } from '@polkadot/util-crypto';
+import { hexToU8a } from '@polkadot/util';
 import { Extrinsic } from './interfaces';
 import {
   addConsoleGroup,
@@ -9,7 +11,7 @@ import {
   buildDispatchable,
   sleep,
 } from './utils';
-import { eventsHandler } from './events';
+import { eventsHandler, eventListenerBuilder } from './events';
 
 export const sendExtrinsic = async (
   context,
@@ -19,7 +21,7 @@ export const sendExtrinsic = async (
     try {
       let providers = context.providers;
 
-      const { chain, delay, signer, pallet, call, args, events } = extrinsic;
+      const { chain, delay, signer, pallet, sudo, call, args, events } = extrinsic;
 
       await sleep(delay ? delay : 0);
 
@@ -37,6 +39,8 @@ export const sendExtrinsic = async (
       );
 
       let api = providers[chain.wsPort].api;
+      let lastBlock = Number(providers[chain.wsPort].lastBlock);
+
       let wallet = await getWallet(signer);
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
       let handler = events
@@ -45,7 +49,52 @@ export const sendExtrinsic = async (
             resolve([]);
           };
 
-      await dispatchable.signAndSend(wallet, { nonce, era: 0 }, handler);
+      // We try to schedule with chopsticks and 'Root' origin
+      // TODO: add extra && to check 'chopstick' mode
+      if (sudo === true && api.tx.sudo == undefined) {
+        console.log("🚨 Sudo is not available on this chain");
+        let call = encodedCallHex.encoded;
+        let callLength =  hexToU8a(call).length;
+        let hashedCall = blake2AsHex(call);
+
+        await api.rpc('dev_setStorage', {
+            preimage: {
+                preimageFor: [
+                    [
+                        [[hashedCall, callLength]],
+                        call
+                    ]
+                ]
+            }
+        })
+
+        await api.rpc('dev_setStorage', {
+          scheduler: {
+            agenda: [
+              [
+                [lastBlock + 1],
+                [
+                  {
+                    call: {
+                      Lookup: {
+                        hash_: hashedCall,
+                        len: callLength,
+                      },
+                    },
+                    origin: {
+                      system: 'Root',
+                    },
+                  },
+                ],
+              ],
+            ],
+          },
+        });
+        await api.rpc('dev_newBlock');
+        await eventListenerBuilder(context, chain, events, resolve, reject);
+      } else {
+        await dispatchable.signAndSend(wallet, { nonce, era: 0 }, handler);
+      }
     } catch (e) {
       addConsoleGroupEnd(2);
       reject(e);
