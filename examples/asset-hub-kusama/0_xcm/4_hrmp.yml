@@ -4,12 +4,12 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 9900
+      wsPort: 8002
     assets_parachain: &assets_parachain
-      wsPort: 9910
+      wsPort: 8001
       paraId: &ap_id 1000
     penpal_parachain: &penpal_parachain
-      wsPort: 9920
+      wsPort: 8000
       paraId: &pp_id 2000
   variables:
     common:
@@ -26,7 +26,7 @@ settings:
       assets_parachain_account:
         signer: &ap_signer //Alice
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
-        asset_id: &asset_id 2
+        asset_id: &asset_id 1234567890
         assets_pallet_id: &assets_pallet_id 50
         asset_min_balance: &asset_ed 1000
         penpal_parachain_destination: &pp_dest { v3: { parents: 1, interior: { x1: { parachain: *pp_id } }}}
@@ -228,10 +228,16 @@ tests:
                         threshold: *weight_threshold
                         # result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
                         result: { outcome: { Complete: { refTime: '631,531,000', proofSize: '7,186' }} }
-                      - name: balances.Endowed
+                      # - name: balances.Endowed
+                      #   result: {
+                      #     account: *pp_sovereign_sibl,
+                      #     freeBalance: *amount
+                      #   }
+                      - name: balances.Transfer
                         result: {
-                          account: *pp_sovereign_sibl,
-                          freeBalance: *amount
+                          from: *ap_wallet,
+                          to: *pp_sovereign_sibl,
+                          amount: *amount
                         }
 
       - name: polkadotXcm.send( assets.forceCreateAsset ) | Penpal Parachain -> Assets Parachain
