@@ -4,7 +4,10 @@ endpoint:
 mock-signature-host: true
 block: ${env.POLKADOT_BLOCK_NUMBER}
 db: ./db.sqlite
-# wasm-override: polkadot_runtime.compact.compressed.wasm
+# wasm-override: ./config/chopsticks/polkadot_runtime.compact.compressed.wasm
+# runtime-log-level: 5
+# genesis: ./config/chopsticks/polkadot-chain-spec-raw.json
+
 
 import-storage:
   System:

@@ -37,7 +37,7 @@ const messageBuilder = (context, event: EventResult): string => {
       if (isExpectedResult) {
         resultMessage = `\n\n   ✔️  Expected Result: ${resultJson}`;
       } else {
-        resultMessage = `\n\n   ✖️  Expected Result: ${resultJson} | Received Result: ${recordJson}`;
+        resultMessage = `\n\n   ✖️  Expected Result: ${resultJson} \n\t  Received Result: ${recordJson}`;
         resultMessage += event.threshold
           ? `\n\t-> NOT WITHIN THRESHOLD [${JSON.stringify(event.threshold)}]`
           : '';

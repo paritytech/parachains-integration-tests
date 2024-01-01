@@ -2,7 +2,7 @@ endpoint: wss://polkadot-collectives-rpc.polkadot.io
 mock-signature-host: true
 block: ${env.POLKADOT_COLLECTIVES_BLOCK_NUMBER}
 db: ./db.sqlite
-# wasm-override: polkadot_runtime.compact.compressed.wasm
+wasm-override: ./config/chopsticks/collectives_polkadot_runtime.compact.compressed.wasm
 
 import-storage:
   System:

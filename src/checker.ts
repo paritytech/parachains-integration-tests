@@ -29,19 +29,20 @@ const formatLine = (start, end?): string => {
 const rightFormat = (
   value: any,
   interfaceValue: Interface
-): { is: boolean; format: string | undefined } => {
+): { is: boolean; format: string[] | undefined } => {
   const { type, instance } = interfaceValue;
 
   value =
     value?.value !== undefined || value?.value === false ? value.value : value;
 
   if (type) {
-    return { is: typeof value === type || type === 'any', format: type };
+    // return { is: typeof value === type || type === 'any', format: type };
+    return { is: type.includes(typeof value) || type.includes('any'), format: type };
   } else if (instance) {
     if (instance === YAMLMap) {
-      return { is: value instanceof instance, format: 'object' };
+      return { is: value instanceof instance, format: ['object'] };
     } else if (instance === YAMLSeq) {
-      return { is: value instanceof instance, format: 'array' };
+      return { is: value instanceof instance, format: ['array'] };
     }
   }
 
@@ -236,7 +237,6 @@ const collectErrors = (
     }
   }
   let orderedErrors = _.orderBy(errors, ['line'], ['asc']);
-  // console.log(_.orderBy(errors, ['line'], ['asc']))
   let errorsArray: string[] = orderedErrors.map((item) => {
     return item.error;
   });
