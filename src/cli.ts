@@ -44,6 +44,28 @@ const spawnZombienet = (options) => {
   );
 };
 
+const spawnChopsticks = (args) => {
+  let stdio = 'inherit';
+  let stdioLogs;
+
+  let chopsticksArgs = args.slice(args.indexOf('chopsticks') + 1);
+  console.log(chopsticksArgs);
+
+  if (options.chainLogs) {
+    const zombienetLogs = fs.openSync(`${options.chainLogs}`, 'a');
+    stdioLogs = ['inherit', zombienetLogs, zombienetLogs];
+  }
+
+  p['chopsticks'] = spawn(
+    'chopsticks',
+    chopsticksArgs,
+    {
+      stdio: options.chainLogs ? stdioLogs : stdio,
+      detached: false,
+    }
+  );
+};
+
 const spawnTests = (options) => {
   let runnerExtension = 'js';
   runnerExtension = options.env === 'dev' ? 'ts' : runnerExtension;
@@ -106,6 +128,7 @@ program
   .name('parachains-integrations-tests')
   .description('Tool for testing integration between Parachains')
   .version(pjson.version);
+program.allowUnknownOption();
 
 program
   .addOption(
@@ -115,7 +138,7 @@ program
   )
   .addOption(
     new Option('-m, --mode <mode>', 'mode to run')
-      .choices(['test', 'zombienet', 'zombienet-test', 'checker'])
+      .choices(['test', 'zombienet', 'zombienet-test', 'chopsticks', 'chopsticks-test', 'checker'])
       .makeOptionMandatory()
   )
   .addOption(new Option('-c, --config <path>', 'path to zombienet config file'))
@@ -177,6 +200,8 @@ if (options.mode === 'zombienet-test') {
   );
   program.parse(process.argv);
   spawnZombienet(options);
+} else if (options.mode === 'chopsticks') {
+  spawnChopsticks(process.argv);
 } else if (options.mode === 'test') {
   program.addOption(
     new Option('-t, --tests <path>', 'path to tests').makeOptionMandatory()
