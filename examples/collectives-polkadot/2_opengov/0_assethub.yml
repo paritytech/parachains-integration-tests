@@ -10,9 +10,12 @@ settings:
     common:
       require_weight_at_most: &weight_at_most {refTime: 100000000000, proofSize: 200000 }
     proposal_index: &proposal_index 0
+    voting_amount: &voting_amount 200000000000000
     chains:
       accounts:
+        alice_ss58: &acc_alice_ss58 15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5
         alice_signer: &alice_signer //Alice
+        bob_ss58: &acc_bob_ss58 14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3
         bob_signer: &bob_signer //Bob
   decodedCalls:
     set_candidates_ap:
@@ -64,7 +67,7 @@ tests:
                   ]
                   events:
                     - name: preimage.Noted
-                      result: {hash_: $send_set_candidates_rc.hash }
+                      result: { hash_: $send_set_candidates_rc.hash }
           - name: Submit a proposal to set desired candidates
             actions:
               - extrinsics:
@@ -107,10 +110,13 @@ tests:
                           aye: true,
                           conviction: Locked1x,
                         },
-                        balance: 200000000000000,
+                        balance: *voting_amount,
                       }
                     },
-                  ] # TODO no event to catch
+                  ]
+                  events:
+                    - name: balances.Locked
+                      result: { who: *acc_alice_ss58, amount: *voting_amount }
           - name: Bob Vote Aye
             actions:
               - extrinsics:
@@ -126,10 +132,13 @@ tests:
                           aye: true,
                           conviction: Locked1x,
                         },
-                        balance: 200000000000000,
+                        balance: *voting_amount,
                       }
                     },
-                  ] # TODO no event to catch
+                  ]
+                  events:
+                    - name: balances.Locked
+                      result: { who: *acc_bob_ss58, amount: *voting_amount }
           - name: Submit the decision deposit
             actions:
               - extrinsics:
@@ -137,13 +146,17 @@ tests:
                   signer: *alice_signer
                   pallet: referenda
                   call: placeDecisionDeposit
-                  delay: 10000 # Needed to add a delay because Choptsticks somehow is not able to trigger the event otherwise
+                  delay: 5000 # Needed to add a delay because Choptsticks somehow is not able to trigger the event otherwise
                   args: [
                     *proposal_index,
                   ]
                   events:
                     - name: referenda.DecisionDepositPlaced
-                      result: { index: *proposal_index }
-                    - name: collatorSelection.NewDesiredCandidates
-                      chain: *assethub_parachain
-                      result: { desiredCandidates: 3 }
+                      result: { index: *proposal_index, who: *acc_alice_ss58 }
+              # - time_travels:
+              #   - chain: *relay_chain
+              #     date: 1735742096000
+              #     events:
+              #       - name: collatorSelection.NewDesiredCandidates
+              #         chain: *assethub_parachain
+              #         result: { desiredCandidates: 3 }

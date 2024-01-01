@@ -92,7 +92,7 @@ export const INTERFACE: { [key: string]: Interface } = {
     },
   },
   name: {
-    type: 'string',
+    type: ['string'],
   },
   its: {
     instance: YAMLSeq,
@@ -109,6 +109,10 @@ export const INTERFACE: { [key: string]: Interface } = {
       asserts: false,
       queries: false,
       rpcs: false,
+      block_travels: false,
+      time_travels: false,
+      set_storages: false,
+      set_heads: false,
     },
   },
   extrinsics: {
@@ -134,34 +138,34 @@ export const INTERFACE: { [key: string]: Interface } = {
     },
   },
   wsPort: {
-    type: 'number',
+    type: ['number'],
   },
   ws: {
-    type: 'string',
+    type: ['string'],
   },
   paraId: {
-    type: 'number',
+    type: ['number'],
   },
   pallet: {
-    type: 'string',
+    type: ['string'],
   },
   method: {
-    type: 'string',
+    type: ['string'],
   },
   call: {
-    type: 'string',
+    type: ['string'],
   },
   sudo: {
-    type: 'boolean',
+    type: ['boolean'],
   },
   encode: {
-    type: 'boolean',
+    type: ['boolean'],
   },
   signer: {
-    type: 'string',
+    type: ['string'],
   },
   delay: {
-    type: 'number',
+    type: ['number'],
   },
   events: {
     instance: YAMLSeq,
@@ -177,16 +181,16 @@ export const INTERFACE: { [key: string]: Interface } = {
     },
   },
   remote: {
-    type: 'boolean',
+    type: ['boolean'],
   },
   timeout: {
-    type: 'number',
+    type: ['number'],
   },
   result: {
-    type: 'object',
+    type: ['object'],
   },
   strict: {
-    type: 'boolean',
+    type: ['boolean'],
   },
   attributes: {
     instance: YAMLSeq,
@@ -203,23 +207,22 @@ export const INTERFACE: { [key: string]: Interface } = {
     },
   },
   type: {
-    type: 'string',
+    type: ['string'],
   },
   key: {
-    type: 'string',
+    type: ['string'],
   },
   isRange: {
-    type: 'boolean',
+    type: ['boolean'],
   },
   threshold: {
-    // instance: YAMLSeq,
-    type: 'any',
+    type: ['any'],
   },
   value: {
-    type: 'any',
+    type: ['any'],
   },
   xcmOutcome: {
-    type: 'string',
+    type: ['string'],
   },
   customs: {
     instance: YAMLSeq,
@@ -230,7 +233,7 @@ export const INTERFACE: { [key: string]: Interface } = {
     },
   },
   path: {
-    type: 'string',
+    type: ['string'],
   },
   args: {
     instance: YAMLSeq,
@@ -312,6 +315,57 @@ export const INTERFACE: { [key: string]: Interface } = {
       args: true,
       events: false,
     },
+  },
+  block_travels: {
+    instance: YAMLSeq,
+    attributes: {
+      chain: true,
+      count: false,
+      to: false,
+      events: false,
+    },
+    rule: {
+      or: ['count', 'to'],
+    },
+  },
+  time_travels: {
+    instance: YAMLSeq,
+    attributes: {
+      chain: true,
+      date: true,
+      events: false,
+    },
+  },
+  set_storages: {
+    instance: YAMLSeq,
+    attributes: {
+      chain: true,
+      storage: true,
+      events: false,
+    },
+  },
+  set_heads: {
+    instance: YAMLSeq,
+    attributes: {
+      chain: true,
+      block: true,
+      events: false,
+    },
+  },
+  count: {
+    type: ['number'],
+  },
+  to: {
+    type: ['number'],
+  },
+  date: {
+    type: ['number', 'string'],
+  },
+  storage: {
+    type: ['object'],
+  },
+  block: {
+    type: ['number', 'string'],
   },
   before: {
     instance: YAMLSeq,

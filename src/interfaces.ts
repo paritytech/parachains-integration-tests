@@ -32,6 +32,31 @@ export interface AfterEach extends Before {}
 
 export type Hook = Before | BeforeEach | After | AfterEach;
 
+export interface BlockTravel {
+  chain: Chain;
+  count?: number;
+  to?:number;
+  events?: Event[];
+}
+
+export interface TimeTravel {
+  chain: Chain;
+  date: string | number;
+  events?: Event[];
+}
+
+export interface SetStorage {
+  chain: Chain;
+  storage: object;
+  events?: Event[];
+}
+
+export interface SetHead {
+  chain: Chain;
+  block: string | number;
+  events?: Event[];
+}
+
 export interface Custom {
   path: string;
   args: any[];
@@ -126,13 +151,21 @@ export type QueryAction = { queries: { [key: string]: Query } };
 export type RpcAction = { rpcs: { [key: string]: Rpc } };
 export type AsserAction = { asserts: { [key: string]: AssertOrCustom } };
 export type CustomAction = { customs: Custom[] };
+export type BlockTravelAction = { block_travels: BlockTravel[] };
+export type TimeTravelAction = { time_travels: TimeTravel[] };
+export type SetStorageAction = { set_storages: SetStorage[] };
+export type SetHeadAction = { set_heads: SetHead[] };
 
 export type Action =
   | ExtrinsicAction
   | QueryAction
   | AsserAction
   | RpcAction
-  | CustomAction;
+  | CustomAction
+  | BlockTravelAction
+  | TimeTravelAction
+  | SetStorageAction
+  | SetHeadAction;
 
 export interface Assert {
   args: any[];
@@ -182,7 +215,8 @@ export interface CheckerError {
 
 export interface Interface {
   instance?: any;
-  type?: string;
+  // type?: string;
+  type?: string[];
   anyKey?: boolean;
   attributes?: { [key: string]: boolean };
   rule?: object;
@@ -194,7 +228,7 @@ export interface Assessment {
   key: string | undefined;
   exist: boolean | undefined;
   rightFormat: boolean | undefined;
-  format: string | undefined;
+  format: string[] | undefined;
   range: any;
 }
 
