@@ -4,7 +4,6 @@ import { readFileSync } from 'fs';
 import { TextDecoder } from 'util';
 import { u8aToHex } from '@polkadot/util';
 import { blake2AsHex } from '@polkadot/util-crypto';
-import { BuildBlockMode } from '@acala-network/chopsticks-core'
 import {
   addConsoleGroup,
   addConsoleGroupEnd,
@@ -36,11 +35,13 @@ const checkChains = (chains: {
 const checkMode = async (provider): Promise<string> => {
   return new Promise(async (resolve, reject) => {
     try {
-      await provider.api.rpc('dev_setBlockBuildMode', [BuildBlockMode.Batch]);
+      let methods = await provider.api.rpc.rpc.methods()
+      return methods.toJSON().methods.includes('dev_newBlock') ?
+        resolve("chopsticks") : resolve("zombienet")
     } catch (e) {
-      return resolve("zombienet")
+      console.log(e)
+      process.exit(1);
     }
-    return resolve("chopsticks")
   });
 }
 
