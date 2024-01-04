@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 8002
+      wsPort: 8000
     assethub_parachain: &assethub_parachain
-      wsPort: 8001
+      wsPort: 8002
       paraId: &ap_id 1000
   variables:
     common:

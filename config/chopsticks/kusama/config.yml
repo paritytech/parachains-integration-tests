@@ -2,8 +2,9 @@ endpoint: wss://kusama-rpc.polkadot.io
 mock-signature-host: true
 block: ${env.KUSAMA_BLOCK_NUMBER}
 db: ./db.sqlite
-# wasm-override: ./chopsticks/kusama/staging_kusama_runtime.wasm
+port: 8000
 runtime-log-level: 5
+# genesis: ./config/chopsticks/kusama/chain-spec-v1.0.0.json
 
 import-storage:
   # Sudo:
