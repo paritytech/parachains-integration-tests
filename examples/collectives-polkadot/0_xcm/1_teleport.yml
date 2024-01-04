@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain: &relay_chain
-      wsPort: 8002
+      wsPort: 8000
     collectives_parachain: &collectives_parachain
-      wsPort: 8001
+      wsPort: 8002
       paraId: &cp_id 1001
   variables:
     accounts:

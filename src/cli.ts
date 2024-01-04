@@ -49,7 +49,6 @@ const spawnChopsticks = (args) => {
   let stdioLogs;
 
   let chopsticksArgs = args.slice(args.indexOf('chopsticks') + 1);
-  console.log(chopsticksArgs);
 
   if (options.chainLogs) {
     const zombienetLogs = fs.openSync(`${options.chainLogs}`, 'a');

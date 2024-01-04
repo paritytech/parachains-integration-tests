@@ -50,9 +50,8 @@ export const sendExtrinsic = async (
           };
 
       // We try to schedule with chopsticks and 'Root' origin
-      // TODO: add extra && to check 'chopstick' mode
-      if (sudo === true && api.tx.sudo == undefined) {
-        console.log("🚨 Sudo is not available on this chain");
+      if (sudo === true && api.tx.sudo === undefined && providers[chain.wsPort].mode === "chopsticks") {
+        console.log(`⚠️  Sudo is not available on ${chainName}, scheduling the call instead with 'dev_setStorage'(chopsticks) and Root Origin\n`);
         let call = encodedCallHex.encoded;
         let callLength =  hexToU8a(call).length;
         let hashedCall = blake2AsHex(call);
@@ -91,7 +90,11 @@ export const sendExtrinsic = async (
           },
         });
         await api.rpc('dev_newBlock');
-        await eventListenerBuilder(context, chain, events, resolve, reject);
+        if (events) {
+          await eventListenerBuilder(context, chain, events, resolve, reject);
+        } else {
+          resolve([]);
+        }
       } else {
         await dispatchable.signAndSend(wallet, { nonce, era: 0 }, handler);
       }

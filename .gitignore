@@ -7,3 +7,7 @@ node_modules
 /*.json
 *.log
 ._*
+.DS_Store
+db.sqlite
+db.sqlite-shm
+db.sqlite-wal

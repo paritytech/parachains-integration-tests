@@ -1,5 +1,6 @@
 require('dotenv').config();
-import { Describe } from './interfaces';
+import { resolve, dirname } from 'path';
+import { Describe, TestFile } from './interfaces';
 import {
   beforeBuilder,
   beforeEachBuilder,
@@ -8,8 +9,9 @@ import {
 } from './hooks';
 import { itsBuilder } from './it';
 import { beforeAddConsoleGroups } from './before';
+import { getTestFiles } from './utils';
 
-export const describersBuilder = (description: Describe) => {
+export const describersBuilder = (description: Describe, testsPath: string) => {
   describe(`\n🏷️  ${description.name}`, async function () {
     beforeAddConsoleGroups(2);
 
@@ -42,9 +44,23 @@ export const describersBuilder = (description: Describe) => {
       }
     }
 
+    if (description.path) {
+      let absolutePath = resolve(testsPath, description.path);
+      let testsConfig: TestFile[] = getTestFiles(absolutePath);
+      let testConfig: TestFile;
+
+      for (testConfig of testsConfig) {
+        const { yaml } = testConfig;
+
+        for (const test of yaml.tests) {
+          describersBuilder(test, dirname(absolutePath));
+        }
+      }
+    }
+
     if (description.describes && description.describes.length > 0) {
       for (const desc of description.describes) {
-        describersBuilder(desc);
+        describersBuilder(desc, testsPath);
       }
     }
   });

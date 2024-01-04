@@ -208,7 +208,7 @@ const eventListener = (
             resolve(updateEventResult(false, undefined, event));
           }
         },
-        timeout ? timeout : context.eventListenerTimeout
+        timeout ? timeout : providers[chain.wsPort].eventListenerTimeout
       );
     } catch (e) {
       // unsubscribe();

@@ -15,7 +15,8 @@ export interface Describe {
   beforeEach?: BeforeEach[];
   after?: After[];
   afterEach?: AfterEach[];
-  its: It[];
+  its?: It[];
+  path?: string,
   describes?: Describe[]; // It is possible to nest Describes
 }
 
@@ -191,9 +192,15 @@ export interface Connection {
   subscriptions: object;
   lastBlock: string;
 }
+
+export interface Runtime {
+  path: string;
+}
+
 export interface Settings {
   chains: { [key: string]: Chain };
   variables: { [key: string]: any };
+  runtimes: { [key: string]: Runtime };
   decodedCalls: { [key: string]: Call };
 }
 

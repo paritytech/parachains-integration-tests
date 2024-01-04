@@ -2,9 +2,9 @@
 settings:
   chains:
     relay_chain:
-      wsPort: 8002
+      wsPort: 8000
     collectives_parachain: &collectives_parachain
-      wsPort: 8001
+      wsPort: 8002
   variables:
     accounts:
       alice_signer: &alice_signer //Alice

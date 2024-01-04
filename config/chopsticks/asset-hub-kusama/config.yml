@@ -2,6 +2,9 @@ endpoint: wss://statemine-rpc.dwellir.com
 mock-signature-host: true
 block: ${env.STATEMINE_BLOCK_NUMBER}
 db: ./db.sqlite
+port: 8001
+runtime-log-level: 5
+# genesis: ./config/chopsticks/asset-hub-kusama/chain-spec-v1.0.0.json
 
 import-storage:
   System:
@@ -15,4 +18,3 @@ import-storage:
   Assets:
     Account:
       - [[1984, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], { balance: 1000000000 }]
-

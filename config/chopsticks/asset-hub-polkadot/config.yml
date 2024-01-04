@@ -2,6 +2,9 @@ endpoint: wss://statemint-rpc.dwellir.com
 mock-signature-host: true
 block: ${env.STATEMINT_BLOCK_NUMBER}
 db: ./db.sqlite
+port: 8001
+runtime-log-level: 5
+# genesis: ./config/asset-hub-polkadot/chain-spec-v1.0.0.json
 
 import-storage:
   System:
