@@ -1,0 +1,131 @@
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9933
+    people_parachain: &people_parachain
+      wsPort: 9988
+      paraId: &p_id 1004
+  variables:
+    common:
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+        people_parachain_destination: &p_dest { v3: { 0, interior: { x1: { parachain: *p_id }}}}
+        require_weight_at_most: &weight_at_most {refTime: 1000000000, proofSize: 200000}
+      people_parachain:
+        auth_signer: &auth_signer //Alice
+        # user_auth: &user_auth HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
+        user_auth: &user_auth 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+  decodedCalls:
+    add_usernames_authority:
+      chain: *people_parachain
+      pallet: identity
+      call: addUsernameAuthority
+      args: [
+        { Id: *user_auth }, # authority
+        suffix, # suffix
+        10 # allocation
+      ]
+
+tests:
+  - name: Init People Chain
+    before:
+      - name: Set an Identity
+        actions:
+          - extrinsics:
+              - chain: *people_parachain
+                signer: *auth_signer
+                pallet: identity
+                call: setIdentity
+                args: [
+                  {
+                    display: { raw: "Alice" },
+                    legal: { raw: "Alice" },
+                    web: null,
+                    matrix: null,
+                    email: null,
+                    pgpFingerprint: null,
+                    image: null,
+                    twitter: null,
+                    github: null,
+                    discord: null,
+                  }
+                ]
+                events:
+                  - name: identity.IdentitySet
+                    result: { who: *user_auth }
+    its:
+      - name: Add Usernames Authorities
+        actions:
+          - extrinsics:
+            - chain: *relay_chain
+              signer: *rc_signer
+              sudo: true
+              pallet: xcmPallet
+              call: send
+              args: [
+                *p_dest, # destination
+                {
+                  v3: [ #message
+                    {
+                      UnpaidExecution: {
+                          weightLimit: {
+                            limited: {
+                              refTime: 2200000000,
+                              proofSize: 200000
+                            }
+                        }
+                      }
+                    },
+                    {
+                      Transact: {
+                        originKind: Superuser,
+                        requireWeightAtMost: *weight_at_most,
+                        call: $add_usernames_authority
+                      }
+                    }
+                  ]
+                }
+              ]
+              events:
+                - name: xcmPallet.Sent
+                - name: messageQueue.Processed
+                  chain: *people_parachain
+                  result: {
+                    success: true
+                  }
+          - queries:
+              username_authority:
+                chain: *people_parachain
+                pallet: identity
+                call: usernameAuthorities
+                args: [ *user_auth ]
+          - asserts:
+              isSome:
+                args: [ $username_authority ]
+
+      - name: Add Username to Identity
+        actions:
+          - extrinsics:
+            - chain: *people_parachain
+              signer: *auth_signer
+              pallet: identity
+              call: setUsernameFor
+              args: [
+                { Id: *user_auth },
+                nachito,
+                null
+              ]
+              events:
+                - name: identity.UsernameQueued
+                  result: { who: *user_auth }
+            - chain: *people_parachain
+              signer: *auth_signer
+              pallet: identity
+              call: acceptUsername
+              args: [
+                nachito.suffix
+              ]
+              events:
+                - name: identity.UsernameSet
+                  result: { who: *user_auth, username: nachito.suffix }

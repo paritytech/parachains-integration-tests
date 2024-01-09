@@ -1,0 +1,67 @@
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 9933
+    people_parachain:
+      wsPort: 9988
+      paraId: &p_id 1004
+      skip_block_production: true
+  variables:
+    common:
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+        wallet: &rc_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
+        people_parachain_destination: &p_dest { v3: { 0, interior: { x1: { parachain: *p_id }}}}
+  runtimes:
+    genesisHead:
+      path: ../../../solo-to-para-testing/resources/people-rococo-local-head-data
+    validationCode:
+      path: ../../../solo-to-para-testing/resources/people-rococo-local-wasm
+
+tests:
+  - name: Init People Chain
+    its:
+      - name: Onboard Parachain
+        actions:
+        - extrinsics:
+          - chain: *relay_chain
+            sudo: true
+            signer: *rc_signer
+            pallet: registrar
+            call: forceRegister
+            args: [
+              *rc_wallet,
+              0,
+              *p_id,
+              $genesisHead,
+              $validationCode,
+            ]
+            events:
+              - name: paras.PvfCheckStarted
+          - chain: *relay_chain
+            sudo: true
+            signer: *rc_signer
+            pallet: slots
+
+            call: forceLease
+            args: [
+              *p_id,
+              *rc_wallet,
+              0,
+              0,
+              1000,
+            ]
+            events:
+              - name: slots.Leased
+                result: { paraId: *p_id }
+          - chain: *relay_chain
+            delay: 200000 # wait first 200 seconds to onboard parathread
+            signer: *rc_signer
+            pallet: slots
+            call: triggerOnboard
+            args: [
+              *p_id
+            ]
+            events:
+              - name: system.ExtrinsicSuccess

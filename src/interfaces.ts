@@ -178,6 +178,7 @@ export interface Chain {
   wsPort: number;
   ws?: string; // if undefined, it fallsback to the default value -> ws://localhost
   paraId?: number;
+  skip_block_production?: boolean;
 }
 export interface ChainConfigs {
   chainName: string;

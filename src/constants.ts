@@ -51,6 +51,7 @@ export const INTERFACE: { [key: string]: Interface } = {
       wsPort: true,
       ws: false,
       paraId: false,
+      skip_block_production: false,
     },
     anyKey: true,
   },
@@ -148,6 +149,7 @@ export const INTERFACE: { [key: string]: Interface } = {
       wsPort: true,
       ws: false,
       paraId: false,
+      skip_block_production: false,
     },
   },
   wsPort: {
@@ -158,6 +160,9 @@ export const INTERFACE: { [key: string]: Interface } = {
   },
   paraId: {
     type: ['number'],
+  },
+  skip_block_production: {
+    type: ['boolean'],
   },
   pallet: {
     type: ['string'],
@@ -256,6 +261,7 @@ export const INTERFACE: { [key: string]: Interface } = {
     attributes: {
       equal: false,
       isSome: false,
+      isNone: false,
       balanceDecreased: false,
       balanceIncreased: false,
       assetsDecreased: false,
@@ -270,6 +276,12 @@ export const INTERFACE: { [key: string]: Interface } = {
     },
   },
   isSome: {
+    instance: YAMLMap,
+    attributes: {
+      args: true,
+    },
+  },
+  isNone: {
     instance: YAMLMap,
     attributes: {
       args: true,

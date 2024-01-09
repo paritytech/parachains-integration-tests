@@ -75,7 +75,9 @@ export const beforeConnectToProviders = (testFile: TestFile) => {
         this.providers[chains[name].wsPort].eventListenerTimeout = DEFAULT_EVENT_LISTENER_TIMEOUT_CHOPSTICKS;
       }
 
-      await waitForChainToProduceBlocks(this.providers[chains[name].wsPort]);
+      if (chains[name].skip_block_production === false || chains[name].skip_block_production === undefined) {
+        await waitForChainToProduceBlocks(this.providers[chains[name].wsPort]);
+      }
     }
 
     await updateLastBlocks(this);
