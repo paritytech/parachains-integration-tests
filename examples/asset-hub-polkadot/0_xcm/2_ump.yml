@@ -57,7 +57,7 @@ tests:
                   events:
                     - name: xcmPallet.Attempted
                       threshold: *weight_threshold
-                      result: { outcome: { Complete: { refTime: '792,675,000', proofSize: '7,585' }} }
+                      result: { outcome: { Complete: { refTime: '532,816,000', proofSize: '7,186' }} }
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       threshold: *weight_threshold
@@ -107,7 +107,7 @@ tests:
                       threshold: *weight_threshold
                       result: {
                         origin: { Ump: { Para: *ap_id }},
-                        weightUsed: { refTime: '368,931,000', proofSize: '7,186' },
+                        weightUsed: { refTime: '254,182,000', proofSize: '7,186' },
                         success: true
                       }
               - queries:

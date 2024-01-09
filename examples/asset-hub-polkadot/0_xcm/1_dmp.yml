@@ -73,7 +73,7 @@ tests:
                   events:
                     - name: xcmPallet.Attempted
                       threshold: *weight_threshold
-                      result: { outcome: { Complete: { refTime: '792,675,000', proofSize: '7,585' }} }
+                      result: { outcome: { Complete: { refTime: '532,816,000', proofSize: '7,186' }} }
                     - name: dmpQueue.ExecutedDownward
                       chain: *assets_parachain
                       threshold: *weight_threshold
@@ -198,70 +198,70 @@ tests:
                     - name: system.ExtrinsicFailed
                       result: { dispatchError: BadOrigin }
 
-      # - name: xcmPallet.limitedReserveTransferAssets
-      #   before: *before_get_balances
-      #   its:
-      #     - name: SHOULD NOT reserved transfer native assets from the Relay Chain to the Assets Parachain
-      #       actions:
-      #         - extrinsics:
-      #           - chain: *relay_chain
-      #             signer: *rc_signer
-      #             pallet: xcmPallet
-      #             call: limitedReserveTransferAssets
-      #             args: [
-      #               *ap_dest, # destination
-      #               *ap_benf, # beneficiary
-      #               { v3: [ *rc_ksm_fungible ] }, # assets
-      #               0, # feeAssetItem
-      #               { unlimited: true } # weightLimit
-      #             ]
-      #             events:
-      #               - name: xcmPallet.Attempted
-      #                 threshold: *weight_threshold
-      #                 result: { outcome: { Complete: { refTime: '630,092,000', proofSize: '6,196' }} }
-      #               - name: dmpQueue.ExecutedDownward
-      #                 chain: *assets_parachain
-      #                 threshold: *weight_threshold
-      #                 result: {
-      #                   outcome: {
-      #                       Incomplete: [
-      #                         { refTime: '1,000,000,000', proofSize: 0 },
-      #                         UntrustedReserveLocation
-      #                       ]
-      #                     }
-      #                 }
-      #         - queries:
-      #             balance_rc_sender_after:
-      #               chain: *relay_chain
-      #               pallet: system
-      #               call: account
-      #               args: [ *rc_wallet ]
-      #             balance_ap_receiver_after:
-      #               chain: *assets_parachain
-      #               pallet: system
-      #               call: account
-      #               args: [ *ap_wallet ]
+      - name: xcmPallet.limitedReserveTransferAssets
+        before: *before_get_balances
+        its:
+          - name: SHOULD NOT reserved transfer native assets from the Relay Chain to the Assets Parachain
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *rc_signer
+                  pallet: xcmPallet
+                  call: limitedReserveTransferAssets
+                  args: [
+                    *ap_dest, # destination
+                    *ap_benf, # beneficiary
+                    { v3: [ *rc_ksm_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: xcmPallet.Attempted
+                      threshold: *weight_threshold
+                      result: { outcome: { Complete: { refTime: '630,092,000', proofSize: '6,196' }} }
+                    - name: dmpQueue.ExecutedDownward
+                      chain: *assets_parachain
+                      threshold: *weight_threshold
+                      result: {
+                        outcome: {
+                            Incomplete: [
+                              { refTime: '1,000,000,000', proofSize: 0 },
+                              UntrustedReserveLocation
+                            ]
+                          }
+                      }
+              - queries:
+                  balance_rc_sender_after:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *rc_wallet ]
+                  balance_ap_receiver_after:
+                    chain: *assets_parachain
+                    pallet: system
+                    call: account
+                    args: [ *ap_wallet ]
 
-      #     - name: Should reduce the balance of the sender
-      #       actions:
-      #         - asserts:
-      #             balanceDecreased:
-      #               args: [
-      #                 {
-      #                   balances: {
-      #                     before: $balance_rc_sender_before,
-      #                     after: $balance_rc_sender_after,
-      #                   },
-      #                   amount: *amount
-      #                 }
-      #               ]
+          - name: Should reduce the balance of the sender
+            actions:
+              - asserts:
+                  balanceDecreased:
+                    args: [
+                      {
+                        balances: {
+                          before: $balance_rc_sender_before,
+                          after: $balance_rc_sender_after,
+                        },
+                        amount: *amount
+                      }
+                    ]
 
-      #     - name: Should keep the balance of the receiver
-      #       actions:
-      #         - asserts:
-      #             equal:
-      #               args:
-      #                 [
-      #                   $balance_ap_receiver_before,
-      #                   $balance_ap_receiver_after
-      #                 ]
+          - name: Should keep the balance of the receiver
+            actions:
+              - asserts:
+                  equal:
+                    args:
+                      [
+                        $balance_ap_receiver_before,
+                        $balance_ap_receiver_after
+                      ]
