@@ -1,60 +1,61 @@
-endpoint: wss://kusama-rpc.polkadot.io
+# endpoint: wss://kusama-rpc.polkadot.io
 mock-signature-host: true
 block: ${env.KUSAMA_BLOCK_NUMBER}
 db: ./db.sqlite
 port: 8000
 runtime-log-level: 5
-# genesis: ./config/chopsticks/kusama/chain-spec-v1.0.0.json
+genesis: ../parachains-integration-tests/config/chopsticks/kusama/kusama-raw.json
+# genesis: https://raw.githubusercontent.com/AcalaNetwork/chopsticks/d7b476eb44f14e8e88e39b2f263d9ccffe330c4f/packages/e2e/blobs/kusama.json
 
-import-storage:
-  # Sudo:
-  #   Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
-  System:
-    Account:
-      -
-        -
-          - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-        - providers: 1
-          data:
-            free: '10000000000000000000'
-  FellowshipCollective:
-    $removePrefix:
-      - IdToIndex
-      - IndexToId
-      - MemberCount
-      - Members
-    IdToIndex:
-      - [[0, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
-      - [[1, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
-      - [[2, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
-      - [[3, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
-      - [[4, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
-      - [[5, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
-      - [[6, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
-      - [[7, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
-    IndexToId:
-      - [[0, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
-      - [[1, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
-      - [[2, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
-      - [[3, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
-      - [[4, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
-      - [[5, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
-      - [[6, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
-      - [[7, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
-    MemberCount:
-      - [[0], 1]
-      - [[1], 1]
-      - [[2], 1]
-      - [[3], 1]
-      - [[4], 1]
-      - [[5], 1]
-      - [[6], 1]
-      - [[7], 1]
-    Members:
-      - [[5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], rank: 7]
-    Voting: []
-  ParasDisputes:
-    $removePrefix: ['disputes'] # those can makes block building super slow
+# import-storage:
+#   # Sudo:
+#   #   Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
+#   System:
+#     Account:
+#       -
+#         -
+#           - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+#         - providers: 1
+#           data:
+#             free: '10000000000000000000'
+#   FellowshipCollective:
+#     $removePrefix:
+#       - IdToIndex
+#       - IndexToId
+#       - MemberCount
+#       - Members
+#     IdToIndex:
+#       - [[0, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
+#       - [[1, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
+#       - [[2, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
+#       - [[3, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
+#       - [[4, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
+#       - [[5, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
+#       - [[6, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
+#       - [[7, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], 0]
+#     IndexToId:
+#       - [[0, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
+#       - [[1, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
+#       - [[2, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
+#       - [[3, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
+#       - [[4, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
+#       - [[5, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
+#       - [[6, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
+#       - [[7, 0], 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]
+#     MemberCount:
+#       - [[0], 1]
+#       - [[1], 1]
+#       - [[2], 1]
+#       - [[3], 1]
+#       - [[4], 1]
+#       - [[5], 1]
+#       - [[6], 1]
+#       - [[7], 1]
+#     Members:
+#       - [[5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], rank: 7]
+#     Voting: []
+#   ParasDisputes:
+#     $removePrefix: ['disputes'] # those can makes block building super slow
   # Configuration:
   #   ActiveConfig: {
   #     "maxCodeSize": 10485760,
