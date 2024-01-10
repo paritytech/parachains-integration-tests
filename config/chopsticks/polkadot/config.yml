@@ -1,35 +1,35 @@
-endpoint:
-  - wss://rpc.polkadot.io
-  - wss://polkadot-rpc.dwellir.com
+# endpoint:
+#   - wss://rpc.polkadot.io
+#   - wss://polkadot-rpc.dwellir.com
 mock-signature-host: true
 block: ${env.POLKADOT_BLOCK_NUMBER}
 db: ./db.sqlite
 port: 8000
 runtime-log-level: 5
 # wasm-override: ./config/chopsticks/polkadot_runtime.compact.compressed.wasm
-# genesis: ./config/polkadot/chain-spec-v1.0.0.json
+genesis: ../parachains-integration-tests/config/chopsticks/polkadot/chain-spec-v1.0.0.json
 
-import-storage:
-  System:
-    Account:
-      -
-        -
-          - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
-        - providers: 1
-          data:
-            free: '10000000000000000000'
-      -
-        -
-          - 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty # Bob
-        - providers: 1
-          data:
-            free: '10000000000000000000'
-  Referenda:
-    $removePrefix:
-      - ReferendumInfoFor
-      - ReferendumCount
-  Scheduler:
-    $removePrefix:
-      - Agenda
-  ParasDisputes:
-    $removePrefix: ['disputes'] # those can makes block building super slow
+# import-storage:
+#   System:
+#     Account:
+#       -
+#         -
+#           - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
+#         - providers: 1
+#           data:
+#             free: '10000000000000000000'
+#       -
+#         -
+#           - 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty # Bob
+#         - providers: 1
+#           data:
+#             free: '10000000000000000000'
+#   Referenda:
+#     $removePrefix:
+#       - ReferendumInfoFor
+#       - ReferendumCount
+#   Scheduler:
+#     $removePrefix:
+#       - Agenda
+#   ParasDisputes:
+#     $removePrefix: ['disputes'] # those can makes block building super slow

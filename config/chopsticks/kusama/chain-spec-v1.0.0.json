@@ -5,7 +5,11 @@
   "bootNodes": [],
   "telemetryEndpoints": null,
   "protocolId": "dot",
-  "properties": null,
+  "properties": {
+    "ss58Format": 2,
+    "tokenDecimals": 12,
+    "tokenSymbol": "KSM"
+  },
   "codeSubstitutes": {},
   "genesis": {
     "raw": {
