@@ -1,7 +1,7 @@
 const chai = require('chai');
 var should = require('chai').should();
 import { blake2AsHex } from '@polkadot/util-crypto';
-import { hexToU8a } from '@polkadot/util';
+import { hexToU8a, u8aToHex, compactAddLength } from '@polkadot/util';
 import { Extrinsic } from './interfaces';
 import {
   addConsoleGroup,
@@ -53,15 +53,15 @@ export const sendExtrinsic = async (
       if (sudo === true && api.tx.sudo === undefined && providers[chain.wsPort].mode === "chopsticks") {
         console.log(`⚠️  Sudo is not available on ${chainName}, scheduling the call instead with 'dev_setStorage'(chopsticks) and Root Origin\n`);
         let call = encodedCallHex.encoded;
-        let callLength =  hexToU8a(call).length;
-        let hashedCall = blake2AsHex(call);
+        let callLength = encodedCallHex.len;
+        let hashedCall = encodedCallHex.hash;
 
         await api.rpc('dev_setStorage', {
             preimage: {
                 preimageFor: [
                     [
                         [[hashedCall, callLength]],
-                        call
+                        u8aToHex(compactAddLength(hexToU8a(call)))
                     ]
                 ]
             }

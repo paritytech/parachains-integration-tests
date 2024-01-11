@@ -1,8 +1,8 @@
 [relaychain]
-default_command = "./bin/polkadot"
+default_command = "./bin/releases/nodes/v1.5.0/polkadot"
 default_args = [ "-lparachain=debug", "-lxcm=trace" ]
 chain = "kusama-local"
-chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./bin/releases/runtimes/v1001000/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 
     [[relaychain.nodes]]
     name = "alice"
@@ -28,35 +28,35 @@ chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endr
 [[parachains]]
 id = 1000
 chain = "asset-hub-kusama-local"
-chain_spec_command = "./bin/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain_spec_command = "./bin/releases/runtimes/v1001000/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 cumulus_based = true
 
     [[parachains.collators]]
     name = "collator1"
     ws_port = 8001
-    command = "./bin/polkadot-parachain"
+    command = "./bin/releases/nodes/v1.5.0/polkadot-parachain"
     args = [ "-lxcm=trace", "--state-cache-size=0" ]
 
     [[parachains.collators]]
     name = "collator2"
-    command = "./bin/polkadot-parachain"
+    command = "./bin/releases/nodes/v1.5.0/polkadot-parachain"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
-[[parachains]]
-id = 2000
-chain = "penpal-kusama-2000"
-cumulus_based = true
+# [[parachains]]
+# id = 2000
+# chain = "penpal-kusama-2000"
+# cumulus_based = true
 
-    [[parachains.collators]]
-    name = "collator3"
-    ws_port = 8003
-    command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+#     [[parachains.collators]]
+#     name = "collator3"
+#     ws_port = 8003
+#     command = "./bin/releases/nodes/v1.5.0/polkadot-parachain"
+#     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
-    [[parachains.collators]]
-    name = "collator4"
-    command = "./bin/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+#     [[parachains.collators]]
+#     name = "collator4"
+#     command = "./bin/releases/nodes/v1.5.0/polkadot-parachain"
+#     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
 # [[hrmp_channels]]
 #   sender = 1000
