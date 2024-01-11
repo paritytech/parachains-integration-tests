@@ -1,12 +1,52 @@
 # endpoint: wss://kusama-rpc.polkadot.io
 mock-signature-host: true
 block: ${env.KUSAMA_BLOCK_NUMBER}
-db: ./db.sqlite
+db: ./lele/db.sqlite
 port: 8000
 runtime-log-level: 5
-genesis: ../parachains-integration-tests/config/chopsticks/kusama/kusama-raw.json
+genesis: ../parachains-integration-tests/config/chopsticks/kusama/chain-spec-v1.0.0.json
 # genesis: https://raw.githubusercontent.com/AcalaNetwork/chopsticks/d7b476eb44f14e8e88e39b2f263d9ccffe330c4f/packages/e2e/blobs/kusama.json
-
+import-storage:
+    Hrmp:
+      HrmpChannels:
+        [
+          [
+            [
+              {
+                sender: 1000,
+                recipient: 1001,
+              }
+            ],
+            {
+              maxCapacity: 8,
+              maxTotalSize: 8192,
+              maxMessageSize: 8192,
+              msgCount: 0,
+              totalSize: 0,
+              mqcHead: null,
+              senderDeposit: 0,
+              recipientDeposit: 0,
+            }
+          ],
+          [
+            [
+              {
+                sender: 1001,
+                recipient: 1000,
+              }
+            ],
+            {
+              maxCapacity: 8,
+              maxTotalSize: 8192,
+              maxMessageSize: 8192,
+              msgCount: 0,
+              totalSize: 0,
+              mqcHead: null,
+              senderDeposit: 0,
+              recipientDeposit: 0,
+            }
+          ]
+        ]
 # import-storage:
 #   # Sudo:
 #   #   Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
