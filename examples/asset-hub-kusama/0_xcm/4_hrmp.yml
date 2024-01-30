@@ -68,6 +68,11 @@ tests:
         before:
           - name: DEPENDENCY | A sufficient Asset should exist in the Assets Parachain
             actions:
+              # - block_travels:
+              #     - chain: *assets_parachain
+              #       count: 1
+              #     - chain: *penpal_parachain
+              #       count: 1
               - extrinsics:
                   - chain: *relay_chain
                     signer: *rc_signer

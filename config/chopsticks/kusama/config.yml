@@ -1,63 +1,90 @@
-# endpoint: wss://kusama-rpc.polkadot.io
+endpoint: wss://kusama-rpc.polkadot.io
 mock-signature-host: true
 block: ${env.KUSAMA_BLOCK_NUMBER}
-db: ./lele/db.sqlite
+db: ./kusama/db.sqlite
 port: 8000
 runtime-log-level: 5
-genesis: ../parachains-integration-tests/config/chopsticks/kusama/chain-spec-v1.0.0.json
+# genesis: ../parachains-integration-tests/config/chopsticks/kusama/kusama.json
+# genesis: ../parachains-integration-tests/config/chopsticks/kusama/chain-spec-v1.0.0.json
+# genesis: ../parachains-integration-tests/config/chopsticks/kusama/chain-spec-with-para-v1.0.0.json
 # genesis: https://raw.githubusercontent.com/AcalaNetwork/chopsticks/d7b476eb44f14e8e88e39b2f263d9ccffe330c4f/packages/e2e/blobs/kusama.json
-import-storage:
-    Hrmp:
-      HrmpChannels:
-        [
-          [
-            [
-              {
-                sender: 1000,
-                recipient: 1001,
-              }
-            ],
-            {
-              maxCapacity: 8,
-              maxTotalSize: 8192,
-              maxMessageSize: 8192,
-              msgCount: 0,
-              totalSize: 0,
-              mqcHead: null,
-              senderDeposit: 0,
-              recipientDeposit: 0,
-            }
-          ],
-          [
-            [
-              {
-                sender: 1001,
-                recipient: 1000,
-              }
-            ],
-            {
-              maxCapacity: 8,
-              maxTotalSize: 8192,
-              maxMessageSize: 8192,
-              msgCount: 0,
-              totalSize: 0,
-              mqcHead: null,
-              senderDeposit: 0,
-              recipientDeposit: 0,
-            }
-          ]
-        ]
 # import-storage:
-#   # Sudo:
-#   #   Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
-#   System:
-#     Account:
-#       -
-#         -
-#           - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-#         - providers: 1
-#           data:
-#             free: '10000000000000000000'
+#   Paras:
+#     ParaLifecycles:
+#       [
+#         [
+#           [
+#             1000
+#           ],
+#           Parachain
+#         ],
+#         [
+#           [
+#             2000
+#           ],
+#           Parachain
+#         ]
+#       ]
+
+
+# import-storage:
+#     Hrmp:
+#       HrmpChannels:
+#         [
+#           [
+#             [
+#               {
+#                 sender: 1000,
+#                 recipient: 1001,
+#               }
+#             ],
+#             {
+#               maxCapacity: 8,
+#               maxTotalSize: 8192,
+#               maxMessageSize: 8192,
+#               msgCount: 0,
+#               totalSize: 0,
+#               mqcHead: null,
+#               senderDeposit: 0,
+#               recipientDeposit: 0,
+#             }
+#           ],
+#           [
+#             [
+#               {
+#                 sender: 1001,
+#                 recipient: 1000,
+#               }
+#             ],
+#             {
+#               maxCapacity: 8,
+#               maxTotalSize: 8192,
+#               maxMessageSize: 8192,
+#               msgCount: 0,
+#               totalSize: 0,
+#               mqcHead: null,
+#               senderDeposit: 0,
+#               recipientDeposit: 0,
+#             }
+#           ]
+#         ]
+import-storage:
+# #   # Sudo:
+# #   #   Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
+  System:
+    Account:
+      -
+        -
+          - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        - providers: 1
+          data:
+            free: '10000000000000000000'
+      -
+        -
+          - F3opxRbN5ZcGCL9nNgBRwNtmbuy3Z7fxADRPaVNrriP5Man # CheckAccount
+        - providers: 1
+          data:
+            free: 1000000000000000
 #   FellowshipCollective:
 #     $removePrefix:
 #       - IdToIndex

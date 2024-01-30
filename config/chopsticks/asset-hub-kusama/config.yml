@@ -1,10 +1,10 @@
-# endpoint: wss://statemine-rpc.dwellir.com
+endpoint: wss://statemine-rpc.dwellir.com
 mock-signature-host: true
 # block: ${env.STATEMINE_BLOCK_NUMBER}
-db: ./lala/db.sqlite
+db: ./asset-hub-kusama/db.sqlite
 port: 8001
 runtime-log-level: 4
-genesis: ../parachains-integration-tests/config/chopsticks/asset-hub-kusama/chain-spec-v1.0.0.json
+# genesis: ../parachains-integration-tests/config/chopsticks/asset-hub-kusama/chain-spec-v1.0.0.json
 # genesis: https://raw.githubusercontent.com/AcalaNetwork/chopsticks/d7b476eb44f14e8e88e39b2f263d9ccffe330c4f/packages/e2e/blobs/asset-hub-kusama.json
 
 # import-storage:
@@ -16,6 +16,13 @@ genesis: ../parachains-integration-tests/config/chopsticks/asset-hub-kusama/chai
 #         - providers: 1
 #           data:
 #             free: 1000000000000000
-#   Assets:
-#     Account:
-#       - [[1984, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], { balance: 1000000000 }]
+#       -
+#         -
+#           - FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP
+#         - providers: 1
+#           data:
+#             # free: 39975697797
+#             free: 3975697797
+  # Assets:
+  #   Account:
+  #     - [[1984, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], { balance: 1000000000 }]

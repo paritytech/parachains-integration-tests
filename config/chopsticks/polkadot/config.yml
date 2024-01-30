@@ -3,7 +3,7 @@
 #   - wss://polkadot-rpc.dwellir.com
 mock-signature-host: true
 block: ${env.POLKADOT_BLOCK_NUMBER}
-db: ./db.sqlite
+db: ./polkadot/db.sqlite
 port: 8000
 runtime-log-level: 5
 # wasm-override: ./config/chopsticks/polkadot_runtime.compact.compressed.wasm
