@@ -58,6 +58,22 @@ cumulus_based = true
     command = "./bin/releases/nodes/master/polkadot-parachain"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
+[[parachains]]
+id = 2001
+chain = "penpal-rococo-2001"
+cumulus_based = true
+
+    [[parachains.collators]]
+    name = "collator5"
+    ws_port = 9930
+    command = "./bin/releases/nodes/master/polkadot-parachain"
+    args = [ "-lxcm=trace", "--state-cache-size=0"]
+
+    [[parachains.collators]]
+    name = "collator6"
+    command = "./bin/releases/nodes/master/polkadot-parachain"
+    args = [ "-lxcm=trace", "--state-cache-size=0"]
+
 # [[hrmp_channels]]
 #   sender = 1000
 #   recipient = 2000
