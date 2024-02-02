@@ -1,4 +1,5 @@
 const chai = require('chai');
+const expect = chai.expect;
 var should = require('chai').should();
 import { Extrinsic } from './interfaces';
 import {
@@ -19,7 +20,7 @@ export const sendExtrinsic = async (
     try {
       let providers = context.providers;
 
-      const { chain, delay, signer, pallet, call, args, events } = extrinsic;
+      const { chain, delay, signer, pallet, call, args, events, timeout } = extrinsic;
 
       await sleep(delay ? delay : 0);
 
@@ -40,7 +41,7 @@ export const sendExtrinsic = async (
       let wallet = await getWallet(signer);
       let nonce = await api.rpc.system.accountNextIndex(wallet.address);
       let handler = events
-        ? eventsHandler(context, chain, events, resolve, reject)
+        ? eventsHandler(context, chain, events, resolve, reject, timeout)
         : () => {
             resolve([]);
           };

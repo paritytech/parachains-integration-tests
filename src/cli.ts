@@ -60,6 +60,7 @@ const spawnTests = (options) => {
     'mocha',
     [
       '--timeout 100000',
+      '--bail false',
       '--exit',
       '-r',
       'ts-node/register',

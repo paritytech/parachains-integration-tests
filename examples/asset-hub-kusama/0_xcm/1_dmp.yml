@@ -6,24 +6,37 @@ settings:
     assets_parachain: &assets_parachain
       wsPort: 9910
       paraId: &ap_id 1000
+    penpal_parachain: &penpal_parachain
+      wsPort: 9920
+      paraId: &pp_id 2000
   variables:
     common:
       weight_threshold:  &weight_threshold { refTime: [30, 30], proofSize: [30, 30] }
+      amount_threshold:  &amount_threshold { amount: [0, 1] }
     chains:
       relay_chain:
         signer: &rc_signer //Alice
         wallet: &rc_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
-        assets_parachain_destination: &ap_dest { v3: { parents: 0, interior: { x1: { parachain: *ap_id }}}}
-        assets_parachain_account: &ap_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
-        assets_parachain_beneficiary: &ap_benf { v3: { parents: 0, interior: { x1: { accountId32: { id: *ap_acc }}}}}
+        parachains:
+          assets:
+            destination: &ap_dest { v3: { parents: 0, interior: { x1: { parachain: *ap_id }}}}
+            account: &ap_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
+            beneficiary: &ap_benf { v3: { parents: 0, interior: { x1: { accountId32: { id: *ap_acc }}}}}
+          penpal:
+            destination: &pp_dest { v3: { parents: 0, interior: { x1: { parachain: *pp_id }}}}
+            account: &pp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
+            beneficiary: &pp_benf { v3: { parents: 0, interior: { x1: { accountId32: { id: *pp_acc }}}}}
+            sovereign_account: &pp_sov_acc F7fq1jMZkfuCuoMTyiEVAP2DMpMt18WopgBqTJznLihLNbZ
         ksm: &rc_ksm { concrete: { parents: 0, interior: { here: true }}}
         amount: &amount 1000000000000
         ksm_fungible: &rc_ksm_fungible { id: *rc_ksm, fun: { fungible: *amount }}
         require_weight_at_most: &rc_weight_at_most { refTime: 1000000000, proofSize: 200000 }
-      assets_parachain_account:
+      assets_parachain:
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         asset_id: &asset_id 1
         asset_min_balance: &asset_ed 1000
+      penpal_parachain_account:
+        wallet: &pp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
   decodedCalls:
     force_create_asset:
       chain: *assets_parachain
@@ -42,7 +55,7 @@ tests:
     describes:
       - name: xcmPallet.limitedTeleportAssets
         before: &before_get_balances
-          - name: Get the balances of the Relay Chain's sender & Assets Parachain's receiver
+          - name: Get the balances of the Relay Chain's sender & Assets Parachain's receiver & Penpal Parachain's receiver
             actions:
               - queries:
                   balance_rc_sender_before:
@@ -55,6 +68,11 @@ tests:
                     pallet: system
                     call: account
                     args: [ *ap_wallet ]
+                  balance_pp_receiver_before:
+                    chain: *penpal_parachain
+                    pallet: system
+                    call: account
+                    args: [ *pp_wallet ]
         its:
           - name: Should teleport native assets from the Relay Chain to the Assets Parachain
             actions:
@@ -198,7 +216,7 @@ tests:
                     - name: system.ExtrinsicFailed
                       result: { dispatchError: BadOrigin }
 
-      - name: xcmPallet.limitedReserveTransferAssets
+      - name: xcmPallet.limitedReserveTransferAssets | Relay Chain -> Assets Parachain
         before: *before_get_balances
         its:
           - name: SHOULD NOT reserved transfer native assets from the Relay Chain to the Assets Parachain
@@ -265,3 +283,87 @@ tests:
                         $balance_ap_receiver_before,
                         $balance_ap_receiver_after
                       ]
+
+      - name: xcmPallet.limitedReserveTransferAssets | Relay Chain -> Penpal Parachain
+        before: *before_get_balances
+        its:
+          - name: SHOULD reserved transfer native assets from the Relay Chain to Penpal Parachain
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *rc_signer
+                  pallet: xcmPallet
+                  call: limitedReserveTransferAssets
+                  args: [
+                    *pp_dest, # destination
+                    *pp_benf, # beneficiary
+                    { v3: [ *rc_ksm_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: xcmPallet.Attempted
+                      threshold: *weight_threshold
+                      result: { outcome: { Complete: { refTime: '630,092,000', proofSize: '6,196' }} }
+                    - name: balances.Transfer
+                      result: {
+                        from: *rc_wallet,
+                        to: *pp_sov_acc,
+                        amount: *amount
+                      }
+                    - name: messageQueue.Processed
+                      chain: *penpal_parachain
+                      threshold: *weight_threshold
+                      result: {
+                          origin: Parent,
+                          weightUsed: {
+                            refTime: '5,000,000,000',
+                            proofSize: '327,680'
+                          },
+                          success: true
+                      }
+                    - name: balances.Deposit
+                      chain: *penpal_parachain
+                      threshold: *amount_threshold # amount - fees
+                      result: {
+                        who: *pp_wallet,
+                        amount: *amount
+                      }
+              - queries:
+                  balance_rc_sender_after:
+                    chain: *relay_chain
+                    pallet: system
+                    call: account
+                    args: [ *rc_wallet ]
+                  balance_pp_receiver_after:
+                    chain: *penpal_parachain
+                    pallet: system
+                    call: account
+                    args: [ *pp_wallet ]
+
+          - name: Should reduce the balance of the sender
+            actions:
+              - asserts:
+                  balanceDecreased:
+                    args: [
+                      {
+                        balances: {
+                          before: $balance_rc_sender_before,
+                          after: $balance_rc_sender_after,
+                        },
+                        amount: *amount
+                      }
+                    ]
+
+          - name: Should increase the balance of the receiver
+            actions:
+              - asserts:
+                  balanceIncreased:
+                    args: [
+                      {
+                        balances: {
+                          before: $balance_pp_receiver_before,
+                          after: $balance_pp_receiver_after,
+                        }
+                      }
+                    ]

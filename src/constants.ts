@@ -122,6 +122,7 @@ export const INTERFACE: { [key: string]: Interface } = {
       sudo: false,
       encode: false,
       delay: false,
+      timeout: false,
       events: false,
     },
   },
@@ -169,7 +170,6 @@ export const INTERFACE: { [key: string]: Interface } = {
       chain: false,
       name: true,
       remote: false,
-      timeout: false,
       result: false,
       threshold: false,
       strict: false,
@@ -311,6 +311,7 @@ export const INTERFACE: { [key: string]: Interface } = {
       call: true,
       args: true,
       events: false,
+      timeout: false,
     },
   },
   before: {

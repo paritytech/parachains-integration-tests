@@ -11,14 +11,14 @@ export const sendRpc = async (
 ): Promise<any[]> => {
   return new Promise(async (resolve, reject) => {
     let providers = context.providers;
-    const { events, chain, delay, method, call, args } = rpc;
+    const { events, chain, delay, method, call, args, timeout } = rpc;
     let api = providers[chain.wsPort].api;
     let parsedArgs = parseArgs(context, args);
     await sleep(delay ? delay : context.actionDelay);
     context.variables[`\$${key}`] = await api.rpc[method][call](...parsedArgs);
 
     if (events) {
-      await eventListenerBuilder(context, chain, events, resolve, reject);
+      await eventListenerBuilder(context, chain, events, resolve, reject, timeout);
     } else {
       let eventsResults: EventResult[] = [];
       resolve(eventsResults);

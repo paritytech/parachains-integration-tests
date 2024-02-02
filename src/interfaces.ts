@@ -36,6 +36,7 @@ export interface Custom {
   path: string;
   args: any[];
   events?: Event[];
+  timeout?: number; // overrides de default event listener timeout
 }
 
 export interface Query {
@@ -53,6 +54,7 @@ export interface Rpc {
   call: string;
   args: any[];
   events?: Event[];
+  timeout?: number; // overrides de default event listener timeout
 }
 
 export interface Call {
@@ -67,6 +69,7 @@ export interface Call {
 export interface Extrinsic extends Call {
   signer: string;
   delay?: number;
+  timeout?: number; // overrides de default event listener timeout
   events: Event[];
 }
 
@@ -74,7 +77,6 @@ export interface Event {
   chain: Chain;
   name: string;
   remote: boolean; // indicates if its considered as a remote event (different chain context)
-  timeout?: number; // overrides de default event listener timeout
   attributes?: Attribute[];
   result?: object;
   strict: boolean;
@@ -95,6 +97,7 @@ export interface EventResult extends Event {
   message: string;
   data: EventData[];
   record?: any;
+  matchLevel: number;
 }
 
 export interface EventResultsObject {
