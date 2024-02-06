@@ -15,7 +15,7 @@ settings:
   variables:
     common:
       weight_threshold:  &weight_threshold { refTime: [30, 30], proofSize: [30, 30] }
-      amount_threshold:  &amount_threshold { amount: [0, 1] }
+      amount_threshold:  &amount_threshold { amount: [0, 10] }
     chains:
       relay_chain:
         signer: &rc_signer //Alice
@@ -385,7 +385,7 @@ tests:
                     ]
 
       - name: xcmPallet.limitedReserveTransferAssets | Penpal A -> Relay Chain -> Penpal B
-        before:
+        before: &before_penpal_a_to_penpal_b
           - name: Get the balances of the Penpal A's sender & Penpal B's receiver
             actions:
               - queries:
@@ -394,7 +394,7 @@ tests:
                     pallet: system
                     call: account
                     args: [ *pp_a_wallet ]
-                  balance_pp_b_sender_before:
+                  balance_pp_b_receiver_before:
                     chain: *penpal_parachain_b
                     pallet: system
                     call: account
@@ -498,10 +498,118 @@ tests:
                     args: [
                       {
                         balances: {
-                          before: $balance_pp_b_sender_before,
+                          before: $balance_pp_a_sender_before,
                           after: $balance_pp_a_sender_after,
                         },
-                        amount: *amount
+                        amount: *amount_pp_b
+                      }
+                    ]
+
+          - name: Should increase the balance of the receiver
+            actions:
+              - asserts:
+                  balanceIncreased:
+                    args: [
+                      {
+                        balances: {
+                          before: $balance_pp_b_receiver_before,
+                          after: $balance_pp_b_receiver_after,
+                        }
+                      }
+                    ]
+
+      - name: xcmPallet.limitedReserveTransferAssets | Penpal A -> Asset Hub -> Penpal B
+        before: *&before_penpal_a_to_penpal_b
+        its:
+          - name: SHOULD reserved transfer native assets from the Penpal A to Penpal B through the Assset Hub
+            actions:
+              - extrinsics:
+                - chain: *penpal_parachain_a
+                  signer: *pp_a_signer
+                  pallet: polkadotXcm
+                  call: limitedReserveTransferAssets
+                  args: [
+                    *pp_b_dest, # destination
+                    *pp_b_benf, # beneficiary
+                    { v3: [ *pp_b_ksm_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: polkadotXcm.Attempted
+                      threshold: *weight_threshold
+                      result: { outcome: { Complete: { used: { refTime: '2,000,000,000', proofSize: '131,072' }} }}
+                    - name: balances.Withdraw
+                      result: {
+                        who: *pp_b_wallet,
+                        amount: *amount_pp_b
+                      }
+                    - name: parachainSystem.UpwardMessageSent
+                    - name: messageQueue.Processed
+                      chain: *relay_chain
+                      threshold: *weight_threshold
+                      result: {
+                          origin: { Ump: { Para: *pp_a_id }},
+                          weightUsed: {
+                            refTime: '628,825,000',
+                            proofSize: '7,186'
+                          },
+                          success: true
+                      }
+                    - name: balances.Withdraw
+                      chain: *relay_chain
+                      result: {
+                        who: *pp_a_sov_acc,
+                        amount: *amount_pp_b
+                      }
+                    - name: balances.Deposit
+                      chain: *relay_chain
+                      threshold: *amount_threshold # amount - fees
+                      result: {
+                        who: *pp_b_sov_acc,
+                        amount: *amount_pp_b
+                      }
+                    - name: messageQueue.Processed
+                      chain: *penpal_parachain_b
+                      threshold: *weight_threshold
+                      result: {
+                          origin: Parent,
+                          weightUsed: {
+                            refTime: '5,000,000,000',
+                            proofSize: '327,680'
+                          },
+                          success: true
+                      }
+                    - name: balances.Deposit
+                      chain: *penpal_parachain_b
+                      threshold: *amount_threshold # amount - fees
+                      result: {
+                        who: *pp_b_wallet,
+                        amount: *amount_pp_b
+                      }
+              - queries:
+                  balance_pp_a_sender_after:
+                    chain: *penpal_parachain_a
+                    pallet: system
+                    call: account
+                    args: [ *pp_a_wallet ]
+                  balance_pp_b_receiver_after:
+                    chain: *penpal_parachain_b
+                    pallet: system
+                    call: account
+                    args: [ *pp_b_wallet ]
+
+          - name: Should reduce the balance of the sender
+            actions:
+              - asserts:
+                  balanceDecreased:
+                    args: [
+                      {
+                        balances: {
+                          before: $balance_pp_a_sender_before,
+                          after: $balance_pp_a_sender_after,
+                        },
+                        amount: *amount_pp_b
                       }
                     ]
 

@@ -26,7 +26,7 @@ settings:
       penpal_parachain_b:
         signer: &pp_b_signer //Alice
   decodedCalls:
-    ap_force_xcm_version:
+    ap_force_rc_xcm_version:
       chain: *assets_parachain
       pallet: polkadotXcm
       call: forceXcmVersion
@@ -37,13 +37,35 @@ settings:
         },
         *xcm_version # xcmVersion
       ]
+    ap_force_pp_a_xcm_version:
+      chain: *assets_parachain
+      pallet: polkadotXcm
+      call: forceXcmVersion
+      args: [
+        { # location
+          parents: 1,
+          interior: { X1: { Parachain: *pp_a_id }}
+        },
+        *xcm_version # xcmVersion
+      ]
+    ap_force_pp_b_xcm_version:
+      chain: *assets_parachain
+      pallet: polkadotXcm
+      call: forceXcmVersion
+      args: [
+        { # location
+          parents: 1,
+          interior: { X1: { Parachain: *pp_b_id }}
+        },
+        *xcm_version # xcmVersion
+      ]
 
 tests:
   - name: Initialize Chains
     its:
-      - name: XCM supported versions between chains
+      - name:  Relay Chain sets supported XCM version for AssetHub
         actions:
-          - extrinsics: # Relay Chain sets supported version for Asset Parachain
+          - extrinsics:
             - chain: *relay_chain
               sudo: true
               signer: *rc_signer
@@ -65,7 +87,10 @@ tests:
                   result: { sudoResult: Ok }
                 - name: xcmPallet.SupportedVersionChanged
                   result: { location: { parents: 0, interior: { X1: { Parachain: *ap_id }}}, version: *xcm_version }
-          - extrinsics: # Relay Chain sets supported version for Penpal Parachain A
+
+      - name:  Relay Chain sets supported XCM version for Penpal A
+        actions:
+          - extrinsics:
             - chain: *relay_chain
               sudo: true
               signer: *rc_signer
@@ -87,7 +112,10 @@ tests:
                   result: { sudoResult: Ok }
                 - name: xcmPallet.SupportedVersionChanged
                   result: { location: { parents: 0, interior: { X1: { Parachain: *pp_a_id }}}, version: *xcm_version }
-          - extrinsics: # Relay Chain sets supported version for Penpal Parachain B
+
+      - name:  Relay Chain sets supported XCM version for Penpal B
+        actions:
+          - extrinsics:
             - chain: *relay_chain
               sudo: true
               signer: *rc_signer
@@ -109,7 +137,10 @@ tests:
                   result: { sudoResult: Ok }
                 - name: xcmPallet.SupportedVersionChanged
                   result: { location: { parents: 0, interior: { X1: { Parachain: *pp_b_id }}}, version: *xcm_version }
-          - extrinsics: # Asset Parachain sets supported version for Relay Chain through it
+
+      - name:  AssetHub sets supported XCM version for Relay Chain thoriugh it
+        actions:
+          - extrinsics:
             - chain: *relay_chain
               signer: *rc_signer
               sudo: true
@@ -133,7 +164,7 @@ tests:
                       Transact: {
                         originKind: Superuser,
                         requireWeightAtMost: *weight_at_most,
-                        call: $ap_force_xcm_version
+                        call: $ap_force_rc_xcm_version
                       }
                     }
                   ]
@@ -153,7 +184,103 @@ tests:
                   chain: *assets_parachain
                   result: { location: { parents: 1, interior: Here }, version: *xcm_version }
                   # result: [{ parents: 1, interior: Here }, *xcm_version ]
-          - extrinsics: # Penpal Parachain A sets supported version for Relay Chain
+
+      - name:  AssetHub sets supported XCM version for Penpal A through Relay Chain
+        actions:
+          - extrinsics:
+            - chain: *relay_chain
+              signer: *rc_signer
+              sudo: true
+              pallet: xcmPallet
+              call: send
+              args: [
+                *ap_dest, # destination
+                {
+                  v3: [ #message
+                    {
+                      UnpaidExecution: {
+                          weightLimit: {
+                            limited: {
+                              refTime: 2200000000,
+                              proofSize: 200000
+                            }
+                        }
+                      }
+                    },
+                    {
+                      Transact: {
+                        originKind: Superuser,
+                        requireWeightAtMost: *weight_at_most,
+                        call: $ap_force_pp_a_xcm_version
+                      }
+                    }
+                  ]
+                }
+              ]
+              events:
+                - name: sudo.Sudid
+                  result: { sudoResult: Ok }
+                - name: xcmPallet.Sent
+                - name: dmpQueue.ExecutedDownward
+                  chain: *assets_parachain
+                  threshold: *weight_threshold
+                  result: {
+                    outcome: { Complete: { refTime: '1,019,210,000', proofSize: '200,000' }}
+                  }
+                - name: polkadotXcm.SupportedVersionChanged
+                  chain: *assets_parachain
+                  result: { location: { parents: 1, interior: { X1: { Parachain: *pp_a_id }} }, version: *xcm_version }
+                  # result: [{ parents: 1, interior: Here }, *xcm_version ]
+
+      - name:  AssetHub sets supported XCM version for Penpal B through Relay Chain
+        actions:
+          - extrinsics:
+            - chain: *relay_chain
+              signer: *rc_signer
+              sudo: true
+              pallet: xcmPallet
+              call: send
+              args: [
+                *ap_dest, # destination
+                {
+                  v3: [ #message
+                    {
+                      UnpaidExecution: {
+                          weightLimit: {
+                            limited: {
+                              refTime: 2200000000,
+                              proofSize: 200000
+                            }
+                        }
+                      }
+                    },
+                    {
+                      Transact: {
+                        originKind: Superuser,
+                        requireWeightAtMost: *weight_at_most,
+                        call: $ap_force_pp_b_xcm_version
+                      }
+                    }
+                  ]
+                }
+              ]
+              events:
+                - name: sudo.Sudid
+                  result: { sudoResult: Ok }
+                - name: xcmPallet.Sent
+                - name: dmpQueue.ExecutedDownward
+                  chain: *assets_parachain
+                  threshold: *weight_threshold
+                  result: {
+                    outcome: { Complete: { refTime: '1,019,210,000', proofSize: '200,000' }}
+                  }
+                - name: polkadotXcm.SupportedVersionChanged
+                  chain: *assets_parachain
+                  result: { location: { parents: 1, interior: { X1: { Parachain: *pp_b_id }} }, version: *xcm_version }
+
+      - name: Penpal Parachain A sets supported version for Relay Chain
+        actions:
+          - extrinsics:
             - chain: *penpal_parachain_a
               signer: *pp_a_signer
               sudo: true
@@ -172,7 +299,33 @@ tests:
                 - name: polkadotXcm.SupportedVersionChanged
                   # result: [{ parents: 1, interior: Here }, *xcm_version ]
                   result: { location: { parents: 1, interior: Here }, version: *xcm_version }
-          - extrinsics: # Penpal Parachain B sets supported version for Relay Chain
+
+      - name: Penpal Parachain A sets supported version for AssetHub
+        actions:
+          - extrinsics:
+            - chain: *penpal_parachain_a
+              signer: *pp_a_signer
+              sudo: true
+              pallet: polkadotXcm
+              call: forceXcmVersion
+              args: [
+                {
+                  location: {
+                    parents: 1,
+                    interior: { X1: { Parachain: *ap_id }}
+                  },
+                },
+                *xcm_version # xcmVersion
+              ]
+              events:
+                - name: sudo.Sudid
+                  result: { sudoResult: Ok }
+                - name: polkadotXcm.SupportedVersionChanged
+                  # result: [{ parents: 1, interior: Here }, *xcm_version ]
+
+      - name: Penpal Parachain B sets supported version for Relay Chain
+        actions:
+          - extrinsics:
             - chain: *penpal_parachain_b
               signer: *pp_b_signer
               sudo: true
@@ -191,3 +344,26 @@ tests:
                 - name: polkadotXcm.SupportedVersionChanged
                   # result: [{ parents: 1, interior: Here }, *xcm_version ]
                   result: { location: { parents: 1, interior: Here }, version: *xcm_version }
+
+      - name: Penpal Parachain B sets supported version for AssetHub
+        actions:
+          - extrinsics:
+            - chain: *penpal_parachain_b
+              signer: *pp_b_signer
+              sudo: true
+              pallet: polkadotXcm
+              call: forceXcmVersion
+              args: [
+                {
+                  location: {
+                    parents: 1,
+                    interior: { X1: { Parachain: *ap_id }}
+                  },
+                },
+                *xcm_version # xcmVersion
+              ]
+              events:
+                - name: sudo.Sudid
+                  result: { sudoResult: Ok }
+                - name: polkadotXcm.SupportedVersionChanged
+                  # result: [{ parents: 1, interior: Here }, *xcm_version ]

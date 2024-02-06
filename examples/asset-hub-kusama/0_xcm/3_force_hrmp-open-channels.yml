@@ -6,9 +6,12 @@ settings:
     assets_parachain:
       wsPort: 9910
       paraId: &ap_id 1000
-    penpal_parachain:
+    penpal_parachain_a:
       wsPort: 9920
-      paraId: &pp_id 2000
+      paraId: &pp_a_id 2000
+    penpal_parachain_b:
+      wsPort: 9930
+      paraId: &pp_b_id 2001
   variables:
     common:
       amount: &amount 2000000000000
@@ -30,13 +33,15 @@ settings:
         signer: &rc_signer //Alice
       assets_parachain_account:
         sovereign_account: &ap_sovereign F7fq1jSNVTPfJmaHaXCMtatT1EZefCUsa7rRiQVNR5efcah
-      penpal_parachain:
-        sovereign_account: &pp_sovereign F7fq1jMZkfuCuoMTyiEVAP2DMpMt18WopgBqTJznLihLNbZ
+      penpal_parachain_a:
+        sovereign_account: &pp_a_sovereign F7fq1jMZkfuCuoMTyiEVAP2DMpMt18WopgBqTJznLihLNbZ
+      penpal_parachain_b:
+        sovereign_account: &pp_b_sovereign F7fq1jMmNj5j2jAHcBxgM26JzUn2N4duXu1U4UZNdkfZEPV
 
 tests:
   - name: HRMP
     beforeEach:
-      - name: DEPENDENCY | Penpal Parachain Sovereign account in the Relay Chain needs to be funded
+      - name: DEPENDENCY | Penpal Parachain A Sovereign account in the Relay Chain needs to be funded
         actions:
           - extrinsics:
               - chain: *relay_chain
@@ -44,7 +49,20 @@ tests:
                 pallet: balances
                 call: transferAllowDeath
                 args: [
-                  *pp_sovereign, # destination
+                  *pp_a_sovereign, # destination
+                  *amount, # value
+                ]
+                events:
+                  - name: balances.Transfer
+      - name: DEPENDENCY | Penpal Parachain B Sovereign account in the Relay Chain needs to be funded
+        actions:
+          - extrinsics:
+              - chain: *relay_chain
+                signer: *rc_signer
+                pallet: balances
+                call: transferAllowDeath
+                args: [
+                  *pp_b_sovereign, # destination
                   *amount, # value
                 ]
                 events:
@@ -64,9 +82,9 @@ tests:
                 events:
                   - name: balances.Transfer
     describes:
-      - name: hrmp.forceOpenHrmpChannel (Penpal Parachain → Assets Parachain)
+      - name: hrmp.forceOpenHrmpChannel (Penpal Parachain A → Assets Parachain)
         its:
-          - name: Open Penpal Parachain to Assets Parachain
+          - name: Open Penpal Parachain A to Assets Parachain
             actions:
               - extrinsics:
                   - chain: *relay_chain
@@ -75,7 +93,7 @@ tests:
                     pallet: hrmp
                     call: forceOpenHrmpChannel
                     args: [
-                      *pp_id,
+                      *pp_a_id,
                       *ap_id,
                       *max_capacity,
                       *max_message_size
@@ -85,7 +103,28 @@ tests:
                         result: { sudoResult: Ok }
                       - name: hrmp.HrmpChannelForceOpened
 
-      - name: hrmp.forceOpenHrmpChannel (Assets Parachain → PenPal Parachain)
+      - name: hrmp.forceOpenHrmpChannel (Penpal Parachain B → Assets Parachain)
+        its:
+          - name: Open Penpal Parachain B to Assets Parachain
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *rc_signer
+                    sudo: true
+                    pallet: hrmp
+                    call: forceOpenHrmpChannel
+                    args: [
+                      *pp_b_id,
+                      *ap_id,
+                      *max_capacity,
+                      *max_message_size
+                    ]
+                    events:
+                      - name: sudo.Sudid
+                        result: { sudoResult: Ok }
+                      - name: hrmp.HrmpChannelForceOpened
+
+      - name: hrmp.forceOpenHrmpChannel (Assets Parachain → PenPal Parachain A)
         its:
           - name: Open Assets Parachain to PenPal Parachain
             actions:
@@ -97,7 +136,70 @@ tests:
                     call: forceOpenHrmpChannel
                     args: [
                       *ap_id,
-                      *pp_id,
+                      *pp_a_id,
+                      *max_capacity,
+                      *max_message_size
+                    ]
+                    events:
+                      - name: sudo.Sudid
+                        result: { sudoResult: Ok }
+                      - name: hrmp.HrmpChannelForceOpened
+
+      - name: hrmp.forceOpenHrmpChannel (Assets Parachain → PenPal Parachain B)
+        its:
+          - name: Open Assets Parachain to PenPal Parachain
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *rc_signer
+                    sudo: true
+                    pallet: hrmp
+                    call: forceOpenHrmpChannel
+                    args: [
+                      *ap_id,
+                      *pp_b_id,
+                      *max_capacity,
+                      *max_message_size
+                    ]
+                    events:
+                      - name: sudo.Sudid
+                        result: { sudoResult: Ok }
+                      - name: hrmp.HrmpChannelForceOpened
+
+      - name: hrmp.forceOpenHrmpChannel (Penpal Parachain A → Penpal Parachain B)
+        its:
+          - name: Open Penpal Parachain A to Penpal Parachain B
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *rc_signer
+                    sudo: true
+                    pallet: hrmp
+                    call: forceOpenHrmpChannel
+                    args: [
+                      *pp_a_id,
+                      *pp_b_id,
+                      *max_capacity,
+                      *max_message_size
+                    ]
+                    events:
+                      - name: sudo.Sudid
+                        result: { sudoResult: Ok }
+                      - name: hrmp.HrmpChannelForceOpened
+
+      - name: hrmp.forceOpenHrmpChannel (Penpal Parachain B → Penpal Parachain A)
+        its:
+          - name: Open Penpal Parachain B to Penpal Parachain A
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *rc_signer
+                    sudo: true
+                    pallet: hrmp
+                    call: forceOpenHrmpChannel
+                    args: [
+                      *pp_b_id,
+                      *pp_a_id,
                       *max_capacity,
                       *max_message_size
                     ]
@@ -116,7 +218,7 @@ tests:
                     sudo: true
                     pallet: hrmp
                     call: forceProcessHrmpOpen
-                    args: [ 2 ]
+                    args: [ 6 ]
                     events:
                       - name: sudo.Sudid
                         result: { sudoResult: Ok }
