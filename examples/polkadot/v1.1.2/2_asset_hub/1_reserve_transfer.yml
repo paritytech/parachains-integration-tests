@@ -1,0 +1,494 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 8000
+    assets_parachain: &assets_parachain
+      wsPort: 8001
+      paraId: &ap_id 1000
+    penpal_parachain: &penpal_parachain
+      wsPort: 8003
+      paraId: &pp_id 2000
+    penpal_parachain_b: &penpal_parachain_b
+      wsPort: 8004
+      paraId: &pp_id_b 2001
+  variables:
+    common:
+      mint_amount: &mint_amount 1000000000000
+      weight_threshold:  &weight_threshold { refTime: [30, 30], proofSize: [30, 30] }
+      amount_to_send: &amount_to_send 500000000000
+      amount_to_send_back: &amount_to_send_back 400000000000 # should be smaller than the amount_to_send because of the spent fees
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+        wallet: &rc_wallet 15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5
+        assets_parachain_destination: &rc_ap_dest { v3: { parents: 0, interior: { x1: { parachain: *ap_id }}}}
+        assets_parachain_account: &ap_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
+        assets_parachain_beneficiary: &ap_benf { v3: { parents: 0, interior: { x1: { accountId32: { id: *ap_acc }}}}}
+        dot: &rc_dot { concrete: { parents: 0, interior: { here: true }}}
+        amount: &amount 1000000000000
+        dot_fungible: &rc_dot_fungible { id: *rc_dot, fun: { fungible: *amount }}
+        require_weight_at_most: &rc_weight_at_most { refTime: 1000000000, proofSize: 200000 }
+        penpal_sovereign_account: &pp_sovereign_child 13YMK2eYoAvStnzReuxBjMrAvPXmmdsURwZvc62PrdXimbNy
+        penpal_b_sovereign_account: &pp_b_sovereign_child F7fq1jMmNj5j2jAHcBxgM26JzUn2N4duXu1U4UZNdkfZEPV
+      assets_parachain:
+        signer: &ap_signer //Alice
+        wallet: &ap_wallet 15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5
+        relay_chain_destination: &rc_dest { v3: { parents: 1, interior: { here: true }}}
+        assets_parachain_account: &rc_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d' #Alice
+        relay_chain_beneficiary: &rc_benf {v3: { parents: 0, interior: { x1: { accountId32: { id: *rc_acc }}}}}
+        dot: &ap_dot { concrete: { parents: 1, interior: { here: true }}}
+        dot_fungible: &ap_dot_fungible { id: *ap_dot, fun: { fungible: *amount }}
+        penpal_parachain_destination: &pp_dest { v3: { parents: 1, interior: { x1: { parachain: *pp_id } }}}
+        reservable_asset_id: &reservable_asset_id 1
+        assets_pallet_id: &assets_pallet_id 50
+      penpal_parachain:
+        sovereign_account: &pp_sovereign_sibl 13cKp89Msu7M2PiaCuuGr1BzAsD5V3vaVbDMs3YtjMZHdGwR
+        signer: &pp_signer //Alice
+        penpal_parachain_account: &pp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
+        wallet: &pp_wallet 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        reservable_asset: &pp_reservable_asset {
+          parents: 1,
+          interior: {
+            X3: [
+              {Parachain: *ap_id},
+              {PalletInstance: 50},
+              {GeneralIndex: *reservable_asset_id}
+            ]
+          }
+        }
+        system_asset: &system_asset { parents: 1, interior: Here }
+        assets_parachain_destination: &pp_ap_dest { v3: { parents: 1, interior: { x1: { parachain: *ap_id } }}}
+        penpal_parachain_destination: &pp_pp_dest { v3: { parents: 1, interior: { x1: { parachain: *pp_id_b } }}}
+
+tests:
+  - name: Reserve Transfer
+    its: []
+    describes:
+      ################################################################################################
+      ########################### Native Asset - Relay Chain<>AssetHub ##############################
+      ################################################################################################
+      - name: xcmPallet.limitedReserveTransferAssets (DOT) | Relay Chain -> AssetHub
+        its:
+          - name: SHOULD NOT reserved transfer native assets from the Relay Chain to the AssetsHub
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *rc_signer
+                  pallet: xcmPallet
+                  call: limitedReserveTransferAssets
+                  args: [
+                    *rc_ap_dest, # destination
+                    *ap_benf, # beneficiary
+                    { v3: [ *rc_dot_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: system.ExtrinsicFailed
+                      result: {
+                        dispatchError: {
+                          Module: {
+                            index: 99,
+                            error: '0x02000000' # xcmPallet.Filtered
+                          }
+                        }
+                      }
+
+      - name: polkadotXcm.limitedReserveTransferAssets (DOT) | AssetHub -> Relay Chain
+        its:
+          - name: Should NOT be able to reserve transfer native assets from the AssetsHub to the Relay Chain
+            actions:
+              - extrinsics:
+                - chain: *assets_parachain
+                  signer: *ap_signer
+                  pallet: polkadotXcm
+                  call: limitedReserveTransferAssets
+                  args: [
+                    *rc_dest, # destination
+                    *rc_benf, # beneficiary
+                    { v3: [ *ap_dot_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: polkadotXcm.Attempted
+                      # result: [{ Error: Barrier }]
+                      result: { outcome: { Error: Barrier } }
+
+      ################################################################################################
+      ############################ System Asset - AssetHub<>Parachain ################################
+      ################################################################################################
+      - name: polkadotXcm.limitedReserveTransferAssets (DOT) | AssetHub -> Parachain
+        its:
+          - name: AssetHub should be able to reserve transfer System Asset to Penpal Parachain
+            actions:
+              - extrinsics:
+                  - chain: *assets_parachain
+                    signer: *ap_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      *pp_dest, # destination
+                      { # beneficiary
+                        V3: {
+                          parents: 0,
+                          interior: {
+                            X1: {
+                              AccountId32: {
+                                id: *pp_acc
+                              }
+                            }
+                          }
+                        }
+                      },
+                      { # assets
+                        V3: [
+                          {
+                            id: {
+                              Concrete: *system_asset
+                            },
+                            fun: {
+                              Fungible: *amount_to_send
+                            }
+                          }
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      - name: polkadotXcm.Attempted
+                        threshold: *weight_threshold
+                        # result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
+                        result: { outcome: { Complete: { refTime: '631,531,000', proofSize: '7,186' }} }
+                      - name: balances.Transfer
+                        result: {
+                          from: *ap_wallet,
+                          to: *pp_sovereign_sibl,
+                          amount: *amount_to_send
+                        }
+                      - name: foreignAssets.Issued
+                        chain: *penpal_parachain
+                        result: {
+                          assetId: *system_asset,
+                        }
+
+      - name: polkadotXcm.limitedReserveTransferAssets (DOT) | Parachain -> AssetHub
+        its:
+          - name: Penpal Parachain should be able to reserve transfer back System Asset to AssetsHub
+            actions:
+              - extrinsics:
+                  - chain: *penpal_parachain
+                    signer: *pp_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      *pp_ap_dest, # destination
+                      { # beneficiary
+                        V3: {
+                          parents: 0,
+                          interior: {
+                            X1: {
+                              AccountId32: {
+                                id: *ap_acc
+                              }
+                            }
+                          }
+                        }
+                      },
+                      { # assets
+                        V3: [
+                          {
+                            id: {
+                              Concrete: *system_asset
+                            },
+                            fun: {
+                              Fungible: *amount_to_send_back
+                            }
+                          }
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      - name: polkadotXcm.Attempted
+                        # threshold: *weight_threshold
+                        # result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
+                        result: { outcome: { Complete: { } }}
+                      - name: foreignAssets.Burned
+                        result: {
+                          assetId: *system_asset,
+                          owner: *pp_wallet,
+                          balance: *amount_to_send_back}
+                      - name: balances.Withdraw
+                        chain: *assets_parachain
+                        result: {
+                          who: *pp_sovereign_sibl,
+                          amount: *amount_to_send_back
+                        }
+                      - name: balances.Deposit
+                        chain: *assets_parachain
+
+      ################################################################################################
+      ############################ Reservable Asset - AssetHub<>Parachain ############################
+      ################################################################################################
+      - name: polkadotXcm.limitedReserveTransferAssets (Asset) | AssetHub -> Penpal Parachain
+        before:
+          - name: DEPENDENCY | Some Assets should be minted for the sender
+            actions:
+              - extrinsics:
+                  - chain: *assets_parachain
+                    signer: *ap_signer
+                    pallet: assets
+                    call: mint
+                    args: [
+                      *reservable_asset_id,
+                      *ap_wallet,
+                      *mint_amount
+                    ]
+                    events:
+                      - name: assets.Issued
+                        result: { assetId: *reservable_asset_id, owner: *ap_wallet, amount: *mint_amount }
+
+        its:
+          - name: AssetsHub should be able to reserve transfer an Asset to Penpal Parachain
+            actions:
+              - extrinsics:
+                  - chain: *assets_parachain
+                    signer: *ap_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      *pp_dest, # destination
+                      { # beneficiary
+                        V3: {
+                          parents: 0,
+                          interior: {
+                            X1: {
+                              AccountId32: {
+                                id: *pp_acc
+                              }
+                            }
+                          }
+                        }
+                      },
+                      { # assets
+                        V3: [
+                          {
+                            id: {
+                              Concrete: {
+                                parents: 0,
+                                interior: {
+                                  X2: [
+                                    {
+                                      PalletInstance: *assets_pallet_id
+                                    },
+                                    {
+                                      GeneralIndex: *reservable_asset_id
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            fun: {
+                              Fungible: *amount_to_send
+                            }
+                          }
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      - name: polkadotXcm.Attempted
+                        threshold: *weight_threshold
+                        # result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
+                        result: { outcome: { Complete: { refTime: '631,531,000', proofSize: '7,186' }} }
+                      - name: assets.Transferred
+                        result: {
+                          assetId: *reservable_asset_id,
+                          from: *ap_wallet,
+                          to: *pp_sovereign_sibl,
+                          amount: *amount_to_send
+                        }
+                      - name: foreignAssets.Issued
+                        chain: *penpal_parachain
+                        result: {
+                          assetId: *pp_reservable_asset,
+                        }
+
+      - name: polkadotXcm.limitedReserveTransferAssets (Asset) | Penpal Parachain -> AssetHub
+        its:
+          - name: Penpal Parachain should be able to reserve transfer back an Asset to AssetHub
+            actions:
+              - extrinsics:
+                  - chain: *penpal_parachain
+                    signer: *pp_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      *pp_ap_dest, # destination
+                      { # beneficiary
+                        V3: {
+                          parents: 0,
+                          interior: {
+                            X1: {
+                              AccountId32: {
+                                id: *ap_acc
+                              }
+                            }
+                          }
+                        }
+                      },
+                      { # assets
+                        V3: [
+                          {
+                            id: {
+                              Concrete: *pp_reservable_asset
+                            },
+                            fun: {
+                              Fungible: *amount_to_send_back
+                            }
+                          }
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      - name: polkadotXcm.Attempted
+                        # threshold: *weight_threshold
+                        # result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
+                        result: { outcome: { Complete: { } }}
+                      - name: foreignAssets.Burned
+                        result: {
+                          assetId: *pp_reservable_asset,
+                          owner: *pp_wallet,
+                          balance: *amount_to_send_back}
+                      - name: assets.Burned
+                        chain: *assets_parachain
+                        result: {
+                          assetId: *reservable_asset_id,
+                          owner: *pp_sovereign_sibl,
+                          balance: *amount_to_send_back
+                        }
+                      - name: assets.Issued
+                        chain: *assets_parachain
+                        result: {
+                          assetId: *reservable_asset_id,
+                        }
+
+      ################################################################################################
+      ################### Reservable Asset - Parachain<>Relay Chain<>Parachain #######################
+      ################################################################################################
+      - name: polkadotXcm.limitedReserveTransferAssets (DOT) | Penpal -> Relay Chain -> Penpal
+        before:
+          - name: DEPENDENCY | Some System Assets derivatives should be minted for the sender
+            actions:
+              - extrinsics:
+                  - chain: *penpal_parachain
+                    signer: *pp_signer
+                    pallet: foreignAssets
+                    call: mint
+                    args: [
+                      *system_asset,
+                      *pp_wallet,
+                      *mint_amount
+                    ]
+                    events:
+                      - name: foreignAssets.Issued
+                        result: { assetId: *system_asset, owner: *pp_wallet, amount: *mint_amount }
+          - name: DEPENDENCY | Penpal Parachain Sovereign account in the Relay Chain needs to be funded
+            actions:
+              - extrinsics:
+                  - chain: *relay_chain
+                    signer: *rc_signer
+                    pallet: balances
+                    call: transferAllowDeath
+                    args: [
+                      *pp_sovereign_child, # destination
+                      *amount, # value
+                    ]
+                    events:
+                      - name: balances.Transfer
+        its:
+          - name: Penpal Parachain should be able to reserve transfer System Asset to another Parachain through the Relay Chain
+            actions:
+              - extrinsics:
+                  - chain: *penpal_parachain
+                    signer: *pp_signer
+                    pallet: polkadotXcm
+                    call: limitedReserveTransferAssets
+                    args: [
+                      *pp_pp_dest, # destination
+                      { # beneficiary
+                        V3: {
+                          parents: 0,
+                          interior: {
+                            X1: {
+                              AccountId32: {
+                                id: *ap_acc
+                              }
+                            }
+                          }
+                        }
+                      },
+                      { # assets
+                        V3: [
+                          {
+                            id: {
+                              Concrete: *system_asset
+                            },
+                            fun: {
+                              Fungible: *amount_to_send
+                            }
+                          }
+                        ]
+                      },
+                      0, # feeAssetItem
+                      Unlimited # weightLimit
+                    ]
+                    events:
+                      - name: polkadotXcm.Attempted
+                        # threshold: *weight_threshold
+                        # result: [{ Complete: { refTime: '679,150,000', proofSize: '6,196' }}]
+                        result: { outcome: { Complete: { } }}
+                      - name: foreignAssets.Burned
+                        result: {
+                          assetId: *system_asset,
+                          owner: *pp_wallet,
+                          balance: *amount_to_send
+                        }
+                      - name: parachainSystem.UpwardMessageSent
+                      - name: balances.Burned
+                        chain: *relay_chain
+                        result: {
+                          who: *pp_sovereign_child,
+                          amount: *amount_to_send
+                        }
+                      - name: balances.Minted
+                        chain: *relay_chain
+                        # result: {
+                        #   who: *pp_b_sovereign_child,
+                        # }
+                      # - name: assets.Burned
+                      #   chain: *relay_chain
+                      #   result: {
+                      #     assetId: *reservable_asset_id,
+                      #     owner: *pp_sovereign_sibl,
+                      #     balance: *amount_to_send_back
+                      #   }
+                      - name: messageQueue.Processed
+                        chain: *penpal_parachain_b
+                        result: {
+                          origin: Parent,
+                          success: true
+                        }
+                      - name: foreignAssets.Issued
+                        chain: *penpal_parachain_b
+                        result: {
+                          assetId: *system_asset,
+                          owner: *pp_wallet,
+                        }

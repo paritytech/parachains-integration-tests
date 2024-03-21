@@ -1,0 +1,54 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 8000
+  variables:
+    common:
+      require_weight_at_most: &weight_at_most {refTime: 1000000000, proofSize: 200000}
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+  runtimes:
+    relay_wasm:
+      path: ../../../bin/releases/runtimes/v1.2.0/polkadot_runtime.compact.compressed.wasm
+  decodedCalls:
+    relay_upgrade:
+      chain: *relay_chain
+      pallet: system
+      call: setCode
+      encode: false
+      args: [
+        $relay_wasm,
+      ]
+    utility_with_weight_relay_runtime_upgrade:
+      chain: *relay_chain
+      pallet: utility
+      call: withWeight
+      encode: false
+      args: [
+        $relay_upgrade,
+        *weight_at_most
+      ]
+
+tests:
+  - name: Runtime Upgrade
+    its:
+      - name: Relay Chain upgrade is properly executed
+        actions:
+          - extrinsics:
+            - chain: *relay_chain
+              sudo: true
+              signer: *rc_signer
+              pallet: utility
+              call: forceBatch
+              args: [
+                [
+                  $utility_with_weight_relay_runtime_upgrade
+                ]
+              ]
+              events:
+                - name: system.CodeUpdated
+          - block_travels: # travel some blocks just in case some migration events
+            - chain: *relay_chain
+              count: 20

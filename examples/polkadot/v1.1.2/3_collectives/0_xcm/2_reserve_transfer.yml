@@ -1,0 +1,136 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 8000
+    collectives_parachain: &collectives_parachain
+      wsPort: 8002
+      paraId: &cp_id 1001
+  variables:
+    chains:
+      relay_chain:
+        signer: &rc_signer //Alice
+        collectives_parachain_destination: &rc_ap_dest { v3: { parents: 0, interior: { x1: { parachain: *cp_id }}}}
+        collectives_parachain_account: &cp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
+        collectives_parachain_beneficiary: &cp_benf { v3: { parents: 0, interior: { x1: { accountId32: { id: *cp_acc }}}}}
+        dot: &rc_dot { concrete: { parents: 0, interior: { here: true }}}
+        amount: &amount 1000000000000
+        dot_fungible: &rc_dot_fungible { id: *rc_dot, fun: { fungible: *amount }}
+      collectives_parachain:
+        signer: &cp_signer //Alice
+        wallet: &cp_wallet 15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5
+        relay_chain_destination: &rc_dest { v3: { parents: 1, interior: { here: true }}}
+        assets_parachain_account: &rc_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d' #Alice
+        relay_chain_beneficiary: &rc_benf {v3: { parents: 0, interior: { x1: { accountId32: { id: *rc_acc }}}}}
+        dot: &cp_dot { concrete: { parents: 1, interior: { here: true }}}
+        dot_fungible: &cp_dot_fungible { id: *cp_dot, fun: { fungible: *amount }}
+
+tests:
+  # - name: Reserve assets from Relay Chain to Collectives Parachain fails
+  #   its:
+  #     - name: Reserve assets from Relay Chain to Collectives Parachain
+  #       actions:
+  #         - extrinsics:
+  #           - chain: *relay_chain
+  #             signer: *alice_signer
+  #             pallet: xcmPallet
+  #             call: limitedReserveTransferAssets
+  #             args: [
+  #               { v3: { 0, interior: { x1: { parachain: *cp_id }}}}, # destination
+  #               { v3: { parents: 0, interior: { x1: { accountId32: { id: *alice_acc32 }}}}}, # beneficiary
+  #               {
+  #                 v3: [
+  #                   {
+  #                     id: { concrete: { 0, interior: { here: true }}},
+  #                     fun: { fungible: 20000000000000 } # 20_000_000_000_000
+  #                   }
+  #                 ]
+  #               }, # assets
+  #               0, # feeAssetItem
+  #               { unlimited: true } # weightLimit
+  #             ]
+  #             events:
+  #               - name: xcmPallet.Attempted
+  #                 chain: *relay_chain
+  #                 result: { outcome: { Complete: {} }}
+  #               - name: dmpQueue.ExecutedDownward
+  #                 chain: *collectives_parachain
+  #                 result: { outcome: { Incomplete: [] }}
+  - name: Reserve Transfer
+    its: []
+    describes:
+      ################################################################################################
+      ########################### Native Asset - Relay Chain<>Collectives ##############################
+      ################################################################################################
+      - name: xcmPallet.limitedReserveTransferAssets (DOT) | Relay Chain -> Collectives
+        its:
+          - name: SHOULD NOT reserved transfer native assets from the Relay Chain to the Collectives
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *rc_signer
+                  pallet: xcmPallet
+                  call: limitedReserveTransferAssets
+                  args: [
+                    *rc_ap_dest, # destination
+                    *cp_benf, # beneficiary
+                    { v3: [ *rc_dot_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: system.ExtrinsicFailed
+                      result: {
+                        dispatchError: {
+                          Module: {
+                            index: 99,
+                            error: '0x02000000' # xcmPallet.Filtered
+                          }
+                        }
+                      }
+
+      - name: polkadotXcm.limitedReserveTransferAssets (DOT) | Collectives -> Relay Chain
+        its:
+          - name: Should NOT be able to reserve transfer native assets from the Collectives to the Relay Chain
+            actions:
+              - extrinsics:
+                - chain: *collectives_parachain
+                  signer: *cp_signer
+                  pallet: polkadotXcm
+                  call: limitedReserveTransferAssets
+                  args: [
+                    *rc_dest, # destination
+                    *rc_benf, # beneficiary
+                    { v3: [ *cp_dot_fungible ] }, # assets
+                    0, # feeAssetItem
+                    { unlimited: true } # weightLimit
+                  ]
+                  events:
+                    - name: polkadotXcm.Attempted
+                      # result: [{ Error: Barrier }]
+                      result: { outcome: { Error: Barrier } }
+
+      # Fails with the message - "RpcError: 1010: Invalid Transaction: Transaction would exhaust the block limits"
+      # Because of the u64::MAX weight set fot the extrinsic to disable it.
+      # The test tool does not allow to assert such a fail.
+
+      # - name: Reserve assets from Collectives Parachain to Relay Chain fails
+      #   actions:
+      #     - extrinsics:
+      #       - chain: *collectives_parachain
+      #         signer: *alice_signer
+      #         pallet: polkadotXcm
+      #         call: reserveTransferAssets
+      #         args: [
+      #           { v3: { parents: 1, interior: { here: true }}}, # destination
+      #           { v3: { parents: 0, interior: { x1: { accountId32: { id: *alice_acc32 }}}}}, # beneficiary
+      #           {
+      #             v3: [
+      #               {
+      #                 id: { concrete: { parents: 1, interior: { here: true }}},
+      #                 fun: { fungible: 10000000000000 } # 10_000_000_000_000
+      #               }
+      #             ]
+      #           }, # assets
+      #           0, # feeAssetItem
+      #         ]

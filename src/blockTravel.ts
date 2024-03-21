@@ -1,3 +1,5 @@
+const chai = require('chai');
+var should = require('chai').should();
 import { BlockTravel } from "./interfaces";
 import {
   addConsoleGroup,

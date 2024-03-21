@@ -10,6 +10,7 @@ import {
 import { itsBuilder } from './it';
 import { beforeAddConsoleGroups } from './before';
 import { getTestFiles } from './utils';
+import { runTests } from './run';
 
 export const describersBuilder = (description: Describe, testsPath: string) => {
   describe(`\n🏷️  ${description.name}`, async function () {
@@ -46,16 +47,18 @@ export const describersBuilder = (description: Describe, testsPath: string) => {
 
     if (description.path) {
       let absolutePath = resolve(testsPath, description.path);
-      let testsConfig: TestFile[] = getTestFiles(absolutePath);
-      let testConfig: TestFile;
+      // let testsConfig: TestFile[] = getTestFiles(absolutePath);
+      // let testConfig: TestFile;
 
-      for (testConfig of testsConfig) {
-        const { yaml } = testConfig;
+      // for (testConfig of testsConfig) {
+      //   const { yaml } = testConfig;
 
-        for (const test of yaml.tests) {
-          describersBuilder(test, dirname(absolutePath));
-        }
-      }
+      //   for (const test of yaml.tests) {
+      //     describersBuilder(test, dirname(absolutePath));
+      //   }
+      // }
+
+      runTests(absolutePath);
     }
 
     if (description.describes && description.describes.length > 0) {

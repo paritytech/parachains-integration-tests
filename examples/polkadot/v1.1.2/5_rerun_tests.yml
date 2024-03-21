@@ -1,0 +1,18 @@
+# ---
+settings: {}
+
+tests:
+  - name: Re-run AssetHub
+    path: ../v1.2.0/0_asset_hub
+  - name: Re-run Collectives Teleports
+    path: ../v1.2.0/1_collectives/0_xcm/0_teleports.yml
+  - name: Re-run Collectives Reserve Transfer
+    path: ../v1.1.2/3_collectives/0_xcm/2_reserve_transfer.yml
+  - name: Re-run Collectives Alliance
+    path: ../v1.2.0/1_collectives/1_alliance/0_kick_member.yml
+  - name: Re-run Collectives OpenGov
+    path: ../v1.1.2/3_collectives/2_opengov
+  - name: Re-run Collectives Fellowship Whitelist Call
+    path: ../v1.1.2/3_collectives/3_fellowship/1_whitelist_call.yml
+  - name: Re-run Collectives Fellowship AssetHub
+    path: ../v1.2.0/1_collectives/2_fellowship/0_assethub.yml

@@ -1,35 +1,159 @@
-# endpoint:
-#   - wss://rpc.polkadot.io
+endpoint: wss://rpc.polkadot.io
 #   - wss://polkadot-rpc.dwellir.com
 mock-signature-host: true
 block: ${env.POLKADOT_BLOCK_NUMBER}
-db: ./polkadot/db.sqlite
+db: ./db/polkadot/db.sqlite
 port: 8000
 runtime-log-level: 5
 # wasm-override: ./config/chopsticks/polkadot_runtime.compact.compressed.wasm
-genesis: ../parachains-integration-tests/config/chopsticks/polkadot/chain-spec-v1.0.0.json
+# genesis: ../parachains-integration-tests/config/chopsticks/polkadot/chain-spec-v1.0.0.json
 
-# import-storage:
-#   System:
-#     Account:
-#       -
-#         -
-#           - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
-#         - providers: 1
-#           data:
-#             free: '10000000000000000000'
-#       -
-#         -
-#           - 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty # Bob
-#         - providers: 1
-#           data:
-#             free: '10000000000000000000'
-#   Referenda:
-#     $removePrefix:
-#       - ReferendumInfoFor
-#       - ReferendumCount
-#   Scheduler:
-#     $removePrefix:
-#       - Agenda
-#   ParasDisputes:
-#     $removePrefix: ['disputes'] # those can makes block building super slow
+import-storage:
+# #   # Sudo:
+# #   #   Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
+  # Hrmp:
+  #   HrmpChannels:
+  #     [
+  #       [
+  #         [
+  #           {
+  #             sender: 1000,
+  #             recipient: 2000,
+  #           }
+  #         ],
+  #         {
+  #           maxCapacity: 8,
+  #           maxTotalSize: 8192,
+  #           maxMessageSize: 8192,
+  #           msgCount: 0,
+  #           totalSize: 0,
+  #           mqcHead: null,
+  #           senderDeposit: 0,
+  #           recipientDeposit: 0,
+  #         }
+  #       ],
+  #       [
+  #         [
+  #           {
+  #             sender: 2000,
+  #             recipient: 1000,
+  #           }
+  #         ],
+  #         {
+  #           maxCapacity: 8,
+  #           maxTotalSize: 8192,
+  #           maxMessageSize: 8192,
+  #           msgCount: 0,
+  #           totalSize: 0,
+  #           mqcHead: null,
+  #           senderDeposit: 0,
+  #           recipientDeposit: 0,
+  #         }
+  #       ]
+  #     ]
+  # Hrmp:
+  #   HrmpIngressChannelsIndex: [
+  #     [[1000], [2000]]
+  #   ]
+  #   HrmpEgressChannelsIndex: [
+  #     [[1000], [2000]],
+  #     [[2000], [1000]]
+  #   ]
+  Paras:
+    ParaLifecycles:
+      [
+        [
+          [
+            1000
+          ],
+          Parachain
+        ],
+        [
+          [
+            2000
+          ],
+          Parachain
+        ],
+        [
+          [
+            2001
+          ],
+          Parachain
+        ]
+      ]
+  System:
+    Account:
+      -
+        -
+          - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
+        - providers: 1
+          data:
+            free: '10000000000000000000'
+      -
+        -
+          - 14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3 # Bob
+        - providers: 1
+          data:
+            free: '10000000000000000000'
+      -
+        -
+          - F3opxRbN5ZcGCL9nNgBRwNtmbuy3Z7fxADRPaVNrriP5Man # CheckAccount
+        - providers: 1
+          data:
+            free: 1000000000000000
+  Configuration:
+    ActiveConfig:
+      maxCodeSize: 3145728
+      maxHeadDataSize: 20480
+      maxUpwardQueueCount: 699050
+      maxUpwardQueueSize: 4194304
+      maxUpwardMessageSize: 65531
+      maxUpwardMessageNumPerCandidate: 128
+      hrmpMaxMessageNumPerCandidate: 10
+      validationUpgradeCooldown: 3600
+      validationUpgradeDelay: 10
+      asyncBackingParams:
+        maxCandidateDepth: 0
+        allowedAncestryLen: 0
+      maxPovSize: 5242880
+      maxDownwardMessageSize: 51200
+      hrmpMaxParachainOutboundChannels: 30
+      hrmpSenderDeposit: 5000000000000
+      hrmpRecipientDeposit: 5000000000000
+      hrmpChannelMaxCapacity: 1000
+      hrmpChannelMaxTotalSize: 102400
+      hrmpMaxParachainInboundChannels: 30
+      hrmpChannelMaxMessageSize: 102400
+      executorParams: [
+          MaxMemoryPages: 8192
+      ]
+      codeRetentionPeriod: 28800
+      onDemandCores: 0
+      onDemandRetries: 0
+      onDemandQueueMaxSize: 500
+      onDemandTargetQueueUtilization: 25
+      onDemandFeeVariability: 3
+      onDemandBaseFee: 10000000
+      onDemandTtl: 5
+      groupRotationFrequency: 10
+      parasAvailabilityPeriod: 10
+      schedulingLookahead: 1
+      maxValidatorsPerCore: 3
+      maxValidators: 300
+      disputePeriod: 6
+      disputePostConclusionAcceptancePeriod: 600
+      noShowSlots: 3
+      nDelayTranches: 89
+      zerothDelayTrancheWidth: 0
+      neededApprovals: 30
+      relayVrfModuloSamples: 6
+      pvfVotingTtl: 2
+      minimumValidationUpgradeDelay: 10
+      minimumBackingVotes: 2
+  Referenda:
+    $removePrefix:
+      - decidingCount
+      - metadataOf
+      - referendumCount
+      - referendumInfoFor
+      - trackQueue

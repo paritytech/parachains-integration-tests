@@ -28,34 +28,36 @@ chain_spec_command = "./bin/releases/runtimes/v1001000/chain-spec-generator {% r
 [[parachains]]
 id = 1000
 chain = "asset-hub-kusama-local"
-chain_spec_command = "./bin/releases/runtimes/v1001000/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+# chain = "asset-hub-rococo-local"
+chain_spec_command = "./bin/releases/runtimes/v1.1.2/chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+# chain_spec_command = "./bin/releases/nodes/last-master/polkadot-parachain"
 cumulus_based = true
 
     [[parachains.collators]]
     name = "collator1"
     ws_port = 8001
-    command = "./bin/releases/nodes/v1.5.0/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0" ]
+    command = "./bin/releases/nodes/last-master/polkadot-parachain"
+    args = [ "-lxcm=trace", "-lruntime=trace", "--state-cache-size=0" ]
 
     [[parachains.collators]]
     name = "collator2"
-    command = "./bin/releases/nodes/v1.5.0/polkadot-parachain"
-    args = [ "-lxcm=trace", "--state-cache-size=0"]
+    command = "./bin/releases/nodes/last-master/polkadot-parachain"
+    args = [ "-lxcm=trace", "-lruntime=trace", "--state-cache-size=0"]
 
 [[parachains]]
 id = 2000
-chain = "glutton-westend-local-2000"
+chain = "penpal-rococo-2000"
 cumulus_based = true
 
     [[parachains.collators]]
     name = "collator3"
     ws_port = 8003
-    command = "./bin/releases/nodes/v1.5.0/polkadot-parachain"
+    command = "./bin/releases/nodes/master/polkadot-parachain"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
     [[parachains.collators]]
     name = "collator4"
-    command = "./bin/releases/nodes/v1.5.0/polkadot-parachain"
+    command = "./bin/releases/nodes/master/polkadot-parachain"
     args = [ "-lxcm=trace", "--state-cache-size=0"]
 
 # [[hrmp_channels]]

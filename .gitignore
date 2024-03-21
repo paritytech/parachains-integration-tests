@@ -5,6 +5,7 @@ node_modules
 !/bin/README.md
 /logs
 /*.json
+/db
 *.log
 ._*
 .DS_Store

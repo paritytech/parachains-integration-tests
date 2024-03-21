@@ -1,0 +1,188 @@
+---
+settings:
+  chains:
+    relay_chain: &relay_chain
+      wsPort: 8000
+    assethub_parachain: &assethub_parachain
+      wsPort: 8001
+      paraId: &ap_id 1000
+  variables:
+    common:
+      require_weight_at_most: &weight_at_most {refTime: 100000000000, proofSize: 200000 }
+    proposal_index: &proposal_index 0
+    voting_amount: &voting_amount 200000000000000
+    chains:
+      accounts:
+        alice_ss58: &acc_alice_ss58 15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5
+        alice_signer: &alice_signer //Alice
+        bob_ss58: &acc_bob_ss58 14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3
+        bob_signer: &bob_signer //Bob
+  decodedCalls:
+    set_candidates_ap:
+      chain: *assethub_parachain
+      encode: true
+      pallet: collatorSelection
+      call: setDesiredCandidates
+      args: [
+        3
+      ]
+    send_set_candidates_rc:
+      chain: *relay_chain
+      encode: false
+      pallet: xcmPallet
+      call: send
+      args: [
+        { v3: { parents: 0, interior: { x1: { parachain: *ap_id }}}}, # destination
+        {
+          v3: [ #message
+            {
+              UnpaidExecution: {
+                weightLimit: Unlimited
+              }
+            },
+            {
+              Transact: {
+                originKind: Xcm,
+                requireWeightAtMost: *weight_at_most,
+                call: $set_candidates_ap
+              }
+            }
+          ]
+        }
+      ]
+tests:
+  - name: OpenGov
+    describes:
+      - name: Set desired candidates on AssetHub from Relay Chain OpenGov Staking track
+        before:
+          - name: Get the current proposal index
+            actions:
+              - queries:
+                  proposal_index:
+                    chain: *relay_chain
+                    pallet: referenda
+                    call: referendumCount
+                    args: []
+        after:
+          - name: Unnote the preimage
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: preimage
+                  call: unnotePreimage
+                  args: [
+                    $send_set_candidates_rc.hash
+                  ]
+                  events:
+                    - name: preimage.Cleared
+                      result: { hash_: $send_set_candidates_rc.hash }
+        its:
+          - name: Note preimage from xcm send set_desired_candidates call
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: preimage
+                  call: notePreimage
+                  args: [
+                    $send_set_candidates_rc
+                  ]
+                  events:
+                    - name: preimage.Noted
+                      result: { hash_: $send_set_candidates_rc.hash }
+          - name: Submit a proposal to set desired candidates
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: referenda
+                  call: submit
+                  args: [
+                    {
+                      Origins: StakingAdmin,
+                    },
+                    {
+                      Lookup: {
+                        hash_: $send_set_candidates_rc.hash,
+                        len: $send_set_candidates_rc.len,
+                      },
+                    },
+                    {
+                      After: 1,
+                    },
+                  ]
+                  events:
+                    - name: referenda.Submitted
+                      result: {
+                        index: $proposal_index,
+                        proposal: { Lookup: { hash_: $send_set_candidates_rc.hash, len: $send_set_candidates_rc.len }}
+                      }
+              # - block_travels:
+              #   - chain: *relay_chain
+              #     count: 5 # to move the referendum from preparing to ongoing
+          - name: Alice Vote Aye
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: convictionVoting
+                  call: vote
+                  args: [
+                    $proposal_index,
+                    {
+                      Standard: {
+                        vote: {
+                          aye: true,
+                          conviction: Locked1x,
+                        },
+                        balance: *voting_amount,
+                      }
+                    },
+                  ]
+                  # events:
+                  #   - name: balances.Locked
+                  #     result: { who: *acc_alice_ss58, amount: *voting_amount }
+          - name: Bob Vote Aye
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *bob_signer
+                  pallet: convictionVoting
+                  call: vote
+                  args: [
+                    $proposal_index,
+                    {
+                      Standard: {
+                        vote: {
+                          aye: true,
+                          conviction: Locked1x,
+                        },
+                        balance: *voting_amount,
+                      }
+                    },
+                  ]
+                  # events:
+                  #   - name: balances.Locked
+                  #     result: { who: *acc_bob_ss58, amount: *voting_amount }
+          - name: Submit the decision deposit
+            actions:
+              - extrinsics:
+                - chain: *relay_chain
+                  signer: *alice_signer
+                  pallet: referenda
+                  call: placeDecisionDeposit
+                  delay: 5000 # Needed to add a delay because Choptsticks somehow is not able to trigger the event otherwise
+                  args: [
+                    $proposal_index,
+                  ]
+                  events:
+                    - name: referenda.DecisionDepositPlaced
+                      result: { index: $proposal_index, who: *acc_alice_ss58 }
+              - block_travels:
+                - chain: *relay_chain
+                  count: 5 # decision_period
+                  events:
+                    - name: collatorSelection.NewDesiredCandidates
+                      chain: *assethub_parachain
+                      result: { desiredCandidates: 3 }

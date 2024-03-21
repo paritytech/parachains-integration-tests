@@ -1,0 +1,10 @@
+---
+settings: {}
+
+tests:
+  - name: Re-run Teleports
+    path: ../v1.2.0/2_teleports.yml
+  - name: Re-run Reserve Transfer Asset
+    path: ../v1.2.0/3_reserve_transfer.yml
+  - name: Re-run Send
+    path: ../v1.2.0/4_send.yml
