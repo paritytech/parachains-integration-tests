@@ -1,45 +1,10 @@
-# endpoint: wss://statemint-rpc.dwellir.com
 mock-signature-host: true
-# block: ${env.STATEMINT_BLOCK_NUMBER}
 db: ./db/asset-hub-polkadot/db.sqlite
 port: 8001
 runtime-log-level: 5
 genesis: ../parachains-integration-tests/config/chopsticks/asset-hub-polkadot/chain-spec-v1.1.2.json
 
 import-storage:
-  # ParachainSystem:
-  #   RelevantMessagingState:
-  #     dmqMqcHead: '0x0000000000000000000000000000000000000000000000000000000000000000'
-  #     relayDispatchQueueRemainingCapacity:
-  #       remainingCount: 8
-  #       remainingSize: 1048576
-  #     ingressChannels: [
-  #       [
-  #         2000,
-  #         {
-  #           maxCapacity: 1000,
-  #           maxTotalSize: 102400,
-  #           maxMessageSize: 102400,
-  #           msgCount: 0,
-  #           totalSize: 0,
-  #           mqcHead: null
-  #         }
-  #       ]
-  #     ]
-  #     egressChannels: [
-  #       [
-  #         2000,
-  #         {
-  #           maxCapacity: 1000,
-  #           maxTotalSize: 102400,
-  #           maxMessageSize: 102400,
-  #           msgCount: 0,
-  #           totalSize: 0,
-  #           mqcHead: null
-  #         }
-  #       ]
-  #     ]
-
   System:
     Account:
       -
@@ -53,13 +18,3 @@ import-storage:
         - providers: 1
           data:
             free: 1000000000000000000000000000000
-#       -
-#         -
-#           - FoQJpPyadYccjavVdTWxpxU7rUEaYhfLCPwXgkfD6Zat9QP
-#         - providers: 1
-#           data:
-#             # free: 39975697797
-#             free: 3975697797
-  # Assets:
-  #   Account:
-  #     - [[1984, 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY], { balance: 1000000000 }]

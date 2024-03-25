@@ -10,41 +10,19 @@ settings:
       wsPort: 8003
       paraId: &pp_id 2000
   variables:
-    common:
-      require_weight_at_most: &weight_at_most {refTime: 1200000000, proofSize: 20000}
-      weight_threshold:  &weight_threshold { refTime: [30, 30], proofSize: [30, 30] }
     chains:
       relay_chain:
         signer: &rc_signer //Alice
-        wallet: &rc_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         assets_parachain_destination: &rc_ap_dest { v3: { parents: 0, interior: { x1: { parachain: *ap_id }}}}
-        assets_parachain_account: &ap_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
-        assets_parachain_beneficiary: &ap_benf { v3: { parents: 0, interior: { x1: { accountId32: { id: *ap_acc }}}}}
-        dot: &rc_dot { concrete: { parents: 0, interior: { here: true }}}
         amount_to_fund: &amount_to_fund 100000000000000
-        # amount_to_semd: &amount 1000000000
-        # dot_fungible: &rc_dot_fungible { id: *rc_dot, fun: { fungible: *amount_to_send }}
         require_weight_at_most: &rc_weight_at_most { refTime: 10000000000, proofSize: 20000 }
-        assets_parachain_dest_routed: &ap_dest_routed { v3: { parents: 1, interior: { x1: { parachain: *ap_id } }}}
       assets_parachain:
         signer: &ap_signer //Alice
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         asset_id: &asset_id 6
         assets_parachain_destination: &pp_ap_dest { v3: { parents: 1, interior: { x1: { parachain: *ap_id }}}}
-        asset_min_balance: &asset_ed 1000
-        assets_pallet_id: &assets_pallet_id 50
         reservable_asset_id: &reservable_asset_id 1
         amount: &amount 10000000000000
-        # reservable_asset_location: &reservable_asset_location {
-        #   parents: 1,
-        #   interior: {
-        #     X3: [
-        #       {Parachain: *ap_id},
-        #       {PalletInstance: 50},
-        #       {GeneralIndex: *pp_reservable_asset_id}
-        #     ]
-        #   }
-        # }
         reservable_asset: &reservable_asset {
           concrete: {
             parents: 0,
@@ -57,22 +35,7 @@ settings:
             }
           }
         }
-        reservable_asset_bis: &reservable_asset_bis {
-          concrete: {
-            parents: 1,
-            interior: {
-              X2: {
-                # {Parachain: *ap_id},
-                PalletInstance: 50,
-                GeneralIndex: *reservable_asset_id
-              }
-            }
-          }
-        }
         reservable_fungible: &reservable_asset_fungible { id: *reservable_asset, fun: { fungible: *amount }}
-        suff_asset: &suff_asset { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: *asset_id } ] }}}
-        suff_asset_fail: &suff_asset_fail { concrete: { parents: 0, interior: { x2: [ { PalletInstance: *assets_pallet_id }, { GeneralIndex: 3 } ] }}}
-        suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: 200000000000 }}
         foreign_asset: &ap_foreign_asset {
           parents: 1,
           interior: {
@@ -84,7 +47,6 @@ settings:
           }
         }
         dot: &ap_dot { concrete: { parents: 1, interior: { here: true }}}
-        # amount: &amount 1000000000000
         amount_to_send: &amount_to_send 1000000000000
         dot_fungible: &ap_dot_fungible { id: *ap_dot, fun: { fungible: *amount_to_send }}
 
@@ -109,10 +71,8 @@ settings:
       args: [
         *asset_id,
         { Id: *pp_sovereign_sibl }, # owner
-        # true, # isSufficient
         1000000000 # minBalance
       ]
-
 
 tests:
   - name: Send

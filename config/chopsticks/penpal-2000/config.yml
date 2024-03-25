@@ -1,9 +1,5 @@
-# endpoint: wss://statemine-rpc.dwellir.com
 mock-signature-host: true
-# block: ${env.STATEMINE_BLOCK_NUMBER}
 db: ./db/penpal-2000/db.sqlite
 port: 8003
 runtime-log-level: 5
-# allow-unresolved-functions: true
 genesis: ../parachains-integration-tests/config/chopsticks/penpal-2000/penpal-no-host-2000.json
-# genesis: ../parachains-integration-tests/config/chopsticks/penpal/chain-spec-penpal-2000.json

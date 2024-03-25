@@ -1,64 +1,11 @@
 endpoint: wss://rpc.polkadot.io
-#   - wss://polkadot-rpc.dwellir.com
 mock-signature-host: true
 block: ${env.POLKADOT_BLOCK_NUMBER}
 db: ./db/polkadot/db.sqlite
 port: 8000
 runtime-log-level: 5
-# wasm-override: ./config/chopsticks/polkadot_runtime.compact.compressed.wasm
-# genesis: ../parachains-integration-tests/config/chopsticks/polkadot/chain-spec-v1.0.0.json
 
 import-storage:
-# #   # Sudo:
-# #   #   Key: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY # Alice
-  # Hrmp:
-  #   HrmpChannels:
-  #     [
-  #       [
-  #         [
-  #           {
-  #             sender: 1000,
-  #             recipient: 2000,
-  #           }
-  #         ],
-  #         {
-  #           maxCapacity: 8,
-  #           maxTotalSize: 8192,
-  #           maxMessageSize: 8192,
-  #           msgCount: 0,
-  #           totalSize: 0,
-  #           mqcHead: null,
-  #           senderDeposit: 0,
-  #           recipientDeposit: 0,
-  #         }
-  #       ],
-  #       [
-  #         [
-  #           {
-  #             sender: 2000,
-  #             recipient: 1000,
-  #           }
-  #         ],
-  #         {
-  #           maxCapacity: 8,
-  #           maxTotalSize: 8192,
-  #           maxMessageSize: 8192,
-  #           msgCount: 0,
-  #           totalSize: 0,
-  #           mqcHead: null,
-  #           senderDeposit: 0,
-  #           recipientDeposit: 0,
-  #         }
-  #       ]
-  #     ]
-  # Hrmp:
-  #   HrmpIngressChannelsIndex: [
-  #     [[1000], [2000]]
-  #   ]
-  #   HrmpEgressChannelsIndex: [
-  #     [[1000], [2000]],
-  #     [[2000], [1000]]
-  #   ]
   Paras:
     ParaLifecycles:
       [
