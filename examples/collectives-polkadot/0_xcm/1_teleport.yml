@@ -8,7 +8,8 @@ settings:
       paraId: &cp_id 1001
   variables:
     accounts:
-      alice_signer: &acc_alice_signer //Alice
+      alice_signer: &acc_alice_signer
+        uri: //Alice
       alice_account32: &acc_alice_acc32 '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
       alice_ss58: &acc_alice_ss58 '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5'
 

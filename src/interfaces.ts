@@ -1,3 +1,5 @@
+import { KeypairType } from '@polkadot/util-crypto/types';
+
 export interface TestFile {
   name: string;
   dir: string;
@@ -55,6 +57,11 @@ export interface Rpc {
   events?: Event[];
 }
 
+export interface Signer {
+  uri: string;
+  pair?: KeypairType;
+}
+
 export interface Call {
   encode?: boolean; // Indicates if the Call should be encoded
   chain: Chain;
@@ -65,7 +72,7 @@ export interface Call {
 }
 
 export interface Extrinsic extends Call {
-  signer: string;
+  signer: Signer;
   delay?: number;
   events: Event[];
 }
