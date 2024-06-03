@@ -20,11 +20,13 @@ settings:
       weight_threshold:  &weight_threshold { refTime: [30, 30], proofSize: [30, 30] }
     chains:
       relay_chain:
-        signer: &rc_signer //Alice
+        signer: &rc_signer
+          uri: //Alice
         assets_parachain_destination: &ap_dest { v3: { 0, interior: { x1: { parachain: *ap_id }}}}
         assets_parachain_dest_routed: &ap_dest_routed { v3: { parents: 1, interior: { x1: { parachain: *ap_id } }}}
       assets_parachain_account:
-        signer: &ap_signer //Alice
+        signer: &ap_signer
+          uri: //Alice
         wallet: &ap_wallet HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F
         asset_id: &asset_id 2
         assets_pallet_id: &assets_pallet_id 50
@@ -37,7 +39,8 @@ settings:
         suff_asset_fungible_fail: &ap_suff_asset_fungible_fail { id: *suff_asset_fail, fun: { fungible: 200000000000 }}
       penpal_parachain:
         sovereign_account: &pp_sovereign_sibl FBeL7EAeUroLWXW1yfKboiqTqVfbRBcsUKd6QqVf4kGBySS
-        signer: &pp_signer //Alice
+        signer: &pp_signer
+          uri: //Alice
         penpal_parachain_account: &pp_acc '0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d'
   decodedCalls:
     force_create_asset:

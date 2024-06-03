@@ -11,7 +11,8 @@ settings:
       amount_to_send: &amount_to_send 1000000000000000
     chains:
       relay_chain:
-        alice_signer: &relay_chain_signer //Alice
+        alice_signer: &relay_chain_signer
+          uri: //Alice
         alice_account: &relay_chain_account 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
       reserve_parachain:
         bob_account: &reserve_parachain_account '0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48'

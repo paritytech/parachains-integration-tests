@@ -158,6 +158,16 @@ export const INTERFACE: { [key: string]: Interface } = {
     type: 'boolean',
   },
   signer: {
+    instance: YAMLMap,
+    attributes: {
+      uri: true,
+      pair: false
+    }
+  },
+  uri: {
+    type: 'string',
+  },
+  pair: {
     type: 'string',
   },
   delay: {

@@ -340,7 +340,8 @@ settings:
     common:
       require_weight_at_most: &weight_at_most 1000000000
     relay_chain:
-      signer: &signer //Alice
+      signer: &signer 
+        uri: //Alice
       parachain_destination: &dest { v1: { 0, interior: { x1: { parachain: *id }}}}
       my_variable: &my_variable 0x0011
 

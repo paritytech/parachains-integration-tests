@@ -1,3 +1,4 @@
+import type { KeypairType } from '@polkadot/util-crypto/types';
 import YAML from 'yaml';
 import { parseDocument } from 'yaml';
 import glob from 'glob';
@@ -7,7 +8,7 @@ import { resolve, dirname } from 'path';
 import { u8aToHex, compactAddLength, compactStripLength } from '@polkadot/util';
 import { Keyring } from '@polkadot/api';
 import { cryptoWaitReady, decodeAddress } from '@polkadot/util-crypto';
-import { Extrinsic, TestFile, PaymentInfo, Range } from './interfaces';
+import { Extrinsic, TestFile, PaymentInfo, Range, Signer } from './interfaces';
 import { KeyringPair } from '@polkadot/keyring/types';
 
 export const getTestFiles = (path): TestFile[] => {
@@ -118,21 +119,13 @@ export const getPaymentInfoForExtrinsic = async (
 };
 
 export const getWallet = async (
-  uri: string
-): Promise<
-  | KeyringPair
-  | {
-      address: any;
-      addressRaw: Uint8Array;
-    }
-> => {
-  if (uri.substring(0, 2) === '//') {
-    await cryptoWaitReady();
-    const keyring = new Keyring({ type: 'sr25519' });
-    return keyring.addFromUri(uri);
-  } else {
-    return { address: uri, addressRaw: decodeAddress(uri) };
-  }
+  signer: Signer,
+): Promise<KeyringPair> => {
+  const { uri, pair = 'sr25519' } = signer;
+
+  await cryptoWaitReady();
+  const keyring = new Keyring({ type: pair });
+  return keyring.addFromUri(uri);
 };
 
 export const parseArgs = (context, args): any[] => {
